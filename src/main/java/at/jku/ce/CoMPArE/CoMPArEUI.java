@@ -136,7 +136,7 @@ public class CoMPArEUI extends UI {
 
         Label availableMessageList = new Label("");
         Label processMessageLabel = new Label("");
-        Label expectedMessageLabel = new Label("<small>The following messages are expected of you,<br> but are not currently provided:</small>", ContentMode.HTML);
+        Label expectedMessageLabel = new Label("<small>The following messages are expected from"+s+", but are not currently provided:</small>", ContentMode.HTML);
         final ComboBox expectedMessageSelector = new ComboBox("please select:");
         Button expectedMessageSend = new Button("Send");
 
@@ -165,6 +165,16 @@ public class CoMPArEUI extends UI {
                 updateUI(instance);
             });
         }
+
+        StringBuffer providedMessages = new StringBuffer();
+        if (s.getProvidedMessages().size()>0) {
+            providedMessages.append("<small>The following messages are provided to "+s+" but are not currently used:<ul>");
+            for (Message m: s.getProvidedMessages()) {
+                providedMessages.append("<li>"+m+"</li>");
+            }
+            providedMessages.append("</ul></small>");
+        }
+        Label providedMessagesLabel = new Label(providedMessages.toString(),ContentMode.HTML);
 
         State currentState = instance.getAvailableStateForSubject(s);
         if (currentState != null) {
@@ -199,7 +209,7 @@ public class CoMPArEUI extends UI {
         }
         else {
             Label label1 = new Label("nothing to do");
-            if (!(s.toString().equals("Unknown Source"))) panelContent.addComponent(label1);
+            if (!(s.toString().equals(Subject.ANONYMOUS))) panelContent.addComponent(label1);
         }
 
         Button perform = new Button("Perform step");
@@ -211,7 +221,7 @@ public class CoMPArEUI extends UI {
             updateUI(instance);
         });
 
-        Button elaborate = new Button("I have a problem here.");
+        Button elaborate = new Button("I have a problem here");
         elaborate.addClickListener( e -> {
             perform.setEnabled(false);
             elaborate.setEnabled(false);
@@ -236,16 +246,19 @@ public class CoMPArEUI extends UI {
             openElaborationOverlay(s, instance, ElaborationUI.ADDITIONALSTEP);
         });
 
-        if (!(s.toString().equals("Unknown Source"))) panelContent.addComponent(perform);
+        if (!(s.toString().equals(Subject.ANONYMOUS))) panelContent.addComponent(perform);
         if (instance.subjectCanProgress(s)) panelContent.addComponent(elaborate);
         if (!availableMessages.isEmpty()) panelContent.addComponent(availableMessageList);
         if (!processMessageLabel.getValue().equals("")) panelContent.addComponent(processMessageLabel);
         if (s.getExpectedMessages().size()>0) {
             panelContent.addComponents(expectedMessageLabel, expectedMessageSelector, expectedMessageSend);
         }
-        if (s.getFirstState() == null) panelContent.addComponent(addInitialStep);
+        if (s.getProvidedMessages().size()>0) {
+            panelContent.addComponent(providedMessagesLabel);
+        }
+        if (s.getFirstState() == null && !s.toString().equals(Subject.ANONYMOUS)) panelContent.addComponent(addInitialStep);
         if (instance.subjectFinished(s) && s.getFirstState() != null) panelContent.addComponent(addAdditionStep);
-        panelContent.addComponent(visualize);
+        if (!s.toString().equals(Subject.ANONYMOUS)) panelContent.addComponent(visualize);
     }
 
     private void openElaborationOverlay(Subject s, Instance instance, int mode) {

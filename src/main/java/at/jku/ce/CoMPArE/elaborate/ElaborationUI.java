@@ -63,19 +63,25 @@ public class ElaborationUI extends Window {
         final String option3 = new String("It's too vague to be performed.");
         final String option4 = new String("It's incorrect.");
 
+        Button confirm = new Button("Next");
+        confirm.setEnabled(false);
 
         answerOptions.addItem(option1);
         answerOptions.addItem(option2);
         answerOptions.addItem(option3);
         answerOptions.addItem(option4);
+        answerOptions.addValueChangeListener( e -> {
+            confirm.setEnabled(true);
+        });
 
-        Button confirm = new Button("Next");
         confirm.addClickListener( e -> {
             String selection = (String) answerOptions.getValue();
-            if (selection.equals(option1)) cantBeDone(subject,instance);
-            if (selection.equals(option2)) somethingElseInstead(subject,instance);
-            if (selection.equals(option3)) tooVague(subject,instance);
-            if (selection.equals(option4)) removeIncorrectState(subject,instance);
+            if (selection != null) {
+                if (selection.equals(option1)) cantBeDone(subject, instance);
+                if (selection.equals(option2)) somethingElseInstead(subject, instance);
+                if (selection.equals(option3)) tooVague(subject, instance);
+                if (selection.equals(option4)) removeIncorrectState(subject, instance);
+            }
         });
 
         fLayout.removeAllComponents();
@@ -91,6 +97,12 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What would be the first activity you need to do when refining \""+ state + "\"?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
 
         newMessage.addValueChangeListener( e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
@@ -130,8 +142,10 @@ public class ElaborationUI extends Window {
         answerOptions.addItem(option2);
 
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
 
         answerOptions.addValueChangeListener( e -> {
+            confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == option2) confirm.setCaption("Next");
             else confirm.setCaption("Done");
@@ -160,6 +174,12 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What is the new activity?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
 
         final Button selectFromExisting = new Button ("Let me choose from existing steps");
         selectFromExisting.addClickListener( e -> {
@@ -218,10 +238,15 @@ public class ElaborationUI extends Window {
 
         final Label questionPrompt = new Label("\""+state+"\" can't be done at the moment.");
         Button confirm = new Button("Next");
+        confirm.setEnabled(false);
 
         final OptionGroup answerOptions = new OptionGroup("Why?");
         final String option1 = new String("I need to do something else first.");
         final String option2 = new String("I need more input to be able to do this activity.");
+
+        answerOptions.addValueChangeListener( e -> {
+            confirm.setEnabled(true);
+        });
 
         answerOptions.addItem(option1);
         answerOptions.addItem(option2);
@@ -244,6 +269,12 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What do you want to do?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
 
         newMessage.addValueChangeListener( e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
@@ -251,13 +282,27 @@ public class ElaborationUI extends Window {
             else confirm.setCaption("Done");
         });
 
+        final OptionGroup availableProvidedMessages = new OptionGroup("There is input available, on which you might want to react:");
+        for (Message m : subject.getProvidedMessages()) {
+            availableProvidedMessages.addItem(m);
+        }
+        final String optionNoInput = new String("I don't want to react on any input.");
+        availableProvidedMessages.addItem(optionNoInput);
+        availableProvidedMessages.setValue(optionNoInput);
+
         confirm.addClickListener( e -> {
             LogHelper.logInfo("Elaboration: inserting new initial step "+inputField.getValue()+" into "+subject);
             State newState = insertNewActionState(inputField.getValue(),subject,instance,true);
+            if (availableProvidedMessages.getValue() instanceof Message) {
+                Message m = (Message)availableProvidedMessages.getValue();
+                insertNewReceiveState(m,subject,instance,true);
+                subject.removeProvidedMessage(m);
+            }
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
             }
             else {
+                instance.getAvailableStates().replace(subject, newState);
                 resultsProvidedToOthers(newState,subject,instance);
             }
         });
@@ -266,6 +311,7 @@ public class ElaborationUI extends Window {
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(inputField);
         fLayout.addComponent(newMessage);
+        if (!subject.getProvidedMessages().isEmpty()) fLayout.addComponent(availableProvidedMessages);
         fLayout.addComponent(confirm);
 
     }
@@ -276,6 +322,12 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What do you want to do?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
 
         final Button selectFromExisting = new Button ("Let me choose from existing steps");
         selectFromExisting.addClickListener( e -> {
@@ -336,6 +388,12 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What do you need to do?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
 
         newMessage.addValueChangeListener( e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
@@ -366,8 +424,24 @@ public class ElaborationUI extends Window {
         final Label questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
         final TextField inputField = new TextField("What can you provide to others?");
         final OptionGroup infoTarget = new OptionGroup("Whom do you provide it to?");
+        Button confirm = new Button("Done");
+
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (infoTarget.getValue() != null) {
+                if (inputField.getValue().equals("")) confirm.setEnabled(false);
+                else confirm.setEnabled(true);
+            }
+        });
 
         final OptionGroup availableExpectedMessages = new OptionGroup("There are some expected results, which you currently do not provide:");
+
+        if (subject.getExpectedMessages().size() != 0) {
+            inputField.setVisible(false);
+            infoTarget.setVisible(false);
+        }
+
         for (Message m : subject.getExpectedMessages()) {
             availableExpectedMessages.addItem(m);
         }
@@ -377,13 +451,14 @@ public class ElaborationUI extends Window {
         availableExpectedMessages.addValueChangeListener( e -> {
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSpecifyMyself) {
-                inputField.setEnabled(true);
+                inputField.setVisible(true);
                 infoTarget.setVisible(true);
+                if (inputField.getValue().equals("")) confirm.setEnabled(false);
             }
             else {
-                inputField.setEnabled(false);
+                inputField.setVisible(false);
                 infoTarget.setVisible(false);
-
+                confirm.setEnabled(true);
             }
         });
 
@@ -394,9 +469,8 @@ public class ElaborationUI extends Window {
         infoTarget.addItem(optionSomebodyElse);
         infoTarget.addItem(optionDontKnow);
 
-        Button confirm = new Button("Done");
-
         infoTarget.addValueChangeListener( e -> {
+            if ((!subject.getExpectedMessages().isEmpty() && availableExpectedMessages.getValue()!=optionSpecifyMyself) || !inputField.getValue().equals("")) confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSomebodyElse) confirm.setCaption("Next");
             else confirm.setCaption("Done");
@@ -492,11 +566,22 @@ public class ElaborationUI extends Window {
         State state = instance.getAvailableStateForSubject(subject);
 
         final Button confirm = new Button("Done");
+        confirm.setEnabled(false);
         final Label questionPrompt = new Label("I need more input to do \"" + state + "\".");
         final OptionGroup infoSource = new OptionGroup("Where could you get it from?");
 
         final TextField inputField = new TextField("Which input would you need?");
-        if (subject.getProvidedMessages().size() != 0) inputField.setEnabled(false);
+        if (subject.getProvidedMessages().size() != 0) {
+            inputField.setVisible(false);
+            infoSource.setVisible(false);
+        }
+
+        inputField.addValueChangeListener( e -> {
+            if (infoSource.getValue() != null) {
+                if (inputField.getValue().equals("")) confirm.setEnabled(false);
+                else confirm.setEnabled(true);
+            }
+        });
 
         final OptionGroup availableProvidedMessages = new OptionGroup("There is some input available, which you currently do not use:");
         for (Message m : subject.getProvidedMessages()) {
@@ -507,13 +592,14 @@ public class ElaborationUI extends Window {
         availableProvidedMessages.addValueChangeListener( e -> {
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSpecifyMyself) {
-                inputField.setEnabled(true);
+                inputField.setVisible(true);
                 infoSource.setVisible(true);
+                if (inputField.getValue().equals("")) confirm.setEnabled(false);
             }
             else {
-                inputField.setEnabled(false);
+                inputField.setVisible(false);
                 infoSource.setVisible(false);
-
+                confirm.setEnabled(true);
             }
         });
 
@@ -527,6 +613,7 @@ public class ElaborationUI extends Window {
         infoSource.addItem(optionDontKnow);
 
         infoSource.addValueChangeListener( e -> {
+            if ((!subject.getProvidedMessages().isEmpty() && availableProvidedMessages.getValue()!=optionSpecifyMyself) || !inputField.getValue().equals("")) confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSomebodyElse || selectedItem == optionSystem) confirm.setCaption("Next");
             else confirm.setCaption("Done");
@@ -572,6 +659,12 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("Whom do you get this input from?");
 
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
 
         confirm.addClickListener( e -> {
             Subject newSubject = new Subject(inputField.getValue());
@@ -592,6 +685,13 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("Whom can you provide this input with?");
 
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
+
         confirm.addClickListener( e -> {
             Subject newSubject = new Subject(inputField.getValue());
             insertNewSubject(newSubject,instance);
@@ -610,6 +710,13 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What's its name?");
 
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
+
         confirm.addClickListener( e -> {
             Subject newSubject = new Subject(inputField.getValue());
             insertNewSubject(newSubject,instance);
@@ -629,6 +736,13 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("Which system is this?");
 
         Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (inputField.getValue().equals("")) confirm.setEnabled(false);
+            else confirm.setEnabled(true);
+        });
+
         confirm.addClickListener( e -> {
             insertNewActionState("Retrieve "+newMessage+" from "+inputField.getValue(),subject,instance, true);
             this.close();
@@ -650,6 +764,15 @@ public class ElaborationUI extends Window {
         final String optionConditionalReplace = new String("It replaces \""+state+"\" under certain conditions.");
         final String optionAdditionalActivity = new String("It is complementary to \"" + state + "\", I still need to do \"" + state + "\", too.");
 
+        Button confirm = new Button("Done");
+        confirm.setEnabled(false);
+
+        inputField.addValueChangeListener( e -> {
+            if (relationship.getValue() != null) {
+                if (inputField.getValue().equals("")) confirm.setEnabled(false);
+                else confirm.setEnabled(true);
+            }
+        });
 
         final Button selectFromExisting = new Button ("Let me choose from existing steps");
         selectFromExisting.addClickListener( e -> {
@@ -681,12 +804,11 @@ public class ElaborationUI extends Window {
             }
         });
 
-        Button confirm = new Button("Done");
-
         relationship.addItem(optionConditionalReplace);
         relationship.addItem(optionAdditionalActivity);
 
         relationship.addValueChangeListener( e -> {
+            if (!inputField.getValue().equals("")) confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             Boolean value = (Boolean) newMessage.getValue();
             if (selectedItem == optionConditionalReplace || value == Boolean.TRUE) confirm.setCaption("Next");
@@ -784,12 +906,12 @@ public class ElaborationUI extends Window {
     private Subject addAnonymousSubject(Instance instance) {
         Subject anonymous = null;
         for (Subject s: instance.getProcess().getSubjects()) {
-            if (s.toString().equals("Anonymous")) {
+            if (s.toString().equals(Subject.ANONYMOUS)) {
                 anonymous = s;
             }
         }
         if (anonymous == null) {
-            anonymous = new Subject("Anonymous");
+            anonymous = new Subject(Subject.ANONYMOUS);
             insertNewSubject(anonymous,instance);
         }
         return anonymous;

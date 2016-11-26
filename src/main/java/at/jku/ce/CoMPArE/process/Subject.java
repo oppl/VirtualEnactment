@@ -8,6 +8,8 @@ import java.util.Set;
  */
 public class Subject {
 
+    public static String ANONYMOUS = "Anonymous";
+
     private String name;
 
     private State firstState;
