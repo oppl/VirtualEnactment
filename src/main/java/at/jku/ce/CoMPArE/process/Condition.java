@@ -5,7 +5,7 @@ package at.jku.ce.CoMPArE.process;
  */
 public class Condition {
 
-    public static Condition noCondition = new Condition("nC");
+//    public static Condition noCondition = new Condition("nC");
 
     private String condition;
 

@@ -134,7 +134,7 @@ public class Instance {
             advanceStateForSubject(recipient, null);
         }
         Map<State,Condition> nextStates = currentState.getNextStates();
-        if (nextStates.size() == 1 && nextStates.values().iterator().next() == Condition.noCondition) {
+        if (nextStates.size() == 1 && nextStates.values().iterator().next().toString().equals("")) {
             availableStates.replace(s,nextStates.keySet().iterator().next());
             LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state "+availableStates.get(s));
         }

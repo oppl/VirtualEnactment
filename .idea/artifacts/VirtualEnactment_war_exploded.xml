@@ -20,6 +20,9 @@
           <element id="library" level="project" name="Maven: com.vaadin:vaadin-themes:7.7.4" />
           <element id="library" level="project" name="Maven: com.vaadin.pontus:vizcomponent:0.3" />
           <element id="library" level="project" name="Maven: org.vaadin.addons:googleanalyticstracker:2.1.0" />
+          <element id="library" level="project" name="Maven: com.thoughtworks.xstream:xstream:1.4.9" />
+          <element id="library" level="project" name="Maven: xmlpull:xmlpull:1.1.3.1" />
+          <element id="library" level="project" name="Maven: xpp3:xpp3_min:1.1.4c" />
         </element>
       </element>
       <element id="directory" name="META-INF">

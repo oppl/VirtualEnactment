@@ -867,7 +867,7 @@ public class ElaborationUI extends Window {
         }
         for (State predecessor : predecessorStates) {
             Condition originalCondition = predecessor.getNextStates().get(currentState);
-            if (originalCondition != null && !originalCondition.getCondition().equals("nC")) originalConditions.put(predecessor,originalCondition);
+            if (originalCondition != null && !originalCondition.getCondition().equals("")) originalConditions.put(predecessor,originalCondition);
             else originalConditions.put(predecessor,new Condition(""));
             TextField inputFieldNew = new TextField("What is the condition for \"" + newState + "\" when coming from \"" + predecessor + "\"?");
             TextField inputFieldOld = new TextField("What is the condition for \"" + currentState + "\" when coming from \"" + predecessor + "\"?");

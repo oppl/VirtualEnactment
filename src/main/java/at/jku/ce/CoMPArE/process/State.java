@@ -21,7 +21,7 @@ public class State {
     }
 
     public State addNextState(State nextState) {
-        this.nextStates.put(nextState, Condition.noCondition);
+        this.nextStates.put(nextState, new Condition(""));
         return nextState;
     }
 

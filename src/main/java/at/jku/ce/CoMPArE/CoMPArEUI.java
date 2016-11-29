@@ -7,15 +7,19 @@ import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
+import at.jku.ce.CoMPArE.storage.XMLStore;
 import at.jku.ce.CoMPArE.visualize.VisualizationUI;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
+import com.vaadin.server.FileDownloader;
+import com.vaadin.server.FileResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.vaadin.googleanalytics.tracking.GoogleAnalyticsTracker;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +44,8 @@ public class CoMPArEUI extends UI {
     private ScaffoldingManager scaffoldingManager;
     private boolean initialStartup;
 
+    private Button differentProcess;
+
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         initialStartup = true;
@@ -55,18 +61,24 @@ public class CoMPArEUI extends UI {
 
         scaffoldingManager = new ScaffoldingManager(currentProcess,scaffoldingPanel);
 
+        differentProcess = new Button("Select different Process");
+        differentProcess.addClickListener( e -> {
+            selectDifferentProcess();
+        });
+
         createBasicLayout(currentProcess, instance);
         updateUI(instance);
     }
 
     private void updateUI(Instance instance) {
-        Button differentProcess = new Button("Select different Process");
-        differentProcess.addClickListener( e -> {
-            selectDifferentProcess();
-        });
+        differentProcess.setVisible(false);
 
         for (Subject s: instance.getProcess().getSubjects()) {
             fillSubjectPanel(s,instance);
+        }
+        if (initialStartup) {
+            differentProcess.setVisible(true);
+            initialStartup = false;
         }
         if (instance.processFinished()) {
             LogHelper.logInfo("Process finished, offering to restart ...");
@@ -79,12 +91,21 @@ public class CoMPArEUI extends UI {
                 scaffoldingManager.updateScaffolds(instance);
                 updateUI(newInstance);
             });
-            if (instance.getProcess().getSubjects().size() > 0) mainLayoutFrame.addComponent(restart);
-            mainLayoutFrame.addComponent(differentProcess);
-        }
-        if (initialStartup) {
-            mainLayoutFrame.addComponent(differentProcess);
-            initialStartup = false;
+
+            if (instance.getProcess().getSubjects().size() > 0) {
+                mainLayoutFrame.addComponent(restart);
+
+                XMLStore xmlStore = new XMLStore();
+                String xml = xmlStore.convertToXML(instance.getProcess());
+                String fileName = xmlStore.saveToServerFile(instance.getProcess().toString(),xml);
+                FileDownloader fd = new FileDownloader(new FileResource(new File(fileName)));
+                Button save = new Button("Download Process");
+
+                fd.extend(save);
+
+                mainLayoutFrame.addComponent(save);
+            }
+            differentProcess.setVisible(true);
         }
     }
 
@@ -120,6 +141,7 @@ public class CoMPArEUI extends UI {
         else mainLayoutFrame.addComponent(subjectLayout);
         if (process.getSubjects().size() > 1) mainLayoutFrame.addComponent(visualize);
         mainLayoutFrame.addComponent(scaffoldingPanel);
+        mainLayoutFrame.addComponent(differentProcess);
 
         mainLayoutFrame.setMargin(true);
         mainLayoutFrame.setSpacing(true);
@@ -185,8 +207,8 @@ public class CoMPArEUI extends UI {
             if (nextPossibleSteps != null && nextPossibleSteps.size()>0) {
                 if (nextPossibleSteps.size() == 1) {
                     State nextState = nextPossibleSteps.iterator().next();
-                    if (instance.getConditionForStateInSubject(s, nextState) != Condition.noCondition) {
-                        Label label2 = new Label("You can only progress under the following condition: <br>"+instance.getConditionForStateInSubject(s,nextState));
+                    if (!instance.getConditionForStateInSubject(s, nextState).toString().equals("")) {
+                        Label label2 = new Label("You can only progress under the following condition: <br>"+instance.getConditionForStateInSubject(s,nextState),ContentMode.HTML);
                         panelContent.addComponent(label2);
                     }
                 }

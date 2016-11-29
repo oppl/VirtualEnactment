@@ -121,7 +121,7 @@ public class ExplorationAgent extends ScaffoldingAgent {
         while (currentState != s.getFirstState()) {
             State predecessor = s.getPredecessorStates(currentState).iterator().next();
             Condition c = predecessor.getNextStates().get(currentState);
-            if (c != null && !c.toString().equals("nC")) conditions.addFirst(c);
+            if (c != null && !c.toString().equals("")) conditions.addFirst(c);
             currentState = predecessor;
         }
         return conditions;
