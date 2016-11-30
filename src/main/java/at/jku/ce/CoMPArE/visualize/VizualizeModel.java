@@ -25,10 +25,10 @@ public class VizualizeModel extends VerticalLayout {
     private Graph.Node selectedNode;
     private boolean selectionMode;
 
-    public VizualizeModel(Window parent) {
+    public VizualizeModel(Window parent, String name) {
 
         component = new VizComponent();
-        graph = new Graph("G", Graph.DIGRAPH);
+        graph = new Graph(name, Graph.DIGRAPH);
 
         component.setWidth("800px");
         component.setHeight("450px");
@@ -76,15 +76,15 @@ public class VizualizeModel extends VerticalLayout {
         Boolean loopFound = !notYetAddedStates.contains(state);
         Graph.Node node = new Graph.Node(state.toString());
         if (!loopFound) {
-            LogHelper.logInfo("modelViz: adding node " + state);
-            if (state instanceof SendState) node.setParam("color", "red");
-            if (state instanceof RecvState) node.setParam("color", "green");
+//            LogHelper.logInfo("modelViz: adding node " + state);
+//            if (state instanceof SendState) node.setParam("color", "red");
+//            if (state instanceof RecvState) node.setParam("color", "green");
             node.setParam("shape", "box");
             graph.addNode(node);
             notYetAddedStates.remove(state);
         }
         if (parentNode != null) {
-            LogHelper.logInfo("modelViz: adding edge from " + parentNode.getId() + " to " + node.getId());
+//            LogHelper.logInfo("modelViz: adding edge from " + parentNode.getId() + " to " + node.getId());
             graph.addEdge(parentNode, node);
             Graph.Edge edge = graph.getEdge(parentNode, node);
             Condition c = parentState.getNextStates().get(state);
@@ -126,7 +126,7 @@ public class VizualizeModel extends VerticalLayout {
                 graph.addEdge(sender, recipient);
                 Graph.Edge edge = graph.getEdge(sender,recipient);
                 edge.setParam("label", "\""+m.toString()+"\"");
-                LogHelper.logInfo("subjInteractionViz: Edge between "+sender+" and "+recipient+" with label "+edge.getParam("label")+" "+m.toString());
+//                LogHelper.logInfo("subjInteractionViz: Edge between "+sender+" and "+recipient+" with label "+edge.getParam("label")+" "+m.toString());
 //            }
         }
         component.drawGraph(graph);

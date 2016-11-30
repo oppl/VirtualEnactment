@@ -48,6 +48,13 @@ public class Subject {
         return states;
     }
 
+    public State getSendState(Message m) {
+        for (State s: getStates()) {
+            if (s instanceof SendState && ((SendState) s).getSentMessage() == m) return s;
+        }
+        return null;
+    }
+
     public Set<Message> getSentMessages() {
         if (firstState == null) return new HashSet<>();
         return this.getSentMessages(firstState, new HashSet<Message>());

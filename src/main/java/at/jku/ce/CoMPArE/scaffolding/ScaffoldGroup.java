@@ -67,4 +67,12 @@ public class ScaffoldGroup {
         return null;
     }
 
+    public Set<String> removeAllScaffoldsFromGroup() {
+        Set<String> removedIDs = new HashSet<>();
+        for (Integer i: scaffolds.keySet()) {
+            removedIDs.add(scaffolds.get(i).getUniqueID());
+        }
+        scaffolds.clear();
+        return removedIDs;
+    }
 }

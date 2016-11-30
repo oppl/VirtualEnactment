@@ -183,7 +183,7 @@ public class ElaborationUI extends Window {
 
         final Button selectFromExisting = new Button ("Let me choose from existing steps");
         selectFromExisting.addClickListener( e -> {
-            VisualizationUI viz= new VisualizationUI(instance);
+            VisualizationUI viz= new VisualizationUI(instance,"viz");
             getUI().addWindow(viz);
             viz.showSubject(subject);
             viz.activateSelectionMode();
@@ -331,7 +331,7 @@ public class ElaborationUI extends Window {
 
         final Button selectFromExisting = new Button ("Let me choose from existing steps");
         selectFromExisting.addClickListener( e -> {
-            VisualizationUI viz= new VisualizationUI(instance);
+            VisualizationUI viz= new VisualizationUI(instance,"viz");
             getUI().addWindow(viz);
             viz.showSubject(subject);
             viz.activateSelectionMode();
@@ -776,7 +776,7 @@ public class ElaborationUI extends Window {
 
         final Button selectFromExisting = new Button ("Let me choose from existing steps");
         selectFromExisting.addClickListener( e -> {
-            VisualizationUI viz= new VisualizationUI(instance);
+            VisualizationUI viz= new VisualizationUI(instance,"viz");
             getUI().addWindow(viz);
             viz.showSubject(subject);
             viz.activateSelectionMode();

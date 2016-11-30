@@ -8,6 +8,7 @@ import at.jku.ce.CoMPArE.scaffolding.ScaffoldGroup;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
 import at.jku.ce.CoMPArE.scaffolding.scaffolds.ExpandingScaffold;
 import at.jku.ce.CoMPArE.scaffolding.scaffolds.Scaffold;
+import at.jku.ce.CoMPArE.scaffolding.scaffolds.SimulatingScaffold;
 
 import java.util.*;
 
@@ -79,12 +80,13 @@ public class ExplorationAgent extends ScaffoldingAgent {
             }
             else {
                 sg.addScaffold(Scaffold.TYPE_METACOGNITIVE, new Scaffold(s + " contains steps that you have not yet explored.", this, "ExA"+s.toString()+Scaffold.TYPE_METACOGNITIVE));
-                sg.addScaffold(Scaffold.TYPE_STRATEGIC, new ExpandingScaffold(
+                sg.addScaffold(Scaffold.TYPE_STRATEGIC, new SimulatingScaffold(
                         s + " contains step \"" + nextSuggestedState + "\" that has not yet been explored.",
                         "<p>If you are unsure how to get to \"" + nextSuggestedState + "\", you can check the path by clicking " +
                                 "the \"Show behaviour\"-Button of " + s + "<p>",
                         this,
-                        "ExA"+nextSuggestedState.toString()+Scaffold.TYPE_STRATEGIC
+                        "ExA"+nextSuggestedState.toString()+Scaffold.TYPE_STRATEGIC,
+                        nextSuggestedState
                 ));
                 StringBuffer procDescr = new StringBuffer();
                 procDescr.append("<p>You need to make sure that the following things happen (in this order) to reach \"" + nextSuggestedState + "\":<ol>");
@@ -94,11 +96,12 @@ public class ExplorationAgent extends ScaffoldingAgent {
                     else procDescr.append("<li>Option \"" + c + "\" needs to be selected.</li>");
                 }
                 procDescr.append("</ol></p>");
-                sg.addScaffold(Scaffold.TYPE_PROCEDURAL, new ExpandingScaffold(
+                sg.addScaffold(Scaffold.TYPE_PROCEDURAL, new SimulatingScaffold(
                         "You might want to navigate to \"" + nextSuggestedState + "\" in " + s + " to further explore its behaviour.",
                         procDescr.toString(),
                         this,
-                        "ExA"+nextSuggestedState.toString()+Scaffold.TYPE_PROCEDURAL
+                        "ExA"+nextSuggestedState.toString()+Scaffold.TYPE_PROCEDURAL,
+                        nextSuggestedState
                 ));
             }
         }

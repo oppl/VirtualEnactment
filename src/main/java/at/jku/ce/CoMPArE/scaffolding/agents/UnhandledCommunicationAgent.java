@@ -28,7 +28,7 @@ public class UnhandledCommunicationAgent extends ScaffoldingAgent {
     @Override
     public void updateScaffolds(Instance currentInstance, State finishedState) {
         clearAllScaffolds();
-        LogHelper.logInfo("UnhandledCommunicationAgent: looking for issues to generate scaffolds for ...");
+//        LogHelper.logInfo("UnhandledCommunicationAgent: looking for issues to generate scaffolds for ...");
         for (Subject s : currentInstance.getProcess().getSubjects()) {
             ScaffoldGroup sgExp = generateScaffoldsForSubjectsExpectedMessages(s);
             ScaffoldGroup sgProv = generateScaffoldsForSubjectsProvidedMessages(s);

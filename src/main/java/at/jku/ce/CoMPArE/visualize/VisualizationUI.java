@@ -14,19 +14,19 @@ public class VisualizationUI extends Window {
 
     private Instance instance;
 
-    public VisualizationUI() {
+    public VisualizationUI(String name) {
         super("Visualization of Process Progress");
         this.setWidth("900px");
         this.setHeight("500px");
         this.center();
 //        VerticalLayout content = new VerticalLayout();
-        view = new VizualizeModel(this);
+        view = new VizualizeModel(this, name);
         setContent(view);
         instance = null;
     }
 
-    public VisualizationUI(Instance instance) {
-        this();
+    public VisualizationUI(Instance instance, String name) {
+        this(name);
         this.instance = instance;
  //       view.showSubject(instance.getProcess().getSubjects().iterator().next());
     }
@@ -47,10 +47,17 @@ public class VisualizationUI extends Window {
     public void activateSelectionMode() {
         view.setSelectionMode(true);
     }
+
     public State getSelectedState() {
         String selectedStateName = view.getSelectedNodeName();
         if (selectedStateName == null) return null;
         return instance.getProcess().getStateWithName(selectedStateName);
+    }
+
+    public Subject getSelectedSubject() {
+        String selectedSubjectName = view.getSelectedNodeName();
+        if (selectedSubjectName == null) return null;
+        return instance.getProcess().getSubjectWithName(selectedSubjectName);
     }
 
 }

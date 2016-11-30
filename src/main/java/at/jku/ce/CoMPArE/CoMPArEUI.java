@@ -7,8 +7,10 @@ import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
+import at.jku.ce.CoMPArE.simulate.Simulator;
 import at.jku.ce.CoMPArE.storage.XMLStore;
 import at.jku.ce.CoMPArE.visualize.VisualizationUI;
+import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FileDownloader;
@@ -33,6 +35,7 @@ import java.util.Set;
  */
 
 @Theme("demo")
+@Push
 public class CoMPArEUI extends UI {
 
     private Map<Subject,Panel> subjectPanels;
@@ -42,9 +45,11 @@ public class CoMPArEUI extends UI {
     private Process currentProcess;
     private GoogleAnalyticsTracker tracker;
     private ScaffoldingManager scaffoldingManager;
+    private Simulator simulator;
     private boolean initialStartup;
 
     private Button differentProcess;
+    private Button simulate;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -67,11 +72,15 @@ public class CoMPArEUI extends UI {
         });
 
         createBasicLayout(currentProcess, instance);
+        simulator = new Simulator(instance,subjectPanels,this);
+
         updateUI(instance);
+
     }
 
     private void updateUI(Instance instance) {
         differentProcess.setVisible(false);
+        simulate.setVisible(true);
 
         for (Subject s: instance.getProcess().getSubjects()) {
             fillSubjectPanel(s,instance);
@@ -81,6 +90,7 @@ public class CoMPArEUI extends UI {
             initialStartup = false;
         }
         if (instance.processFinished()) {
+            simulate.setVisible(false);
             LogHelper.logInfo("Process finished, offering to restart ...");
             mainLayoutFrame.removeComponent(scaffoldingPanel);
             Button restart = new Button("Restart Process");
@@ -89,6 +99,8 @@ public class CoMPArEUI extends UI {
                 createBasicLayout(currentProcess, instance);
                 Instance newInstance = new Instance(currentProcess);
                 scaffoldingManager.updateScaffolds(instance);
+                simulator = new Simulator(newInstance, subjectPanels, this);
+
                 updateUI(newInstance);
             });
 
@@ -137,8 +149,36 @@ public class CoMPArEUI extends UI {
         addInitialSubject.addClickListener( e -> {
             openElaborationOverlay(null,instance,ElaborationUI.INITALSUBJECT);
         });
+
+        simulate = new Button("Progress to state");
+        simulate.addClickListener( e -> {
+            VisualizationUI viz= new VisualizationUI(instance,"viz");
+            getUI().addWindow(viz);
+            viz.showSubjectInteraction();
+            viz.activateSelectionMode();
+            viz.addCloseListener( e1 -> {
+                Subject selectedSubject = viz.getSelectedSubject();
+                if (selectedSubject != null) {
+                    VisualizationUI viz2 = new VisualizationUI(instance,"viz2");
+                    getUI().addWindow(viz2);
+                    viz2.showSubject(selectedSubject);
+                    viz2.activateSelectionMode();
+                    viz2.addCloseListener( e2 -> {
+                        State selectedState = viz2.getSelectedState();
+                        if (selectedState != null) {
+                            simulator.simulatePathToState(selectedState);
+                        }
+                    });
+
+                }
+            });
+        });
+
         if (process.getSubjects().isEmpty()) mainLayoutFrame.addComponent(addInitialSubject);
-        else mainLayoutFrame.addComponent(subjectLayout);
+        else {
+            mainLayoutFrame.addComponent(subjectLayout);
+            mainLayoutFrame.addComponent(simulate);
+        }
         if (process.getSubjects().size() > 1) mainLayoutFrame.addComponent(visualize);
         mainLayoutFrame.addComponent(scaffoldingPanel);
         mainLayoutFrame.addComponent(differentProcess);
@@ -148,6 +188,14 @@ public class CoMPArEUI extends UI {
 
         setContent(mainLayoutFrame);
 
+    }
+
+    public boolean simulate(State toState) {
+        boolean simSuccessful = simulator.simulatePathToState(toState);
+        if (!simSuccessful) Notification.show("Could not go to "+toState,
+                "The process has already been executed too far. Finish this round and try again after restarting.",
+                Notification.Type.ASSISTIVE_NOTIFICATION);
+        return simSuccessful;
     }
 
     private void fillSubjectPanel(Subject s, Instance instance) {
@@ -200,7 +248,7 @@ public class CoMPArEUI extends UI {
 
         State currentState = instance.getAvailableStateForSubject(s);
         if (currentState != null) {
-            Label label1 = new Label(currentState.toString());
+            Label label1 = new Label(currentState.toString(),ContentMode.HTML);
             panelContent.addComponent(label1);
 
             Set<State> nextPossibleSteps = instance.getNextStatesOfSubject(s);
@@ -236,6 +284,7 @@ public class CoMPArEUI extends UI {
 
         Button perform = new Button("Perform step");
         perform.addClickListener( e -> {
+            LogHelper.logInfo("UI: clicking on perfom button for subject "+s);
             Condition c = null;
             if (nextStates.size() > 0) c = (Condition) nextStates.getValue();
             instance.advanceStateForSubject(s, c);
@@ -304,7 +353,7 @@ public class CoMPArEUI extends UI {
     }
 
     private void openVisualizationOverlay(Instance instance) {
-        VisualizationUI visualizationUI = new VisualizationUI(instance);
+        VisualizationUI visualizationUI = new VisualizationUI(instance,"Interaction");
         getUI().addWindow(visualizationUI);
         visualizationUI.showSubjectInteraction();
         visualizationUI.addCloseListener(new Window.CloseListener() {
@@ -318,7 +367,7 @@ public class CoMPArEUI extends UI {
     }
 
     private void openVisualizationOverlay(Subject s, Instance instance) {
-        VisualizationUI visualizationUI = new VisualizationUI(instance);
+        VisualizationUI visualizationUI = new VisualizationUI(instance,s.toString());
         getUI().addWindow(visualizationUI);
         visualizationUI.showSubjectProgress(s);
         visualizationUI.addCloseListener(new Window.CloseListener() {
@@ -341,6 +390,7 @@ public class CoMPArEUI extends UI {
                 Process newProcess = processSelectorUI.getSelectedProcess();
                 if (newProcess != null) {
                     currentProcess = newProcess;
+                    initialStartup = true;
                     Instance instance = new Instance(currentProcess);
                     createBasicLayout(currentProcess, instance);
                     updateUI(instance);

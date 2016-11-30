@@ -79,6 +79,17 @@ public class ScaffoldingAgent {
         manager.immediatelyUpdateScaffoldingPanel(this);
     }
 
+    public final void removeScaffoldGroupOfScaffold(Scaffold scaffold) {
+        ScaffoldGroup toBeRemoved = null;
+        for (ScaffoldGroup sg : scaffoldGroups) {
+            if (sg.contains(scaffold)) {
+                toBeRemoved = sg;
+            }
+        }
+        if (toBeRemoved != null) scaffoldGroups.remove(toBeRemoved);
+        manager.immediatelyUpdateScaffoldingPanel(this);
+
+    }
     public final ScaffoldingManager getManager() {
         return manager;
     }

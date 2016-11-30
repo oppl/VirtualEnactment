@@ -61,6 +61,20 @@ public class Process {
         return null;
     }
 
+    public Subject getSubjectWithName(String name) {
+        for (Subject s: subjects) {
+            if (s.toString().equals(name)) return s;
+        }
+        return null;
+    }
+
+    public Subject getSubjectWithState(State state) {
+        for (Subject s: subjects) {
+            if (s.getStates().contains(state)) return s;
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return name;
