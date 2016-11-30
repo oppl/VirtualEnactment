@@ -31,7 +31,7 @@ public class Simulator {
         LinkedList<SimulatorStep> overallSteps = new LinkedList<>();
         findPathToState(targetState, overallSteps,0);
         StringBuffer path = new StringBuffer();
-        for (SimulatorStep s : overallSteps) path.append(s.state+" -> ");
+        for (SimulatorStep s : overallSteps) path.append(s.subject+":"+s.state+" ("+s.condition+") -> \n");
         LogHelper.logInfo("Simulator: found overall path: "+path.toString());
         return overallSteps;
     }
@@ -41,7 +41,6 @@ public class Simulator {
         Thread thread = new Thread(){
             public void run() {
                 LinkedList<SimulatorStep> overallSteps = findOverallPathToState(targetState);
-                overallSteps.removeLast();
                 for (SimulatorStep ss : overallSteps) {
                     LogHelper.logInfo("Simulator: executing simulator step: " + ss.subject + " " + ss.state + " " + ss.condition);
                     Panel subjectPanel = subjectPanels.get(ss.subject);
@@ -57,9 +56,12 @@ public class Simulator {
                     }
                     if (!stateName.getValue().equals(ss.state.getName())) continue;
                     Condition toBeSet = null;
+//                    LogHelper.logInfo("Simulator: currently at step index "+overallSteps.lastIndexOf(ss)+" of "+overallSteps.size()+" simulation steps");
                     if (overallSteps.lastIndexOf(ss) < overallSteps.size() - 1) {
                         SimulatorStep nextSS = overallSteps.get(overallSteps.lastIndexOf(ss) + 1);
+//                        LogHelper.logInfo("Simulator: next simulator step: " + nextSS.subject + " " + nextSS.state + " " + nextSS.condition);
                         if (nextSS.condition != null && nextSS.condition.toString() != "") {
+//                            LogHelper.logInfo("Simulator: selecting option "+nextSS.condition+" in "+conditions);
                             if (!(nextSS.condition instanceof MessageCondition) && conditions == null) return;
                             if (conditions != null) {
                                 toBeSet = nextSS.condition;
@@ -84,12 +86,14 @@ public class Simulator {
                     final Button clickButton = performStep;
                     if (optionGroupToBeTargeted == null) toggleLabel(stateName);
                     delayNextStep();
-                    ui.access(new Runnable() {
-                        @Override
-                        public void run() {
-                            clickButton.click();
-                        }
-                    });
+                    if (overallSteps.getLast() != ss) {
+                        ui.access(new Runnable() {
+                            @Override
+                            public void run() {
+                                clickButton.click();
+                            }
+                        });
+                    }
                     //delayNextStep();
                     toggleLabel(stateName);
                 }
