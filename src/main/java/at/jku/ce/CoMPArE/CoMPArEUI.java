@@ -150,7 +150,7 @@ public class CoMPArEUI extends UI {
             openElaborationOverlay(null,instance,ElaborationUI.INITALSUBJECT);
         });
 
-        simulate = new Button("Progress to state");
+        simulate = new Button("Auto-progress");
         simulate.addClickListener( e -> {
             VisualizationUI viz= new VisualizationUI(instance,"viz");
             getUI().addWindow(viz);
@@ -166,7 +166,7 @@ public class CoMPArEUI extends UI {
                     viz2.addCloseListener( e2 -> {
                         State selectedState = viz2.getSelectedState();
                         if (selectedState != null) {
-                            simulator.simulatePathToState(selectedState);
+                            simulate(selectedState);
                         }
                     });
 
@@ -177,10 +177,11 @@ public class CoMPArEUI extends UI {
         if (process.getSubjects().isEmpty()) mainLayoutFrame.addComponent(addInitialSubject);
         else {
             mainLayoutFrame.addComponent(subjectLayout);
-            mainLayoutFrame.addComponent(simulate);
         }
         if (process.getSubjects().size() > 1) mainLayoutFrame.addComponent(visualize);
+
         mainLayoutFrame.addComponent(scaffoldingPanel);
+        if (!process.getSubjects().isEmpty()) mainLayoutFrame.addComponent(simulate);
         mainLayoutFrame.addComponent(differentProcess);
 
         mainLayoutFrame.setMargin(true);
