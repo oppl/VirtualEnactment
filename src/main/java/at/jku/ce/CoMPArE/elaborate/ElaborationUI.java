@@ -401,9 +401,33 @@ public class ElaborationUI extends Window {
             else confirm.setCaption("Done");
         });
 
+        OptionGroup availableProvidedMessages = new OptionGroup("Do you want to react on any of the following available input in this step?");
+        for (Message m : subject.getProvidedMessages()) {
+            availableProvidedMessages.addItem(m);
+        }
+        final String optionNo = new String("No");
+        availableProvidedMessages.addItem(optionNo);
+        availableProvidedMessages.setValue(optionNo);
+
         confirm.addClickListener( e -> {
             LogHelper.logInfo("Elaboration: inserting "+inputField.getValue()+" into "+subject);
             State newState = insertNewActionState(inputField.getValue(),subject,instance,true);
+            Object selectedItem = availableProvidedMessages.getValue();
+            if (selectedItem != optionNo) {
+                State predecessor = null;
+                if (subject.getPredecessorStates(newState).size() == 1) {
+                    predecessor = subject.getPredecessorStates(newState).iterator().next();
+                }
+                if (predecessor != null && predecessor instanceof RecvState) {
+                    deleteState(newState,subject,instance);
+                    instance.getAvailableStates().replace(subject,predecessor);
+                    instance.addMessageToInputBuffer(subject,((RecvState) predecessor).getRecvdMessages().iterator().next());
+                    newState = insertNewActionState(inputField.getValue(),subject,instance,true);
+                }
+                insertNewReceiveState((Message) selectedItem,subject,instance,true);
+                subject.removeProvidedMessage((Message) selectedItem);
+                instance.getAvailableStates().replace(subject,newState);
+            }
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
             }
@@ -416,6 +440,7 @@ public class ElaborationUI extends Window {
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(inputField);
         fLayout.addComponent(newMessage);
+        if (!subject.getProvidedMessages().isEmpty()) fLayout.addComponent(availableProvidedMessages);
         fLayout.addComponent(confirm);
     }
 

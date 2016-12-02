@@ -52,7 +52,7 @@ public class UnhandledCommunicationAgent extends ScaffoldingAgent {
         StringBuffer stratDescr = new StringBuffer();
         stratDescr.append("<p>The following inputs are currently expected from "+s+"<ol>");
         for (Message m : expectedMessages) {
-            stratDescr.append("<li>Input \"" + m + "\" is expected by " + process.getSenderOfMessage(m) + "</li>");
+            stratDescr.append("<li>Input \"" + m + "\" is expected by " + process.getRecipientOfMessage(m) + "</li>");
         }
         stratDescr.append("</ol></p>");
 

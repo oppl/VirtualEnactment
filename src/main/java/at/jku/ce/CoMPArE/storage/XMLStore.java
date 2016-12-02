@@ -24,8 +24,10 @@ public class XMLStore {
 
     XStream xStream;
     FileDownloader fileDownloader;
+    long id;
 
-    public XMLStore() {
+    public XMLStore(long id) {
+        this.id = id;
         xStream = new XStream();
         xStream.alias("process", Process.class);
         xStream.alias("subject", Subject.class);
@@ -52,7 +54,7 @@ public class XMLStore {
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
         LocalDateTime now = LocalDateTime.now();
-        String fileName = new String(processName.replace(" ", "_") + "_" + dtf.format(now) + ".xml");
+        String fileName = new String(id+"_"+processName.replace(" ", "_") + "_" + dtf.format(now) + ".xml");
 
         Writer writer = null;
         File f = null;

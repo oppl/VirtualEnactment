@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -50,9 +51,13 @@ public class CoMPArEUI extends UI {
 
     private Button differentProcess;
     private Button simulate;
+    private Button restart;
+
+    private long id;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+        id = UUID.randomUUID().getLeastSignificantBits();
         initialStartup = true;
         currentProcess = DemoProcess.getComplexDemoProcess();
         tracker = new GoogleAnalyticsTracker("UA-37510687-4","auto");
@@ -70,6 +75,8 @@ public class CoMPArEUI extends UI {
         differentProcess.addClickListener( e -> {
             selectDifferentProcess();
         });
+
+        restart = new Button("Restart Process");
 
         createBasicLayout(currentProcess, instance);
         simulator = new Simulator(instance,subjectPanels,this);
@@ -89,25 +96,27 @@ public class CoMPArEUI extends UI {
             differentProcess.setVisible(true);
             initialStartup = false;
         }
+
+        if (!instance.processFinished() && !instance.processIsBlocked()) {
+            restart.setVisible(false);
+            scaffoldingPanel.setVisible(true);
+        }
+
+        if (!instance.processFinished() && instance.processIsBlocked()) {
+            LogHelper.logInfo("Process blocked, offering to restart ...");
+//             scaffoldingPanel.setVisible(false);
+            restart.setVisible(true);
+        }
+
         if (instance.processFinished()) {
             simulate.setVisible(false);
             LogHelper.logInfo("Process finished, offering to restart ...");
             mainLayoutFrame.removeComponent(scaffoldingPanel);
-            Button restart = new Button("Restart Process");
-            restart.addClickListener( e -> {
-                mainLayoutFrame.removeAllComponents();
-                createBasicLayout(currentProcess, instance);
-                Instance newInstance = new Instance(currentProcess);
-                scaffoldingManager.updateScaffolds(instance);
-                simulator = new Simulator(newInstance, subjectPanels, this);
-
-                updateUI(newInstance);
-            });
-
+            scaffoldingPanel.setVisible(false);
             if (instance.getProcess().getSubjects().size() > 0) {
-                mainLayoutFrame.addComponent(restart);
+                restart.setVisible(true);
 
-                XMLStore xmlStore = new XMLStore();
+                XMLStore xmlStore = new XMLStore(id);
                 String xml = xmlStore.convertToXML(instance.getProcess());
                 String fileName = xmlStore.saveToServerFile(instance.getProcess().toString(),xml);
                 FileDownloader fd = new FileDownloader(new FileResource(new File(fileName)));
@@ -174,6 +183,16 @@ public class CoMPArEUI extends UI {
             });
         });
 
+        restart.addClickListener( e -> {
+            mainLayoutFrame.removeAllComponents();
+            createBasicLayout(currentProcess, instance);
+            Instance newInstance = new Instance(currentProcess);
+            scaffoldingManager.updateScaffolds(instance);
+            simulator = new Simulator(newInstance, subjectPanels, this);
+
+            updateUI(newInstance);
+        });
+
         if (process.getSubjects().isEmpty()) mainLayoutFrame.addComponent(addInitialSubject);
         else {
             mainLayoutFrame.addComponent(subjectLayout);
@@ -182,6 +201,7 @@ public class CoMPArEUI extends UI {
 
         mainLayoutFrame.addComponent(scaffoldingPanel);
         if (!process.getSubjects().isEmpty()) mainLayoutFrame.addComponent(simulate);
+        mainLayoutFrame.addComponent(restart);
         mainLayoutFrame.addComponent(differentProcess);
 
         mainLayoutFrame.setMargin(true);

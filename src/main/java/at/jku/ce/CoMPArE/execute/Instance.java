@@ -93,6 +93,18 @@ public class Instance {
         return finished;
     }
 
+    public boolean processIsBlocked() {
+        boolean isBlocked = true;
+        for (State s : getAvailableStates().values()) {
+            if (s instanceof ActionState || s instanceof SendState) isBlocked = false;
+        }
+        return isBlocked;
+    }
+
+    public void addMessageToInputBuffer(Subject recipient, Message m) {
+        inputBuffer.get(recipient).add(m);
+    }
+
     public State advanceStateForSubject(Subject s, Condition c) {
         State currentState = availableStates.get(s);
         latestProcessedMessages.replace(s,null);
