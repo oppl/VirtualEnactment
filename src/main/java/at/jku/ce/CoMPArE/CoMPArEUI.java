@@ -3,6 +3,7 @@ package at.jku.ce.CoMPArE;
 import javax.servlet.annotation.WebServlet;
 
 import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
+import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
@@ -48,6 +49,8 @@ public class CoMPArEUI extends UI {
     private ScaffoldingManager scaffoldingManager;
     private Simulator simulator;
     private boolean initialStartup;
+    private ProcessChangeHistory processChangeHistory;
+
 
     private Button differentProcess;
     private Button simulate;
@@ -60,6 +63,7 @@ public class CoMPArEUI extends UI {
         id = UUID.randomUUID().getLeastSignificantBits();
         initialStartup = true;
         currentProcess = DemoProcess.getComplexDemoProcess();
+        processChangeHistory = new ProcessChangeHistory();
         tracker = new GoogleAnalyticsTracker("UA-37510687-4","auto");
         tracker.extend(this);
         Instance instance = new Instance(currentProcess);
@@ -354,7 +358,7 @@ public class CoMPArEUI extends UI {
     }
 
     private void openElaborationOverlay(Subject s, Instance instance, int mode) {
-        ElaborationUI elaborationUI = new ElaborationUI();
+        ElaborationUI elaborationUI = new ElaborationUI(processChangeHistory);
         getUI().addWindow(elaborationUI);
 
         if (mode == ElaborationUI.ELABORATE) elaborationUI.elaborate(s, instance);
@@ -412,6 +416,7 @@ public class CoMPArEUI extends UI {
                 if (newProcess != null) {
                     currentProcess = newProcess;
                     initialStartup = true;
+                    processChangeHistory = new ProcessChangeHistory();
                     Instance instance = new Instance(currentProcess);
                     createBasicLayout(currentProcess, instance);
                     updateUI(instance);

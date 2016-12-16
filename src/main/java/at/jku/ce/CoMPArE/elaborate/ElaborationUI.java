@@ -1,20 +1,29 @@
 package at.jku.ce.CoMPArE.elaborate;
 
 import at.jku.ce.CoMPArE.LogHelper;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.RemoveExpectedMessageChange;
+import at.jku.ce.CoMPArE.elaborate.wizardsteps.AskForReasonStep;
+import at.jku.ce.CoMPArE.elaborate.wizardsteps.ElaborationStep;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.visualize.VisualizationUI;
 import com.vaadin.ui.*;
+import org.vaadin.teemu.wizards.Wizard;
+import org.vaadin.teemu.wizards.WizardStep;
+import org.vaadin.teemu.wizards.event.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by oppl on 23/11/2016.
  */
-public class ElaborationUI extends Window {
+public class ElaborationUI extends Window implements WizardProgressListener {
 
     public static int ELABORATE = 1;
     public static int INITIALSTEP = 2;
@@ -22,24 +31,62 @@ public class ElaborationUI extends Window {
     public static int INITALSUBJECT = 4;
 
     FormLayout fLayout = new FormLayout();
+    Wizard wizard = new Wizard();
+    ProcessChangeHistory processChangeHistory;
 
-    public ElaborationUI() {
+    public ElaborationUI(ProcessChangeHistory processChangeHistory) {
         super("Elaborate on this problem");
         this.setWidth("900px");
         this.setHeight("500px");
         this.center();
+        this.processChangeHistory = processChangeHistory;
+        if (this.processChangeHistory == null) this.processChangeHistory = new ProcessChangeHistory();
         fLayout.setMargin(true);
         fLayout.setSpacing(true);
         setContent(fLayout);
+        fLayout.addComponent(wizard);
+        wizard.addListener(this);
     }
 
     public void elaborate(Subject subject, Instance instance) {
-        askForReason(subject, instance);
+        wizard.addStep(new AskForReasonStep(wizard, subject, instance));
+        //askForReason(subject, instance);
+    }
+
+    @Override
+    public void activeStepChanged(WizardStepActivationEvent wizardStepActivationEvent) {
+
+    }
+
+    @Override
+    public void stepSetChanged(WizardStepSetChangedEvent wizardStepSetChangedEvent) {
+
+    }
+
+    @Override
+    public void wizardCompleted(WizardCompletedEvent wizardCompletedEvent) {
+        LogHelper.logInfo("Wizard completed, now performing changes");
+        List<WizardStep> steps = wizard.getSteps();
+        for (WizardStep ws: steps) {
+            ProcessChange pc = ((ElaborationStep) ws).getProcessChange();
+            if (pc != null) {
+                pc.perform();
+                processChangeHistory.add(pc);
+            }
+        }
+        if (!steps.isEmpty()) processChangeHistory.setLatestStepAsLastInSequence();
+        //TODO: switch instance to state where it should continue
+        this.close();
+    }
+
+    @Override
+    public void wizardCancelled(WizardCancelledEvent wizardCancelledEvent) {
+        this.close();
     }
 
     public void initialStep(Subject subject, Instance instance) {
         this.setCaption("Add an initial step");
-        newInitialStep(subject,instance);
+        newInitialStep(subject, instance);
     }
 
     public void initialSubject(Instance instance) {
@@ -49,75 +96,36 @@ public class ElaborationUI extends Window {
 
     public void additionalStep(Subject subject, Instance instance) {
         this.setCaption("Add an additional step");
-        newAdditionalStep(subject,instance);
-    }
-
-    private void askForReason(Subject subject, Instance instance) {
-        State state = instance.getAvailableStateForSubject(subject);
-
-        final Label questionPrompt = new Label("What is the problem with \""+state+"\"?");
-
-        final OptionGroup answerOptions = new OptionGroup("Please select:");
-        final String option1 = new String("It can't be done at the moment.");
-        final String option2 = new String("I rather need to do something else instead.");
-        final String option3 = new String("It's too vague to be performed.");
-        final String option4 = new String("It's incorrect.");
-
-        Button confirm = new Button("Next");
-        confirm.setEnabled(false);
-
-        answerOptions.addItem(option1);
-        answerOptions.addItem(option2);
-        answerOptions.addItem(option3);
-        answerOptions.addItem(option4);
-        answerOptions.addValueChangeListener( e -> {
-            confirm.setEnabled(true);
-        });
-
-        confirm.addClickListener( e -> {
-            String selection = (String) answerOptions.getValue();
-            if (selection != null) {
-                if (selection.equals(option1)) cantBeDone(subject, instance);
-                if (selection.equals(option2)) somethingElseInstead(subject, instance);
-                if (selection.equals(option3)) tooVague(subject, instance);
-                if (selection.equals(option4)) removeIncorrectState(subject, instance);
-            }
-        });
-
-        fLayout.removeAllComponents();
-        fLayout.addComponent(questionPrompt);
-        fLayout.addComponent(answerOptions);
-        fLayout.addComponent(confirm);
+        newAdditionalStep(subject, instance);
     }
 
     private void tooVague(Subject subject, Instance instance) {
         State state = instance.getAvailableStateForSubject(subject);
 
-        final Label questionPrompt = new Label("\""+state+"\" is too vague.");
-        final TextField inputField = new TextField("What would be the first activity you need to do when refining \""+ state + "\"?");
+        final Label questionPrompt = new Label("\"" + state + "\" is too vague.");
+        final TextField inputField = new TextField("What would be the first activity you need to do when refining \"" + state + "\"?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        newMessage.addValueChangeListener( e -> {
+        newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             State newState = new ActionState(inputField.getValue());
-            replaceState(state,newState,subject,instance);
+            replaceState(state, newState, subject, instance);
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
-            }
-            else {
-                resultsProvidedToOthers(newState,subject,instance);
+            } else {
+                resultsProvidedToOthers(newState, subject, instance);
             }
         });
 
@@ -132,11 +140,11 @@ public class ElaborationUI extends Window {
     private void removeIncorrectState(Subject subject, Instance instance) {
         State state = instance.getAvailableStateForSubject(subject);
 
-        final Label questionPrompt = new Label("\""+state+"\" is incorrect.");
+        final Label questionPrompt = new Label("\"" + state + "\" is incorrect.");
 
         final OptionGroup answerOptions = new OptionGroup("How can this be corrected?");
-        final String option1 = new String("Simply remove \""+state+"\".");
-        final String option2 = new String("Replace \""+state+"\" with something else.");
+        final String option1 = new String("Simply remove \"" + state + "\".");
+        final String option2 = new String("Replace \"" + state + "\" with something else.");
 
         answerOptions.addItem(option1);
         answerOptions.addItem(option2);
@@ -144,17 +152,17 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        answerOptions.addValueChangeListener( e -> {
+        answerOptions.addValueChangeListener(e -> {
             confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == option2) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             String selection = (String) answerOptions.getValue();
             if (selection.equals(option1)) {
-                deleteState(state,subject,instance);
+                deleteState(state, subject, instance);
                 this.close();
             }
             if (selection.equals(option2)) replaceIncorrectState(subject, instance);
@@ -170,24 +178,24 @@ public class ElaborationUI extends Window {
     private void replaceIncorrectState(Subject subject, Instance instance) {
         State state = instance.getAvailableStateForSubject(subject);
 
-        final Label questionPrompt = new Label("I want to replace \""+state+"\" with something else.");
+        final Label questionPrompt = new Label("I want to replace \"" + state + "\" with something else.");
         final TextField inputField = new TextField("What is the new activity?");
         final CheckBox newMessage = new CheckBox("This activity leads to results I can provide to others.");
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        final Button selectFromExisting = new Button ("Let me choose from existing steps");
-        selectFromExisting.addClickListener( e -> {
-            VisualizationUI viz= new VisualizationUI(instance,"viz");
+        final Button selectFromExisting = new Button("Let me choose from existing steps");
+        selectFromExisting.addClickListener(e -> {
+            VisualizationUI viz = new VisualizationUI(instance, "viz");
             getUI().addWindow(viz);
             viz.showSubject(subject);
             viz.activateSelectionMode();
-            viz.addCloseListener( e1 -> {
+            viz.addCloseListener(e1 -> {
                 LogHelper.logInfo("Elaboration: now getting selected state from behaviour vizualization ...");
                 State selectedState = viz.getSelectedState();
                 if (selectedState != null) {
@@ -200,27 +208,26 @@ public class ElaborationUI extends Window {
             });
         });
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (instance.getProcess().getStateWithName(inputField.getValue()) == null) {
                 newMessage.setEnabled(true);
                 newMessage.setDescription("");
             }
         });
 
-        newMessage.addValueChangeListener( e -> {
+        newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             State newState = new ActionState(inputField.getValue());
-            replaceState(state,newState,subject,instance);
+            replaceState(state, newState, subject, instance);
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
-            }
-            else {
-                resultsProvidedToOthers(newState,subject,instance);
+            } else {
+                resultsProvidedToOthers(newState, subject, instance);
             }
         });
 
@@ -236,7 +243,7 @@ public class ElaborationUI extends Window {
     private void cantBeDone(Subject subject, Instance instance) {
         State state = instance.getAvailableStateForSubject(subject);
 
-        final Label questionPrompt = new Label("\""+state+"\" can't be done at the moment.");
+        final Label questionPrompt = new Label("\"" + state + "\" can't be done at the moment.");
         Button confirm = new Button("Next");
         confirm.setEnabled(false);
 
@@ -244,17 +251,17 @@ public class ElaborationUI extends Window {
         final String option1 = new String("I need to do something else first.");
         final String option2 = new String("I need more input to be able to do this activity.");
 
-        answerOptions.addValueChangeListener( e -> {
+        answerOptions.addValueChangeListener(e -> {
             confirm.setEnabled(true);
         });
 
         answerOptions.addItem(option1);
         answerOptions.addItem(option2);
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             String selection = (String) answerOptions.getValue();
-            if (selection.equals(option1)) somethingElseFirst(subject,instance);
-            if (selection.equals(option2)) needMoreInput(subject,instance);
+            if (selection.equals(option1)) somethingElseFirst(subject, instance);
+            if (selection.equals(option2)) needMoreInput(subject, instance);
         });
 
         fLayout.removeAllComponents();
@@ -271,12 +278,12 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        newMessage.addValueChangeListener( e -> {
+        newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) confirm.setCaption("Next");
             else confirm.setCaption("Done");
@@ -290,20 +297,19 @@ public class ElaborationUI extends Window {
         availableProvidedMessages.addItem(optionNoInput);
         availableProvidedMessages.setValue(optionNoInput);
 
-        confirm.addClickListener( e -> {
-            LogHelper.logInfo("Elaboration: inserting new initial step "+inputField.getValue()+" into "+subject);
-            State newState = insertNewActionState(inputField.getValue(),subject,instance,true);
+        confirm.addClickListener(e -> {
+            LogHelper.logInfo("Elaboration: inserting new initial step " + inputField.getValue() + " into " + subject);
+            State newState = insertNewActionState(inputField.getValue(), subject, instance, true);
             if (availableProvidedMessages.getValue() instanceof Message) {
-                Message m = (Message)availableProvidedMessages.getValue();
-                insertNewReceiveState(m,subject,instance,true);
+                Message m = (Message) availableProvidedMessages.getValue();
+                insertNewReceiveState(m, subject, instance, true);
                 subject.removeProvidedMessage(m);
             }
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
-            }
-            else {
+            } else {
                 instance.getAvailableStates().replace(subject, newState);
-                resultsProvidedToOthers(newState,subject,instance);
+                resultsProvidedToOthers(newState, subject, instance);
             }
         });
 
@@ -324,18 +330,18 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        final Button selectFromExisting = new Button ("Let me choose from existing steps");
-        selectFromExisting.addClickListener( e -> {
-            VisualizationUI viz= new VisualizationUI(instance,"viz");
+        final Button selectFromExisting = new Button("Let me choose from existing steps");
+        selectFromExisting.addClickListener(e -> {
+            VisualizationUI viz = new VisualizationUI(instance, "viz");
             getUI().addWindow(viz);
             viz.showSubject(subject);
             viz.activateSelectionMode();
-            viz.addCloseListener( e1 -> {
+            viz.addCloseListener(e1 -> {
                 LogHelper.logInfo("Elaboration: now getting selected state from behaviour vizualization ...");
                 State selectedState = viz.getSelectedState();
                 if (selectedState != null) {
@@ -348,27 +354,26 @@ public class ElaborationUI extends Window {
             });
         });
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (instance.getProcess().getStateWithName(inputField.getValue()) == null) {
                 newMessage.setEnabled(true);
                 newMessage.setDescription("");
             }
         });
 
-        newMessage.addValueChangeListener( e -> {
+        newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
-            LogHelper.logInfo("Elaboration: inserting new additional step "+inputField.getValue()+" into "+subject);
-            State newState = insertNewActionState(inputField.getValue(),subject,instance,false);
+        confirm.addClickListener(e -> {
+            LogHelper.logInfo("Elaboration: inserting new additional step " + inputField.getValue() + " into " + subject);
+            State newState = insertNewActionState(inputField.getValue(), subject, instance, false);
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
-            }
-            else {
-                resultsProvidedToOthers(newState,subject,instance);
+            } else {
+                resultsProvidedToOthers(newState, subject, instance);
             }
         });
 
@@ -390,12 +395,12 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        newMessage.addValueChangeListener( e -> {
+        newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) confirm.setCaption("Next");
             else confirm.setCaption("Done");
@@ -409,9 +414,9 @@ public class ElaborationUI extends Window {
         availableProvidedMessages.addItem(optionNo);
         availableProvidedMessages.setValue(optionNo);
 
-        confirm.addClickListener( e -> {
-            LogHelper.logInfo("Elaboration: inserting "+inputField.getValue()+" into "+subject);
-            State newState = insertNewActionState(inputField.getValue(),subject,instance,true);
+        confirm.addClickListener(e -> {
+            LogHelper.logInfo("Elaboration: inserting " + inputField.getValue() + " into " + subject);
+            State newState = insertNewActionState(inputField.getValue(), subject, instance, true);
             Object selectedItem = availableProvidedMessages.getValue();
             if (selectedItem != optionNo) {
                 State predecessor = null;
@@ -419,20 +424,19 @@ public class ElaborationUI extends Window {
                     predecessor = subject.getPredecessorStates(newState).iterator().next();
                 }
                 if (predecessor != null && predecessor instanceof RecvState) {
-                    deleteState(newState,subject,instance);
-                    instance.getAvailableStates().replace(subject,predecessor);
-                    instance.addMessageToInputBuffer(subject,((RecvState) predecessor).getRecvdMessages().iterator().next());
-                    newState = insertNewActionState(inputField.getValue(),subject,instance,true);
+                    deleteState(newState, subject, instance);
+                    instance.getAvailableStates().replace(subject, predecessor);
+                    instance.addMessageToInputBuffer(subject, ((RecvState) predecessor).getRecvdMessages().iterator().next());
+                    newState = insertNewActionState(inputField.getValue(), subject, instance, true);
                 }
-                insertNewReceiveState((Message) selectedItem,subject,instance,true);
+                insertNewReceiveState((Message) selectedItem, subject, instance, true);
                 subject.removeProvidedMessage((Message) selectedItem);
-                instance.getAvailableStates().replace(subject,newState);
+                instance.getAvailableStates().replace(subject, newState);
             }
             if (newMessage.getValue() == Boolean.FALSE) {
                 this.close();
-            }
-            else {
-                resultsProvidedToOthers(newState,subject,instance);
+            } else {
+                resultsProvidedToOthers(newState, subject, instance);
             }
         });
 
@@ -453,7 +457,7 @@ public class ElaborationUI extends Window {
 
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (infoTarget.getValue() != null) {
                 if (inputField.getValue().equals("")) confirm.setEnabled(false);
                 else confirm.setEnabled(true);
@@ -473,35 +477,35 @@ public class ElaborationUI extends Window {
         final String optionSpecifyMyself = new String("I can provide other results.");
         availableExpectedMessages.addItem(optionSpecifyMyself);
 
-        availableExpectedMessages.addValueChangeListener( e -> {
+        availableExpectedMessages.addValueChangeListener(e -> {
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSpecifyMyself) {
                 inputField.setVisible(true);
                 infoTarget.setVisible(true);
                 if (inputField.getValue().equals("")) confirm.setEnabled(false);
-            }
-            else {
+            } else {
                 inputField.setVisible(false);
                 infoTarget.setVisible(false);
                 confirm.setEnabled(true);
             }
         });
 
-        for (Subject s: instance.getProcess().getSubjects())
+        for (Subject s : instance.getProcess().getSubjects())
             if (s != subject) infoTarget.addItem(s);
         final String optionSomebodyElse = new String("Somebody else.");
         final String optionDontKnow = new String("I do not know who could be interested");
         infoTarget.addItem(optionSomebodyElse);
         infoTarget.addItem(optionDontKnow);
 
-        infoTarget.addValueChangeListener( e -> {
-            if ((!subject.getExpectedMessages().isEmpty() && availableExpectedMessages.getValue()!=optionSpecifyMyself) || !inputField.getValue().equals("")) confirm.setEnabled(true);
+        infoTarget.addValueChangeListener(e -> {
+            if ((!subject.getExpectedMessages().isEmpty() && availableExpectedMessages.getValue() != optionSpecifyMyself) || !inputField.getValue().equals(""))
+                confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSomebodyElse) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             if (inputField.isEnabled() && infoTarget.getValue() != null) {
                 String selection = infoTarget.getValue().toString();
                 if (selection.equals(optionSomebodyElse))
@@ -515,11 +519,9 @@ public class ElaborationUI extends Window {
                     insertNewSendState(inputField.getValue(), (Subject) infoTarget.getValue(), subject, instance, false);
                     this.close();
                 }
-            }
-            else {
+            } else {
                 Message m = (Message) availableExpectedMessages.getValue();
-                insertNewSendState(m,subject,instance,false);
-                subject.removeExpectedMessage(m);
+                insertNewSendStateAndRemoveExpectedMessage(m, subject, instance, false);
                 this.close();
             }
         });
@@ -537,28 +539,27 @@ public class ElaborationUI extends Window {
         Map<State, Condition> nextStates = state.getNextStates();
         if (state instanceof SendState) subject.addExpectedMessage(((SendState) state).getSentMessage());
         if (state instanceof RecvState) {
-            for (Message m: ((RecvState) state).getRecvdMessages())
+            for (Message m : ((RecvState) state).getRecvdMessages())
                 subject.addProvidedMessage(m);
         }
         if (predecessorStates.isEmpty()) {
             if (nextStates.size() == 1) {
                 subject.setFirstState(nextStates.keySet().iterator().next());
-                instance.getAvailableStates().replace(subject,subject.getFirstState());
-            }
-            else {
+                instance.getAvailableStates().replace(subject, subject.getFirstState());
+            } else {
                 if (nextStates.size() > 1)
                     state.setName("Make decision");
             }
-        }
-        else {
+        } else {
 
             for (State pre : predecessorStates) {
                 for (State s : nextStates.keySet())
                     pre.addNextState(s, nextStates.get(s));
                 pre.removeNextState(state);
             }
-            if (nextStates.size()==1) instance.getAvailableStates().replace(subject,nextStates.keySet().iterator().next());
-            else instance.getAvailableStates().replace(subject,predecessorStates.iterator().next());
+            if (nextStates.size() == 1)
+                instance.getAvailableStates().replace(subject, nextStates.keySet().iterator().next());
+            else instance.getAvailableStates().replace(subject, predecessorStates.iterator().next());
         }
     }
 
@@ -567,18 +568,17 @@ public class ElaborationUI extends Window {
         Map<State, Condition> nextStates = oldState.getNextStates();
         if (oldState instanceof SendState) subject.addExpectedMessage(((SendState) oldState).getSentMessage());
         if (oldState instanceof RecvState) {
-            for (Message m: ((RecvState) oldState).getRecvdMessages())
+            for (Message m : ((RecvState) oldState).getRecvdMessages())
                 subject.addProvidedMessage(m);
         }
         for (State s : nextStates.keySet()) {
-            newState.addNextState(s,nextStates.get(s));
+            newState.addNextState(s, nextStates.get(s));
         }
 
         if (predecessorStates.isEmpty()) {
             subject.setFirstState(newState);
 
-        }
-        else {
+        } else {
             for (State pre : predecessorStates) {
                 pre.addNextState(newState, nextStates.get(pre.getNextStates().get(oldState)));
                 pre.removeNextState(oldState);
@@ -601,7 +601,7 @@ public class ElaborationUI extends Window {
             infoSource.setVisible(false);
         }
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (infoSource.getValue() != null) {
                 if (inputField.getValue().equals("")) confirm.setEnabled(false);
                 else confirm.setEnabled(true);
@@ -614,21 +614,20 @@ public class ElaborationUI extends Window {
         }
         final String optionSpecifyMyself = new String("I need different input.");
         availableProvidedMessages.addItem(optionSpecifyMyself);
-        availableProvidedMessages.addValueChangeListener( e -> {
+        availableProvidedMessages.addValueChangeListener(e -> {
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSpecifyMyself) {
                 inputField.setVisible(true);
                 infoSource.setVisible(true);
                 if (inputField.getValue().equals("")) confirm.setEnabled(false);
-            }
-            else {
+            } else {
                 inputField.setVisible(false);
                 infoSource.setVisible(false);
                 confirm.setEnabled(true);
             }
         });
 
-        for (Subject s: instance.getProcess().getSubjects())
+        for (Subject s : instance.getProcess().getSubjects())
             if (s != subject) infoSource.addItem(s);
         final String optionSomebodyElse = new String("I can get this input from somebody else.");
         final String optionSystem = new String("I can retrieve this input from a system I have access to.");
@@ -637,14 +636,15 @@ public class ElaborationUI extends Window {
         infoSource.addItem(optionSystem);
         infoSource.addItem(optionDontKnow);
 
-        infoSource.addValueChangeListener( e -> {
-            if ((!subject.getProvidedMessages().isEmpty() && availableProvidedMessages.getValue()!=optionSpecifyMyself) || !inputField.getValue().equals("")) confirm.setEnabled(true);
+        infoSource.addValueChangeListener(e -> {
+            if ((!subject.getProvidedMessages().isEmpty() && availableProvidedMessages.getValue() != optionSpecifyMyself) || !inputField.getValue().equals(""))
+                confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionSomebodyElse || selectedItem == optionSystem) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             if (inputField.isEnabled() && infoSource.getValue() != null) {
                 String selection = infoSource.getValue().toString();
                 if (selection.equals(optionSystem)) askForSystem(inputField.getValue(), subject, instance);
@@ -659,10 +659,9 @@ public class ElaborationUI extends Window {
                     insertNewReceiveState(inputField.getValue(), (Subject) infoSource.getValue(), subject, instance, true);
                     this.close();
                 }
-            }
-            else {
+            } else {
                 Message m = (Message) availableProvidedMessages.getValue();
-                insertNewReceiveState(m,subject,instance,true);
+                insertNewReceiveState(m, subject, instance, true);
                 subject.removeProvidedMessage(m);
                 this.close();
             }
@@ -686,15 +685,15 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             Subject newSubject = new Subject(inputField.getValue());
-            insertNewSubject(newSubject,instance);
-            insertNewReceiveState(newMessage,newSubject,subject,instance, true);
+            insertNewSubject(newSubject, instance);
+            insertNewReceiveState(newMessage, newSubject, subject, instance, true);
             this.close();
         });
 
@@ -712,15 +711,15 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             Subject newSubject = new Subject(inputField.getValue());
-            insertNewSubject(newSubject,instance);
-            insertNewSendState(newMessage,newSubject,subject,instance,false);
+            insertNewSubject(newSubject, instance);
+            insertNewSendState(newMessage, newSubject, subject, instance, false);
             this.close();
         });
 
@@ -737,14 +736,14 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             Subject newSubject = new Subject(inputField.getValue());
-            insertNewSubject(newSubject,instance);
+            insertNewSubject(newSubject, instance);
             this.close();
         });
 
@@ -763,13 +762,13 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) confirm.setEnabled(false);
             else confirm.setEnabled(true);
         });
 
-        confirm.addClickListener( e -> {
-            insertNewActionState("Retrieve "+newMessage+" from "+inputField.getValue(),subject,instance, true);
+        confirm.addClickListener(e -> {
+            insertNewActionState("Retrieve " + newMessage + " from " + inputField.getValue(), subject, instance, true);
             this.close();
         });
 
@@ -786,41 +785,41 @@ public class ElaborationUI extends Window {
         final TextField inputField = new TextField("What do you need to do?");
         final CheckBox newMessage = new CheckBox("This step leads to results I can provide to others.");
         final OptionGroup relationship = new OptionGroup("How does this relate to \"" + state + "\"?");
-        final String optionConditionalReplace = new String("It replaces \""+state+"\" under certain conditions.");
+        final String optionConditionalReplace = new String("It replaces \"" + state + "\" under certain conditions.");
         final String optionAdditionalActivity = new String("It is complementary to \"" + state + "\", I still need to do \"" + state + "\", too.");
 
         Button confirm = new Button("Done");
         confirm.setEnabled(false);
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (relationship.getValue() != null) {
                 if (inputField.getValue().equals("")) confirm.setEnabled(false);
                 else confirm.setEnabled(true);
             }
         });
 
-        final Button selectFromExisting = new Button ("Let me choose from existing steps");
-        selectFromExisting.addClickListener( e -> {
-            VisualizationUI viz= new VisualizationUI(instance,"viz");
+        final Button selectFromExisting = new Button("Let me choose from existing steps");
+        selectFromExisting.addClickListener(e -> {
+            VisualizationUI viz = new VisualizationUI(instance, "viz");
             getUI().addWindow(viz);
             viz.showSubject(subject);
             viz.activateSelectionMode();
-            viz.addCloseListener( e1 -> {
-                 LogHelper.logInfo("Elaboration: now getting selected state from behaviour vizualization ...");
-                 State selectedState = viz.getSelectedState();
-                 if (selectedState != null) {
-                     LogHelper.logInfo("Elaboration: selected state found");
-                     inputField.setValue(selectedState.toString());
-                     newMessage.setEnabled(false);
-                     newMessage.setDescription("You cannot alter the selected existing step here.");
-                     relationship.setValue(optionConditionalReplace);
-                     relationship.setEnabled(false);
-                     newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
-                 }
+            viz.addCloseListener(e1 -> {
+                LogHelper.logInfo("Elaboration: now getting selected state from behaviour vizualization ...");
+                State selectedState = viz.getSelectedState();
+                if (selectedState != null) {
+                    LogHelper.logInfo("Elaboration: selected state found");
+                    inputField.setValue(selectedState.toString());
+                    newMessage.setEnabled(false);
+                    newMessage.setDescription("You cannot alter the selected existing step here.");
+                    relationship.setValue(optionConditionalReplace);
+                    relationship.setEnabled(false);
+                    newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+                }
             });
         });
 
-        inputField.addValueChangeListener( e -> {
+        inputField.addValueChangeListener(e -> {
             if (instance.getProcess().getStateWithName(inputField.getValue()) == null) {
                 newMessage.setEnabled(true);
                 newMessage.setDescription("");
@@ -832,7 +831,7 @@ public class ElaborationUI extends Window {
         relationship.addItem(optionConditionalReplace);
         relationship.addItem(optionAdditionalActivity);
 
-        relationship.addValueChangeListener( e -> {
+        relationship.addValueChangeListener(e -> {
             if (!inputField.getValue().equals("")) confirm.setEnabled(true);
             Object selectedItem = e.getProperty().getValue();
             Boolean value = (Boolean) newMessage.getValue();
@@ -840,23 +839,23 @@ public class ElaborationUI extends Window {
             else confirm.setCaption("Done");
         });
 
-        newMessage.addValueChangeListener( e -> {
+        newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             Object selectedItem = relationship.getValue();
             if (value == Boolean.TRUE || selectedItem == optionConditionalReplace) confirm.setCaption("Next");
             else confirm.setCaption("Done");
         });
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             String selection = relationship.getValue().toString();
-            if (selection.equals(optionConditionalReplace)) askForConditions(inputField.getValue(),subject,instance,newMessage.getValue());
+            if (selection.equals(optionConditionalReplace))
+                askForConditions(inputField.getValue(), subject, instance, newMessage.getValue());
             if (selection.equals(optionAdditionalActivity)) {
-                State newState = insertNewActionState(inputField.getValue(),subject,instance, true);
+                State newState = insertNewActionState(inputField.getValue(), subject, instance, true);
                 if (newMessage.getValue() == Boolean.FALSE) {
                     this.close();
-                }
-                else {
-                    resultsProvidedToOthers(newState,subject,instance);
+                } else {
+                    resultsProvidedToOthers(newState, subject, instance);
                 }
             }
         });
@@ -874,13 +873,13 @@ public class ElaborationUI extends Window {
     private void askForConditions(String newState, Subject subject, Instance instance, Boolean addSendState) {
         State currentState = instance.getAvailableStateForSubject(subject);
         Set<State> predecessorStates = subject.getPredecessorStates(currentState);
-        LogHelper.logInfo("Elaboration: found "+predecessorStates.size()+" predecessors for inserting " + newState);
+        LogHelper.logInfo("Elaboration: found " + predecessorStates.size() + " predecessors for inserting " + newState);
 
-        Map<State,TextField> originalConditionTextFields = new HashMap<>();
-        Map<State,TextField> newConditionTextFields = new HashMap<>();
+        Map<State, TextField> originalConditionTextFields = new HashMap<>();
+        Map<State, TextField> newConditionTextFields = new HashMap<>();
 
         Map<State, Condition> originalConditions = new HashMap<>();
-        Map<State,Condition> newConditions = new HashMap<>();
+        Map<State, Condition> newConditions = new HashMap<>();
 
         final Label questionPrompt = new Label(newState + "\" replaces \"" + currentState + "\" under certain conditions.");
         fLayout.removeAllComponents();
@@ -892,8 +891,9 @@ public class ElaborationUI extends Window {
         }
         for (State predecessor : predecessorStates) {
             Condition originalCondition = predecessor.getNextStates().get(currentState);
-            if (originalCondition != null && !originalCondition.getCondition().equals("")) originalConditions.put(predecessor,originalCondition);
-            else originalConditions.put(predecessor,new Condition(""));
+            if (originalCondition != null && !originalCondition.getCondition().equals(""))
+                originalConditions.put(predecessor, originalCondition);
+            else originalConditions.put(predecessor, new Condition(""));
             TextField inputFieldNew = new TextField("What is the condition for \"" + newState + "\" when coming from \"" + predecessor + "\"?");
             TextField inputFieldOld = new TextField("What is the condition for \"" + currentState + "\" when coming from \"" + predecessor + "\"?");
             inputFieldOld.setValue(originalConditions.get(predecessor).getCondition());
@@ -910,18 +910,18 @@ public class ElaborationUI extends Window {
         Button confirm = new Button("Done");
         if (addSendState == Boolean.TRUE) confirm.setCaption("Next");
 
-        confirm.addClickListener( e -> {
+        confirm.addClickListener(e -> {
             State newInsertedState = new ActionState(newState);
             for (State predecessor : predecessorStates) {
-                if (!(originalConditions.get(predecessor) instanceof MessageCondition)) originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue()));
+                if (!(originalConditions.get(predecessor) instanceof MessageCondition))
+                    originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue()));
                 newConditions.put(predecessor, new Condition(newConditionTextFields.get(predecessor).getValue()));
             }
-            insertNewStateAsideCurrentState(newInsertedState, newConditions, originalConditions,subject,instance);
+            insertNewStateAsideCurrentState(newInsertedState, newConditions, originalConditions, subject, instance);
             if (addSendState == Boolean.FALSE) {
                 this.close();
-            }
-            else {
-                resultsProvidedToOthers(newInsertedState,subject,instance);
+            } else {
+                resultsProvidedToOthers(newInsertedState, subject, instance);
             }
         });
 
@@ -930,14 +930,14 @@ public class ElaborationUI extends Window {
 
     private Subject addAnonymousSubject(Instance instance) {
         Subject anonymous = null;
-        for (Subject s: instance.getProcess().getSubjects()) {
+        for (Subject s : instance.getProcess().getSubjects()) {
             if (s.toString().equals(Subject.ANONYMOUS)) {
                 anonymous = s;
             }
         }
         if (anonymous == null) {
             anonymous = new Subject(Subject.ANONYMOUS);
-            insertNewSubject(anonymous,instance);
+            insertNewSubject(anonymous, instance);
         }
         return anonymous;
     }
@@ -947,81 +947,67 @@ public class ElaborationUI extends Window {
         p.addSubject(newSubject);
         instance.addInputBufferAndHistoryForSubject(newSubject);
     }
+
     private State insertNewActionState(String stateName, Subject s, Instance instance, boolean insertBefore) {
         State newState = new ActionState(stateName);
-        insertNewState(newState,s,instance, insertBefore);
+        insertNewState(newState, s, instance, insertBefore, true);
         return newState;
     }
 
     private State insertNewReceiveState(String messageName, Subject provider, Subject subject, Instance instance, boolean insertBefore) {
-        RecvState newState = new RecvState("Wait for "+messageName);
+        RecvState newState = new RecvState("Wait for " + messageName);
         Message newMessage = new Message(messageName);
         newState.addRecvdMessage(newMessage);
-        insertNewState(newState, subject, instance, insertBefore);
-        provider.addExpectedMessage(newMessage);
+        insertNewState(newState, subject, instance, insertBefore, false);
+        provider.addExpectedMessage(newMessage); // TODO replace with command
         return newState;
     }
 
     private State insertNewReceiveState(Message message, Subject subject, Instance instance, boolean insertBefore) {
         RecvState newState = new RecvState("Wait for " + message);
         newState.addRecvdMessage(message);
-        insertNewState(newState, subject, instance, insertBefore);
+        insertNewState(newState, subject, instance, insertBefore, true);
         return newState;
     }
 
     private State insertNewSendState(String messageName, Subject target, Subject subject, Instance instance, boolean insertBefore) {
-        SendState newState = new SendState("Send "+messageName);
+        SendState newState = new SendState("Send " + messageName);
         Message newMessage = new Message(messageName);
         newState.setSentMessage(newMessage);
-        insertNewState(newState, subject, instance, insertBefore);
-        target.addProvidedMessage(newMessage);
+        insertNewState(newState, subject, instance, insertBefore, false);
+        target.addProvidedMessage(newMessage); // TODO replace with command
+
         return newState;
     }
 
-    private State insertNewSendState(Message message, Subject subject, Instance instance, boolean insertBefore) {
-        SendState newState = new SendState("Send "+message);
+    private State insertNewSendStateAndRemoveExpectedMessage(Message message, Subject subject, Instance instance, boolean insertBefore) {
+        SendState newState = new SendState("Send " + message);
         newState.setSentMessage(message);
-        insertNewState(newState, subject, instance, insertBefore);
+        insertNewState(newState, subject, instance, insertBefore, false);
+        ProcessChange c = new RemoveExpectedMessageChange(subject,message);
+        boolean successful = c.perform();
+        if (successful) {
+            c.setChangeStepCompleted(true);
+            processChangeHistory.add(c);
+        }
+        subject.removeExpectedMessage(message);
         return newState;
     }
 
 
-    private void insertNewState(State newState, Subject s, Instance instance, boolean insertBefore) {
+    private void insertNewState(State newState, Subject s, Instance instance, boolean insertBefore, boolean changesDone) {
         State currentState = instance.getAvailableStateForSubject(s);
 
-        if (insertBefore) {
-            if (currentState == s.getFirstState() || s.getFirstState() == null) {
-                LogHelper.logInfo("Elaboration: inserting " + newState + " as new first state in subject " + s);
-                s.setFirstState(newState);
-                if (currentState != null) newState.addNextState(currentState);
-                instance.getAvailableStates().put(s, newState);
-                return;
-            }
-
-            Set<State> predecessorStates = s.getPredecessorStates(currentState);
-            LogHelper.logInfo("Elaboration: found "+predecessorStates.size()+" predecessors for inserting " + newState);
-
-            if (!predecessorStates.isEmpty()) {
-                for (State predecessorState : predecessorStates) {
-                    LogHelper.logInfo("Elaboration: inserting " + newState + " after " + predecessorState);
-                    Condition c = predecessorState.getNextStates().get(currentState);
-                    predecessorState.getNextStates().remove(currentState);
-                    predecessorState.getNextStates().put(newState, c);
-                }
-                newState.addNextState(currentState);
-                instance.getAvailableStates().replace(s, newState);
-            }
+        if (!insertBefore && currentState == null) {
+            currentState = instance.getHistoryForSubject(s).getFirst();
         }
-        else {
-            if (currentState == null) {
-                currentState = instance.getHistoryForSubject(s).getFirst();
-                instance.getAvailableStates().replace(s,newState);
-            }
-            for (State nextState: currentState.getNextStates().keySet()) {
-                newState.addNextState(nextState,currentState.getNextStates().get(nextState));
-            }
-            currentState.removeAllNextStates();
-            currentState.addNextState(newState);
+
+        ProcessChange c = new AddStateChange(s, currentState, newState, insertBefore);
+        boolean successful = c.perform();
+        if (successful) {
+            c.setChangeStepCompleted(changesDone);
+            processChangeHistory.add(c);
+            instance.getAvailableStates().replace(s, newState);
         }
     }
 
@@ -1032,7 +1018,7 @@ public class ElaborationUI extends Window {
             s.setFirstState(decisionState);
             decisionState.addNextState(currentState, oldCs.values().iterator().next());
             decisionState.addNextState(newState, newCs.values().iterator().next());
-            instance.getAvailableStates().replace(s,newState);
+            instance.getAvailableStates().replace(s, newState);
             return;
         }
 
