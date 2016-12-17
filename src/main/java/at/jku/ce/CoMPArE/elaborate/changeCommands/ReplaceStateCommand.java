@@ -8,19 +8,19 @@ import java.util.Set;
 /**
  * Created by oppl on 15/12/2016.
  */
-public class ReplaceStateChange extends ProcessChange {
+public class ReplaceStateCommand extends ProcessChangeCommand {
 
     private State toBeReplacedState;
     private State newState;
     private Subject subject;
     private boolean before;
 
-    public ReplaceStateChange() {
+    public ReplaceStateCommand() {
         toBeReplacedState = null;
         newState = null;
     }
 
-    public ReplaceStateChange(Subject s, State toBeReplacedState, State newState) {
+    public ReplaceStateCommand(Subject s, State toBeReplacedState, State newState) {
         this();
         this.subject = s;
         this.toBeReplacedState = toBeReplacedState;

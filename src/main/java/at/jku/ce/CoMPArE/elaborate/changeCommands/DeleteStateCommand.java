@@ -5,16 +5,16 @@ import at.jku.ce.CoMPArE.process.State;
 /**
  * Created by oppl on 15/12/2016.
  */
-public class DeleteStateChange extends ProcessChange {
+public class DeleteStateCommand extends ProcessChangeCommand {
 
     private State toBeRemovedState;
 
 
-    public DeleteStateChange() {
+    public DeleteStateCommand() {
         toBeRemovedState = null;
     }
 
-    public DeleteStateChange(State toBeRemovedState) {
+    public DeleteStateCommand(State toBeRemovedState) {
         this();
         this.toBeRemovedState = toBeRemovedState;
     }

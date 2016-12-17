@@ -1,6 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.process.Process;
 
 import java.util.Vector;
@@ -10,18 +10,18 @@ import java.util.Vector;
  */
 public class ProcessChangeHistory {
 
-    private Vector<ProcessChange> changes;
+    private Vector<ProcessChangeCommand> changes;
 
     public ProcessChangeHistory() {
         changes = new Vector<>();
     }
 
-    public void add(ProcessChange processChange) {
+    public void add(ProcessChangeCommand processChange) {
         changes.add(processChange);
     }
 
     public boolean undoLatestChangeSequence(Process p) {
-        ProcessChange pc = changes.lastElement();
+        ProcessChangeCommand pc = changes.lastElement();
         do {
             boolean success = pc.undo();
             if (!success) return false;
@@ -38,7 +38,7 @@ public class ProcessChangeHistory {
         changes.lastElement().setChangeStepCompleted(true);
     }
 
-    public Vector<ProcessChange> getHistory() {
+    public Vector<ProcessChangeCommand> getHistory() {
         return changes;
     }
 }

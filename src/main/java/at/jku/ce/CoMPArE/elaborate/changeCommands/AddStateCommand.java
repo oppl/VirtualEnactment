@@ -10,14 +10,14 @@ import java.util.Set;
 /**
  * Created by oppl on 15/12/2016.
  */
-public class AddStateChange extends ProcessChange {
+public class AddStateCommand extends ProcessChangeCommand {
 
     private State target;
     private State newState;
     private Subject s;
     private boolean before;
 
-    public AddStateChange() {
+    public AddStateCommand() {
         super();
         target = null;
         newState = null;
@@ -25,7 +25,7 @@ public class AddStateChange extends ProcessChange {
         s = null;
     }
 
-    public AddStateChange(Subject s, State target, State newState, boolean before) {
+    public AddStateCommand(Subject s, State target, State newState, boolean before) {
         this();
         this.target = target;
         this.newState = newState;

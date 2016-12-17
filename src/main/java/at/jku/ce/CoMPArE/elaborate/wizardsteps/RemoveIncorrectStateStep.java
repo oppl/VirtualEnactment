@@ -1,6 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
@@ -51,7 +51,7 @@ public class RemoveIncorrectStateStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChange> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChanges() {
         String selection = (String) answerOptions.getValue();
         if (selection.equals(option1)) {
             //TODO: add DeleteStateCommand

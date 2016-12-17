@@ -1,8 +1,8 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.LogHelper;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ReplaceStateCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.ActionState;
 import at.jku.ce.CoMPArE.process.State;
@@ -19,22 +19,19 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class ReplaceIncorrectStateStep extends ElaborationStep {
+public class AddAdditionalStepStep extends ElaborationStep {
 
     State state;
     final Label questionPrompt;
     final TextField inputField;
     final CheckBox newMessage;
 
-    ResultsProvidedToOthersStep step;
-
-    public ReplaceIncorrectStateStep(Wizard owner, Subject s, Instance i) {
+    public AddAdditionalStepStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
-        state = instance.getAvailableStateForSubject(subject);
-        caption = new String("I want to replace \"" + state + "\" with something else.");
-
-        questionPrompt = new Label("I want to replace \"" + state + "\" with something else.");
-        inputField = new TextField("What is the new activity?");
+        state = instance.getAvailableStateForSubject(s);
+        caption = new String("I want to set an additional step for  " + subject + ".");
+        questionPrompt = new Label("I want to set an additional step for  " + subject + ".");
+        inputField = new TextField("What do you want to do?");
         newMessage = new CheckBox("This activity leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
@@ -66,30 +63,29 @@ public class ReplaceIncorrectStateStep extends ElaborationStep {
                 newMessage.setVisible(true);
                 newMessage.setDescription("");
             }
-            if (step != null) step.updateNameOfState(inputField.getValue());
         });
 
         newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             removeNextSteps();
+            ElaborationStep step;
             if (value == Boolean.TRUE) step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
             else step = null;
             addNextStep(step);
         });
 
+
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(inputField);
         fLayout.addComponent(selectFromExisting);
         fLayout.addComponent(newMessage);
-
     }
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
-        if (state != null) {
-            State newState = new ActionState(inputField.getValue());
-            processChanges.add(new ReplaceStateCommand(subject, state, newState));
-        }
+        LogHelper.logInfo("Elaboration: inserting new additional step " + inputField.getValue() + " into " + subject);
+
+        //TODO: insert correct command: State newState = insertNewActionState(inputField.getValue(), subject, instance, false);
         return processChanges;
     }
 }

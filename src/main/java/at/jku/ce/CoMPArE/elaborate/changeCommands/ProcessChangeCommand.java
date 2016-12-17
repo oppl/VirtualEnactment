@@ -3,11 +3,11 @@ package at.jku.ce.CoMPArE.elaborate.changeCommands;
 /**
  * Created by oppl on 15/12/2016.
  */
-public abstract class ProcessChange {
+public abstract class ProcessChangeCommand {
 
     private boolean changeStepCompleted;
 
-    public ProcessChange() {
+    public ProcessChangeCommand() {
         changeStepCompleted = true;
     }
 

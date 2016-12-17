@@ -1,8 +1,8 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.LogHelper;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateChange;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.ActionState;
 import at.jku.ce.CoMPArE.process.State;
@@ -26,7 +26,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep {
     final String optionConditionalReplace;
     final String optionAdditionalActivity;
 
-    ElaborationStep newMessageStep = null;
+    ResultsProvidedToOthersStep newMessageStep = null;
     ElaborationStep specifyConditionsStep = null;
 
     public SomeThingElseInsteadStep(Wizard owner, Subject s, Instance i) {
@@ -76,6 +76,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep {
                 relationship.setEnabled(true);
                 relationship.setDescription("");
             }
+            if (newMessageStep != null) newMessageStep.updateNameOfState(inputField.getValue());
         });
 
         relationship.addItem(optionConditionalReplace);
@@ -98,7 +99,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep {
         newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) {
-                newMessageStep = new AddNewResultsProvidedToOthersStep(owner, subject, instance);
+                newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
                 addNextStep(newMessageStep);
             }
             else {
@@ -117,11 +118,11 @@ public class SomeThingElseInsteadStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChange> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChanges() {
         String selection = relationship.getValue().toString();
 
         if (selection.equals(optionAdditionalActivity)) {
-            processChanges.add(new AddStateChange(subject,state, new ActionState(inputField.getValue()),true));
+            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
         }
 
         return processChanges;

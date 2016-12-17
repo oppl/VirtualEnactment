@@ -1,6 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.Component;
@@ -28,7 +28,7 @@ public class ElaborationStep implements WizardStep {
 
     private ElaborationStep nextStep;
 
-    protected List<ProcessChange> processChanges;
+    protected List<ProcessChangeCommand> processChanges;
 
     protected VerticalLayout fLayout;
 
@@ -69,7 +69,7 @@ public class ElaborationStep implements WizardStep {
         return canGoBack;
     }
 
-    public List<ProcessChange> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChanges() {
         return processChanges;
     }
 

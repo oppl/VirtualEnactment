@@ -1,11 +1,10 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
@@ -99,7 +98,7 @@ public class NeedMoreInputStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChange> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChanges() {
         if (inputField.isEnabled() && infoSource.getValue() != null) {
             String selection = infoSource.getValue().toString();
             if (selection.equals(optionDontKnow)) {

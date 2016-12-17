@@ -1,12 +1,11 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateChange;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.ActionState;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import org.vaadin.teemu.wizards.Wizard;
@@ -42,8 +41,8 @@ public class AskForSystemStep extends ElaborationStep{
     }
 
     @Override
-    public List<ProcessChange> getProcessChanges() {
-        processChanges.add(new AddStateChange(subject, state, new ActionState("Retrieve " + newMessage + " from " + inputField.getValue()),true));
+    public List<ProcessChangeCommand> getProcessChanges() {
+        processChanges.add(new AddStateCommand(subject, state, new ActionState("Retrieve " + newMessage + " from " + inputField.getValue()),true));
         return processChanges;
     }
 }

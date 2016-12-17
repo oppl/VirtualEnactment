@@ -6,16 +6,16 @@ import at.jku.ce.CoMPArE.process.Subject;
 /**
  * Created by oppl on 16/12/2016.
  */
-public class RemoveExpectedMessageChange extends ProcessChange {
+public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
 
     private Subject subject;
     private Message message;
 
-    public RemoveExpectedMessageChange() {
+    public RemoveExpectedMessageCommand() {
         super();
     }
 
-    public RemoveExpectedMessageChange(Subject s, Message m) {
+    public RemoveExpectedMessageCommand(Subject s, Message m) {
         this();
         subject = s;
         message = m;

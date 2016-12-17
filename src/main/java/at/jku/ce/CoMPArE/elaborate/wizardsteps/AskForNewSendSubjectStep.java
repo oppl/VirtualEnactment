@@ -12,18 +12,18 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AskForNewRecvSubjectStep extends ElaborationStep {
+public class AskForNewSendSubjectStep extends ElaborationStep {
 
     final Label questionPrompt;
     final TextField inputField;
     final String newMessage;
 
-    public AskForNewRecvSubjectStep(Wizard owner, String input, Subject s, Instance i) {
+    public AskForNewSendSubjectStep(Wizard owner, String input, Subject s, Instance i) {
         super(owner, s, i);
 
-        caption = new String("I can get this input from somebody else.");
-        questionPrompt = new Label("I can get this input from somebody else.");
-        inputField = new TextField("Whom do you get this input from?");
+        caption = new String("I can provide this input to somebody else.");
+        questionPrompt = new Label("I can provide this input to somebody else.");
+        inputField = new TextField("Whom can you provide this input with?");
         newMessage = input;
 
         inputField.addValueChangeListener(e -> {
@@ -33,14 +33,14 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
 
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(inputField);
-
     }
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         Subject newSubject = new Subject(inputField.getValue());
         //TODO: create according Command: insertNewSubject(newSubject, instance);
-        //TODO: create according Command: insertNewReceiveState(newMessage, newSubject, subject, instance, true);
-        return processChanges;
+        //TODO: create according Command: insertNewSendState(newMessage, newSubject, subject, instance, false);
+
+        return super.getProcessChanges();
     }
 }

@@ -1,7 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ReplaceStateChange;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ReplaceStateCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.ActionState;
 import at.jku.ce.CoMPArE.process.State;
@@ -21,6 +21,7 @@ public class TooVagueStep extends ElaborationStep {
     Label questionPrompt;
     TextField inputField;
     CheckBox newMessage;
+    ResultsProvidedToOthersStep step;
 
     public TooVagueStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
@@ -34,13 +35,14 @@ public class TooVagueStep extends ElaborationStep {
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);
             else setCanAdvance(true);
+            if (step != null) step.updateNameOfState(inputField.getValue());
         });
 
         newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             removeNextSteps();
-            ElaborationStep step = null;
-            if (value == Boolean.TRUE) step = new AddNewResultsProvidedToOthersStep(owner, subject, instance);
+            if (value == Boolean.TRUE) step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+            else step = null;
             addNextStep(step);
         });
 
@@ -51,9 +53,9 @@ public class TooVagueStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChange> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChanges() {
         State newState = new ActionState(inputField.getValue());
-        processChanges.add(new ReplaceStateChange(subject, instance.getAvailableStateForSubject(subject),newState));
+        processChanges.add(new ReplaceStateCommand(subject, instance.getAvailableStateForSubject(subject),newState));
         return processChanges;
     }
 }

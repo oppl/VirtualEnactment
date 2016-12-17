@@ -12,19 +12,17 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AskForNewRecvSubjectStep extends ElaborationStep {
+public class AddInitialSubjectStep extends ElaborationStep {
 
     final Label questionPrompt;
     final TextField inputField;
-    final String newMessage;
 
-    public AskForNewRecvSubjectStep(Wizard owner, String input, Subject s, Instance i) {
-        super(owner, s, i);
+    public AddInitialSubjectStep(Wizard owner, Instance i) {
+        super(owner, null, i);
 
-        caption = new String("I can get this input from somebody else.");
-        questionPrompt = new Label("I can get this input from somebody else.");
-        inputField = new TextField("Whom do you get this input from?");
-        newMessage = input;
+        caption = new String("You want to add your first actor.");
+        questionPrompt = new Label("You want to add your first actor.");
+        inputField = new TextField("What's its name?");
 
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);
@@ -39,8 +37,7 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         Subject newSubject = new Subject(inputField.getValue());
-        //TODO: create according Command: insertNewSubject(newSubject, instance);
-        //TODO: create according Command: insertNewReceiveState(newMessage, newSubject, subject, instance, true);
+        //TODO: modify to command: insertNewSubject(newSubject, instance);
         return processChanges;
     }
 }
