@@ -4,9 +4,13 @@ import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChange;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by oppl on 16/12/2016.
@@ -19,12 +23,12 @@ public class ElaborationStep implements WizardStep {
     protected Subject subject;
     protected String caption;
 
-    protected boolean canAdvance;
-    protected boolean canGoBack;
+    private boolean canAdvance;
+    private boolean canGoBack;
 
-    protected ElaborationStep nextStep;
+    private ElaborationStep nextStep;
 
-    protected ProcessChange processChange;
+    protected List<ProcessChange> processChanges;
 
     protected VerticalLayout fLayout;
 
@@ -32,10 +36,10 @@ public class ElaborationStep implements WizardStep {
         subject = s;
         instance = i;
         this.owner = owner;
-        canAdvance = false;
-        canGoBack = true;
+        setCanAdvance(false);
+        setCanGoBack(true);
         nextStep = null;
-        processChange = null;
+        processChanges = new LinkedList<>();
         fLayout = new VerticalLayout();
         fLayout.setMargin(true);
         fLayout.setSpacing(true);
@@ -55,7 +59,9 @@ public class ElaborationStep implements WizardStep {
 
     @Override
     public final boolean onAdvance() {
+        if (!canAdvance) Notification.show("Please provide the necessary information first!", Notification.Type.WARNING_MESSAGE);
         return canAdvance;
+
     }
 
     @Override
@@ -63,7 +69,65 @@ public class ElaborationStep implements WizardStep {
         return canGoBack;
     }
 
-    public ProcessChange getProcessChange() {
-        return processChange;
+    public List<ProcessChange> getProcessChanges() {
+        return processChanges;
+    }
+
+    protected final void removeNextSteps() {
+        if (nextStep!=null) {
+            nextStep.removeNextSteps();
+            owner.removeStep(nextStep);
+            nextStep = null;
+            setCanAdvance(canAdvance);
+        }
+    }
+
+    protected final void removeParticularFollowingStep(ElaborationStep step) {
+        if (nextStep!=null) {
+            if (step == nextStep) {
+                nextStep = step.nextStep;
+                owner.removeStep(step);
+            }
+            else {
+                nextStep.removeParticularFollowingStep(step);
+            }
+            setCanAdvance(canAdvance);
+
+        }
+    }
+
+    protected final void addNextStep(ElaborationStep step) {
+        if (step == null) return;
+        if (nextStep == null) {
+            nextStep = step;
+            owner.addStep(nextStep);
+        }
+        else {
+            nextStep.addNextStep(step);
+        }
+        setCanAdvance(canAdvance);
+    }
+
+    protected final void setCanAdvance(boolean canAdvance) {
+        this.canAdvance = canAdvance;
+        if (!canAdvance) {
+            owner.getFinishButton().setEnabled(false);
+            owner.getNextButton().setEnabled(false);
+        }
+        else {
+            if (nextStep == null) {
+                owner.getFinishButton().setEnabled(true);
+                owner.getNextButton().setEnabled(false);
+            }
+            else {
+                owner.getFinishButton().setEnabled(false);
+                owner.getNextButton().setEnabled(true);
+            }
+        }
+    }
+
+    protected final void setCanGoBack(boolean canGoBack) {
+        this.canGoBack = canGoBack;
+        owner.getBackButton().setEnabled(canGoBack);
     }
 }

@@ -34,6 +34,7 @@ public class ProcessChangeHistory {
     }
 
     public void setLatestStepAsLastInSequence() {
+        if (changes.isEmpty()) return;
         changes.lastElement().setChangeStepCompleted(true);
     }
 

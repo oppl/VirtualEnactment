@@ -29,15 +29,16 @@ public class AskForReasonStep extends ElaborationStep {
         answerOptions.addItem(option3);
         answerOptions.addItem(option4);
         answerOptions.addValueChangeListener(e -> {
-            canAdvance = true;
+            setCanAdvance(true);
             String selection = (String) answerOptions.getValue();
             if (selection != null) {
-                if (nextStep != null) owner.removeStep(nextStep);
-                if (selection.equals(option1)) nextStep = new CantBeDoneStep(owner, subject, instance);
-                if (selection.equals(option2)) nextStep = null;//somethingElseInstead(subject, instance);
-                if (selection.equals(option3)) nextStep = new TooVagueStep(owner, subject, instance);
-                if (selection.equals(option4)) nextStep = null;//removeIncorrectState(subject, instance);
-                if (nextStep != null) owner.addStep(nextStep);
+                removeNextSteps();
+                ElaborationStep step = null;
+                if (selection.equals(option1)) step = new CantBeDoneStep(owner, subject, instance);
+                if (selection.equals(option2)) step = new SomeThingElseInsteadStep(owner, subject, instance);
+                if (selection.equals(option3)) step = new TooVagueStep(owner, subject, instance);
+                if (selection.equals(option4)) step = new RemoveIncorrectStateStep(owner, subject, instance);
+                addNextStep(step);
             }
         });
 

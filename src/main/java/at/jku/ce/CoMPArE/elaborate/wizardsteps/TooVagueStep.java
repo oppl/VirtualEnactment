@@ -7,10 +7,11 @@ import at.jku.ce.CoMPArE.process.ActionState;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import org.vaadin.teemu.wizards.Wizard;
+
+import java.util.List;
 
 /**
  * Created by oppl on 16/12/2016.
@@ -31,16 +32,18 @@ public class TooVagueStep extends ElaborationStep {
         newMessage = new CheckBox("This activity leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
-            if (inputField.getValue().equals("")) canAdvance = false;
-            else canAdvance = true;
+            if (inputField.getValue().equals("")) setCanAdvance(false);
+            else setCanAdvance(true);
         });
 
         newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
-            if (value == Boolean.TRUE) ; // addNewResultsProvidedToOthersStep
+            removeNextSteps();
+            ElaborationStep step = null;
+            if (value == Boolean.TRUE) step = new AddNewResultsProvidedToOthersStep(owner, subject, instance);
+            addNextStep(step);
         });
 
-        fLayout.removeAllComponents();
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(inputField);
         fLayout.addComponent(newMessage);
@@ -48,8 +51,9 @@ public class TooVagueStep extends ElaborationStep {
     }
 
     @Override
-    public ProcessChange getProcessChange() {
+    public List<ProcessChange> getProcessChanges() {
         State newState = new ActionState(inputField.getValue());
-        return new ReplaceStateChange(subject, instance.getAvailableStateForSubject(subject),newState);
+        processChanges.add(new ReplaceStateChange(subject, instance.getAvailableStateForSubject(subject),newState));
+        return processChanges;
     }
 }
