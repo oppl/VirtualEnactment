@@ -21,8 +21,8 @@ public class CantBeDoneStep extends ElaborationStep {
         final Label questionPrompt = new Label("\"" + state + "\" can't be done at the moment.");
 
         final OptionGroup answerOptions = new OptionGroup("Why?");
-        final String option1 = new String("I need to do something else first.");
-        final String option2 = new String("I need more input to be able to do this activity.");
+        final String optionSomethingElse = new String("I need to do something else first.");
+        final String optionMoreInput = new String("I need more input to be able to do this activity.");
 
         answerOptions.addValueChangeListener(e -> {
             setCanAdvance(true);
@@ -30,14 +30,14 @@ public class CantBeDoneStep extends ElaborationStep {
             if (selection != null) {
                 removeNextSteps();
                 ElaborationStep step = null;
-                if (selection.equals(option1)) step = new SomeThingElseFirstStep(owner, subject, instance);
-                if (selection.equals(option2)) step = new NeedMoreInputStep(owner, subject, instance);
+                if (selection.equals(optionSomethingElse)) step = new SomeThingElseFirstStep(owner, subject, instance);
+                if (selection.equals(optionMoreInput)) step = new NeedMoreInputStep(owner, subject, instance);
                 addNextStep(step);
             }
         });
 
-        answerOptions.addItem(option1);
-        answerOptions.addItem(option2);
+        answerOptions.addItem(optionSomethingElse);
+        answerOptions.addItem(optionMoreInput);
 
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(answerOptions);

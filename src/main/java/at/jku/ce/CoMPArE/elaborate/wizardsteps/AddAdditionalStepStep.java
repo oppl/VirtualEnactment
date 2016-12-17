@@ -21,14 +21,12 @@ import java.util.List;
  */
 public class AddAdditionalStepStep extends ElaborationStep {
 
-    State state;
     final Label questionPrompt;
     final TextField inputField;
     final CheckBox newMessage;
 
     public AddAdditionalStepStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
-        state = instance.getAvailableStateForSubject(s);
         caption = new String("I want to set an additional step for  " + subject + ".");
         questionPrompt = new Label("I want to set an additional step for  " + subject + ".");
         inputField = new TextField("What do you want to do?");
@@ -84,8 +82,7 @@ public class AddAdditionalStepStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         LogHelper.logInfo("Elaboration: inserting new additional step " + inputField.getValue() + " into " + subject);
-
-        //TODO: insert correct command: State newState = insertNewActionState(inputField.getValue(), subject, instance, false);
+        processChanges.add(new AddStateCommand(subject,instance.getHistoryForSubject(subject).getFirst(),new ActionState(inputField.getValue()),false));
         return processChanges;
     }
 }

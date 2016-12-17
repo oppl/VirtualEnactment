@@ -1,26 +1,23 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.process.*;
+import at.jku.ce.CoMPArE.scaffolding.scaffolds.Scaffold;
 
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by oppl on 15/12/2016.
+ * Created by oppl on 17/12/2016.
  */
-public class ReplaceStateCommand extends ProcessChangeCommand {
+public class RemoveStateCommand extends ProcessChangeCommand {
 
-    private State state;
-    private State newState;
-    private Subject subject;
-    private boolean before;
+    State state;
+    Subject subject;
 
-
-    public ReplaceStateCommand(Subject s, State state, State newState) {
+    public RemoveStateCommand(Subject subject, State state) {
         super();
-        this.subject = s;
         this.state = state;
-        this.newState = newState;
+        this.subject = subject;
     }
 
     @Override
@@ -32,20 +29,21 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
             for (Message m : ((RecvState) state).getRecvdMessages())
                 subject.addProvidedMessage(m);
         }
-        for (State s : nextStates.keySet()) {
-            newState.addNextState(s, nextStates.get(s));
-        }
-
         if (predecessorStates.isEmpty()) {
-            subject.setFirstState(newState);
-
+            if (nextStates.size() == 1) {
+                subject.setFirstState(nextStates.keySet().iterator().next());
+            } else {
+                if (nextStates.size() > 1)
+                    state.setName("Make decision");
+            }
         } else {
+
             for (State pre : predecessorStates) {
-                pre.addNextState(newState, nextStates.get(pre.getNextStates().get(state)));
+                for (State s : nextStates.keySet())
+                    pre.addNextState(s, nextStates.get(s));
                 pre.removeNextState(state);
             }
         }
-
         return true;
     }
 

@@ -4,14 +4,14 @@ import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.Subject;
 
 /**
- * Created by oppl on 16/12/2016.
+ * Created by oppl on 17/12/2016.
  */
-public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
+public class AddExpectedMessageCommand extends ProcessChangeCommand {
 
     private Subject subject;
     private Message message;
 
-    public RemoveExpectedMessageCommand(Subject s, Message m) {
+    public AddExpectedMessageCommand(Subject s, Message m) {
         super();
         subject = s;
         message = m;
@@ -19,8 +19,8 @@ public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
 
     @Override
     public boolean perform() {
-        if (!subject.getExpectedMessages().contains(message)) return false;
-        subject.removeExpectedMessage(message);
+        if (subject == null || message == null) return false;
+        subject.addExpectedMessage(message);
         return true;
     }
 

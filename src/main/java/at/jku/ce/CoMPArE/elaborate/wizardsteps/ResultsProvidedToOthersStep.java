@@ -1,9 +1,8 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.execute.Instance;
-import at.jku.ce.CoMPArE.process.Message;
-import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
@@ -16,6 +15,7 @@ import java.util.List;
  */
 public class ResultsProvidedToOthersStep extends ElaborationStep {
 
+    State state;
     String newState;
 
     Label questionPrompt;
@@ -29,6 +29,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
 
     public ResultsProvidedToOthersStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
+        state = instance.getAvailableStateForSubject(subject);
         this.newState = newState;
         caption = new String("\"" + newState + "\" leads to results I can provide to others.");
         questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
@@ -97,15 +98,30 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
         if (inputField.isEnabled() && infoTarget.getValue() != null) {
             String selection = infoTarget.getValue().toString();
             if (selection.equals(optionDontKnow)) {
-                //TODO create according command: Subject target = addAnonymousSubject(instance);
-                //TODO create according command: insertNewSendState(inputField.getValue(), target, subject, instance, false);
+                Subject anonymous = new Subject(Subject.ANONYMOUS);
+                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
+                SendState newState = new SendState("Send " + inputField.getValue());
+                Message newMessage = new Message(inputField.getValue());
+                newState.setSentMessage(newMessage);
+                processChanges.add(new AddStateCommand(subject,state,newState,false));
+                processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
+                return processChanges;
             }
             if (infoTarget.getValue() instanceof Subject) {
-                //TODO create according command: insertNewSendState(inputField.getValue(), (Subject) infoTarget.getValue(), subject, instance, false);
+                SendState newState = new SendState("Send " + inputField.getValue());
+                Message newMessage = new Message(inputField.getValue());
+                newState.setSentMessage(newMessage);
+                processChanges.add(new AddStateCommand(subject,state,newState,false));
+                processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
+                return processChanges;
             }
         } else {
             Message m = (Message) availableExpectedMessages.getValue();
-            // TODO create according command: insertNewSendStateAndRemoveExpectedMessage(m, subject, instance, false);
+            SendState newState = new SendState("Send " + m);
+            newState.setSentMessage(m);
+            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new RemoveExpectedMessageCommand(subject, m));
+            return processChanges;
         }
         return processChanges;
     }

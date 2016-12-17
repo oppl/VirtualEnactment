@@ -1,7 +1,9 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.LogHelper;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddConditionalStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.SetFirstStateInSubjectCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.Label;
@@ -82,12 +84,15 @@ public class AskForConditionsStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         State newInsertedState = new ActionState(newState);
+
         for (State predecessor : predecessorStates) {
             if (!(originalConditions.get(predecessor) instanceof MessageCondition))
                 originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue()));
             newConditions.put(predecessor, new Condition(newConditionTextFields.get(predecessor).getValue()));
         }
-        // todo: modify to command: insertNewStateAsideCurrentState(newInsertedState, newConditions, originalConditions, subject, instance);
+
+        processChanges.add(new AddConditionalStateCommand(subject,state, newInsertedState, originalConditions, newConditions));
+
         return processChanges;
     }
 }

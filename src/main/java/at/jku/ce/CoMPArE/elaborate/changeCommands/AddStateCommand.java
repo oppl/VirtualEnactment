@@ -17,16 +17,8 @@ public class AddStateCommand extends ProcessChangeCommand {
     private Subject s;
     private boolean before;
 
-    public AddStateCommand() {
-        super();
-        target = null;
-        newState = null;
-        before = true;
-        s = null;
-    }
-
     public AddStateCommand(Subject s, State target, State newState, boolean before) {
-        this();
+        super();
         this.target = target;
         this.newState = newState;
         this.before = before;
@@ -35,7 +27,6 @@ public class AddStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean perform() {
-
         if (before) {
             if (target == s.getFirstState() || s.getFirstState() == null) {
                 LogHelper.logInfo("Elaboration: inserting " + newState + " as new first state in subject " + s);

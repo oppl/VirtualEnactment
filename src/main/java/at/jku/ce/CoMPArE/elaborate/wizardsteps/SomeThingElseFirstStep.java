@@ -3,6 +3,7 @@ package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.RemoveProvidedMessageCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.*;
@@ -65,23 +66,14 @@ public class SomeThingElseFirstStep extends ElaborationStep {
     public List<ProcessChangeCommand> getProcessChanges() {
         LogHelper.logInfo("Elaboration: inserting " + inputField.getValue() + " into " + subject);
         Object selectedItem = availableProvidedMessages.getValue();
-        if (selectedItem != optionNo) {
-            // TODO: add RecvState and remove Message from providedMessages
-            /*State predecessor = null;
-            if (subject.getPredecessorStates(newState).size() == 1) {
-                predecessor = subject.getPredecessorStates(newState).iterator().next();
-            }
-            if (predecessor != null && predecessor instanceof RecvState) {
-                deleteState(newState, subject, instance);
-                instance.getAvailableStates().replace(subject, predecessor);
-                instance.addMessageToInputBuffer(subject, ((RecvState) predecessor).getRecvdMessages().iterator().next());
-                newState = insertNewActionState(inputField.getValue(), subject, instance, true);
-            }
-            insertNewReceiveState((Message) selectedItem, subject, instance, true);
-            subject.removeProvidedMessage((Message) selectedItem);*/
-
-        }
         processChanges.add(new AddStateCommand(subject, state, new ActionState(inputField.getValue()),true));
+        if (availableProvidedMessages.getValue() instanceof Message) {
+            Message m = (Message) availableProvidedMessages.getValue();
+            RecvState newState = new RecvState("Wait for " + m);
+            newState.addRecvdMessage(m);
+            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new RemoveProvidedMessageCommand(subject, m));
+        }
         return processChanges;
     }
 }

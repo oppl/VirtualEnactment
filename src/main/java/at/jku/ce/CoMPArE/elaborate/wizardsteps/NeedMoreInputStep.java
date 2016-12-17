@@ -1,8 +1,9 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Message;
+import at.jku.ce.CoMPArE.process.RecvState;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.Label;
@@ -17,6 +18,8 @@ import java.util.List;
  */
 public class NeedMoreInputStep extends ElaborationStep {
 
+    State state;
+
     final Label questionPrompt;
     final OptionGroup infoSource;
     final TextField inputField;
@@ -30,7 +33,7 @@ public class NeedMoreInputStep extends ElaborationStep {
 
     public NeedMoreInputStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
-        State state = instance.getAvailableStateForSubject(subject);
+        state = instance.getAvailableStateForSubject(subject);
 
         caption = new String("I need more input to do \"" + state + "\".");
 
@@ -102,16 +105,30 @@ public class NeedMoreInputStep extends ElaborationStep {
         if (inputField.isEnabled() && infoSource.getValue() != null) {
             String selection = infoSource.getValue().toString();
             if (selection.equals(optionDontKnow)) {
-                //TODO replace with command: Subject source = addAnonymousSubject(instance);
-                //TODO replace with command: insertNewReceiveState(inputField.getValue(), source, subject, instance, true);
+                Subject anonymous = new Subject(Subject.ANONYMOUS);
+                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
+                RecvState newState = new RecvState("Wait for " + inputField.getValue());
+                Message newMessage = new Message(inputField.getValue());
+                newState.addRecvdMessage(newMessage);
+                processChanges.add(new AddStateCommand(subject,state,newState,true));
+                processChanges.add(new AddExpectedMessageCommand(anonymous, newMessage));
+                return processChanges;
             }
             if (infoSource.getValue() instanceof Subject) {
-                //TODO replace with command: insertNewReceiveState(inputField.getValue(), (Subject) infoSource.getValue(), subject, instance, true);
+                RecvState newState = new RecvState("Wait for " + inputField.getValue());
+                Message newMessage = new Message(inputField.getValue());
+                newState.addRecvdMessage(newMessage);
+                processChanges.add(new AddStateCommand(subject,state,newState,true));
+                processChanges.add(new AddExpectedMessageCommand((Subject) infoSource.getValue(), newMessage));
+                return processChanges;
             }
         } else {
             Message m = (Message) availableProvidedMessages.getValue();
-            //TODO replace with command: insertNewReceiveState(m, subject, instance, true);
-            //TODO replace with command: subject.removeProvidedMessage(m);
+            RecvState newState = new RecvState("Wait for " + m);
+            newState.addRecvdMessage(m);
+            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new RemoveProvidedMessageCommand(subject, m));
+            return processChanges;
         }
         return processChanges;
     }

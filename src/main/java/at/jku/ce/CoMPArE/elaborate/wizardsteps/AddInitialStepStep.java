@@ -3,10 +3,9 @@ package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.RemoveProvidedMessageCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
-import at.jku.ce.CoMPArE.process.ActionState;
-import at.jku.ce.CoMPArE.process.Message;
-import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
 
@@ -62,13 +61,16 @@ public class AddInitialStepStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         LogHelper.logInfo("Elaboration: inserting new initial step " + inputField.getValue() + " into " + subject);
+        State state = new ActionState(inputField.getValue());
+        processChanges.add(new AddStateCommand(subject, null, state,true));
         if (availableProvidedMessages.getValue() instanceof Message) {
             Message m = (Message) availableProvidedMessages.getValue();
-            // TODO: add RecvState and remove Message from providedMessages
-            //insertNewReceiveState(m, subject, instance, true);
-            //subject.removeProvidedMessage(m);
+            RecvState newState = new RecvState("Wait for " + m);
+            newState.addRecvdMessage(m);
+            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new RemoveProvidedMessageCommand(subject, m));
+            return processChanges;
         }
-        processChanges.add(new AddStateCommand(subject, null, new ActionState(inputField.getValue()),true));
         return processChanges;
     }
 }

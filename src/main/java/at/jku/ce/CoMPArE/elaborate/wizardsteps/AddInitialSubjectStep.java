@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddSubjectCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Subject;
@@ -37,7 +38,7 @@ public class AddInitialSubjectStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         Subject newSubject = new Subject(inputField.getValue());
-        //TODO: modify to command: insertNewSubject(newSubject, instance);
+        processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         return processChanges;
     }
 }

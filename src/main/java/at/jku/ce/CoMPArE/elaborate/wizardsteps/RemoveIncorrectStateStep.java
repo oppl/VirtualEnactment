@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.RemoveStateCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
@@ -15,23 +16,25 @@ import java.util.List;
  */
 public class RemoveIncorrectStateStep extends ElaborationStep {
 
+    State state;
+
     final OptionGroup answerOptions;
-    final String option1;
-    final String option2;
+    final String optionRemove;
+    final String optionReplace;
 
     public RemoveIncorrectStateStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
-        State state = instance.getAvailableStateForSubject(subject);
+        state = instance.getAvailableStateForSubject(subject);
         caption = new String("\"" + state + "\" is incorrect.");
 
         final Label questionPrompt = new Label("\"" + state + "\" is incorrect.");
 
         answerOptions = new OptionGroup("How can this be corrected?");
-        option1 = new String("Simply remove \"" + state + "\".");
-        option2 = new String("Replace \"" + state + "\" with something else.");
+        optionRemove = new String("Simply remove \"" + state + "\".");
+        optionReplace = new String("Replace \"" + state + "\" with something else.");
 
-        answerOptions.addItem(option1);
-        answerOptions.addItem(option2);
+        answerOptions.addItem(optionRemove);
+        answerOptions.addItem(optionReplace);
 
         answerOptions.addValueChangeListener(e -> {
             setCanAdvance(true);
@@ -39,7 +42,7 @@ public class RemoveIncorrectStateStep extends ElaborationStep {
             if (selection != null) {
                 removeNextSteps();
                 ElaborationStep step = null;
-                if (selection.equals(option2)) step = new ReplaceIncorrectStateStep(owner, subject, instance);
+                if (selection.equals(optionReplace)) step = new ReplaceIncorrectStateStep(owner, subject, instance);
                 addNextStep(step);
             }
 
@@ -53,8 +56,8 @@ public class RemoveIncorrectStateStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         String selection = (String) answerOptions.getValue();
-        if (selection.equals(option1)) {
-            //TODO: add DeleteStateCommand
+        if (selection.equals(optionRemove)) {
+            processChanges.add(new RemoveStateCommand(subject, state));
         }
         return processChanges;
     }
