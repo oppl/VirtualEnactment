@@ -41,6 +41,7 @@ public class Simulator {
         Thread thread = new Thread(){
             public void run() {
                 LinkedList<SimulatorStep> overallSteps = findOverallPathToState(targetState);
+                delayNextStep();
                 for (SimulatorStep ss : overallSteps) {
                     LogHelper.logInfo("Simulator: executing simulator step: " + ss.subject + " " + ss.state + " " + ss.condition);
                     Panel subjectPanel = subjectPanels.get(ss.subject);

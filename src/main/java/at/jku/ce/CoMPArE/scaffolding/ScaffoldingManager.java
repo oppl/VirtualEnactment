@@ -48,7 +48,7 @@ public class ScaffoldingManager {
         table = new Table("");
         table.addContainerProperty("Advice", String.class, null);
         table.addContainerProperty("Button",  Component.class, null);
-        table.setWidth("900px");
+        table.setWidth("100%");
 
         table.setColumnWidth("Button",150);
 //        table.setColumnWidth("Advice",700);
