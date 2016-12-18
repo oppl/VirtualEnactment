@@ -53,7 +53,27 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        return false;
+        Set<State> predecessorStates = subject.getPredecessorStates(state);
+        Map<State, Condition> nextStates = state.getNextStates();
+        if (state instanceof SendState) subject.removeExpectedMessage(((SendState) state).getSentMessage());
+        if (state instanceof RecvState) {
+            for (Message m : ((RecvState) state).getRecvdMessages())
+                subject.removeProvidedMessage(m);
+        }
+
+        if (predecessorStates.isEmpty()) {
+            subject.setFirstState(state);
+
+        } else {
+            for (State pre : predecessorStates) {
+                pre.addNextState(state, nextStates.get(pre.getNextStates().get(state)));
+                pre.removeNextState(newState);
+            }
+        }
+
+        newActiveState = state;
+
+        return true;
     }
 
 }

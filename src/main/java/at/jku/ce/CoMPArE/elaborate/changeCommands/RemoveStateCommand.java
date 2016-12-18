@@ -13,10 +13,13 @@ public class RemoveStateCommand extends ProcessChangeCommand {
     State state;
     Subject subject;
 
+    State replacementState;
+
     public RemoveStateCommand(Subject subject, State state) {
         super();
         this.state = state;
         this.subject = subject;
+        replacementState = null;
     }
 
     @Override
@@ -47,12 +50,33 @@ public class RemoveStateCommand extends ProcessChangeCommand {
         if (nextStates.size()==1) newActiveState = nextStates.keySet().iterator().next();
         else newActiveState = predecessorStates.iterator().next();
 
+        replacementState = newActiveState;
+
         return true;
     }
 
     @Override
     public boolean undo() {
-        return false;
+        Set<State> predecessorStates = subject.getPredecessorStates(replacementState);
+        if (state instanceof SendState) subject.removeExpectedMessage(((SendState) state).getSentMessage());
+        if (state instanceof RecvState) {
+            for (Message m : ((RecvState) state).getRecvdMessages())
+                subject.removeProvidedMessage(m);
+        }
+        if (predecessorStates.isEmpty()) {
+            subject.setFirstState(state);
+        } else {
+
+            for (State pre : predecessorStates) {
+                Condition c = pre.getNextStates().get(replacementState);
+                pre.removeNextState(replacementState);
+                pre.addNextState(state,c);
+            }
+        }
+
+        newActiveState = state;
+
+        return true;
     }
 
 }
