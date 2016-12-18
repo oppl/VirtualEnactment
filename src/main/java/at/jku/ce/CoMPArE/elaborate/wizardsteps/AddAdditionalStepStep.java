@@ -1,21 +1,24 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.CoMPArEUI;
 import at.jku.ce.CoMPArE.LogHelper;
+import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
+import at.jku.ce.CoMPArE.elaborate.StateClickListener;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.RemoveProvidedMessageCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
-import at.jku.ce.CoMPArE.visualize.VisualizationUI;
 import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
+import org.vaadin.teemu.wizards.event.WizardProgressListener;
 
 import java.util.List;
 
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AddAdditionalStepStep extends ElaborationStep {
+public class AddAdditionalStepStep extends ElaborationStep implements StateClickListener {
 
     final String optionNoInput;
     final OptionGroup availableProvidedMessages;
@@ -37,21 +40,11 @@ public class AddAdditionalStepStep extends ElaborationStep {
 
         final Button selectFromExisting = new Button("Let me choose from existing steps");
         selectFromExisting.addClickListener(e -> {
-            VisualizationUI viz = new VisualizationUI(instance, "viz");
-            owner.getUI().addWindow(viz);
-            viz.showSubject(subject);
-            viz.activateSelectionMode();
-            viz.addCloseListener(e1 -> {
-                LogHelper.logInfo("Elaboration: now getting selected state from behaviour vizualization ...");
-                State selectedState = viz.getSelectedState();
-                if (selectedState != null) {
-                    LogHelper.logInfo("Elaboration: selected state found");
-                    inputField.setValue(selectedState.toString());
-                    newMessage.setVisible(false);
-                    newMessage.setDescription("You cannot alter the selected existing step here.");
-                    newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
-                }
-            });
+            CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
+            parent.notifyAboutClickedState(this);
+            parent.expandVisualizationSlider();
+            ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
+            elaborationUI.setVisible(false);
         });
 
         inputField.addValueChangeListener(e -> {
@@ -103,5 +96,18 @@ public class AddAdditionalStepStep extends ElaborationStep {
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
         else processChanges.add(new AddStateCommand(subject, instance.getHistoryForSubject(subject).getFirst(), newActionState,false));
         return processChanges;
+    }
+
+    @Override
+    public void clickedState(State state) {
+        CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
+        ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
+        elaborationUI.setVisible(true);
+        if (state != null) {
+            inputField.setValue(state.getName());
+            newMessage.setVisible(false);
+            newMessage.setDescription("You cannot alter the selected existing step here.");
+            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+        }
     }
 }

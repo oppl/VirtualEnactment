@@ -5,6 +5,6 @@
          version="3.1">
     <context-param>
         <param-name>widgetset</param-name>
-        <param-value>com.vaadin.pontus.vizcomponent.demo.DemoWidgetSet</param-value>
+        <param-value>at.jku.ce.CoMPArE.CoMPArEWidgetSet</param-value>
     </context-param>
 </web-app>
