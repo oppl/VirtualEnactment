@@ -82,9 +82,10 @@ public class Instance {
     }
 
     public boolean subjectFinished(Subject s) {
-        if (!history.get(s).isEmpty() && getAvailableStates().get(s) == null) return true;
+        if (!history.get(s).isEmpty() && getAvailableStateForSubject(s) == null) return true;
         return false;
     }
+
     public boolean processFinished() {
         boolean finished = true;
         for (State s : getAvailableStates().values()) {
