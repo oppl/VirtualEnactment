@@ -3,15 +3,11 @@ package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.RemoveProvidedMessageCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
-import at.jku.ce.CoMPArE.process.ActionState;
-import at.jku.ce.CoMPArE.process.State;
-import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.visualize.VisualizationUI;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
 
 import java.util.List;
@@ -21,6 +17,8 @@ import java.util.List;
  */
 public class AddAdditionalStepStep extends ElaborationStep {
 
+    final String optionNoInput;
+    final OptionGroup availableProvidedMessages;
     final Label questionPrompt;
     final TextField inputField;
     final CheckBox newMessage;
@@ -72,17 +70,38 @@ public class AddAdditionalStepStep extends ElaborationStep {
             addNextStep(step);
         });
 
+        availableProvidedMessages = new OptionGroup("There is input available, on which you might want to react:");
+        for (Message m : subject.getProvidedMessages()) {
+            availableProvidedMessages.addItem(m);
+        }
+        optionNoInput = new String("I don't want to react on any input.");
+        availableProvidedMessages.addItem(optionNoInput);
+        availableProvidedMessages.setValue(optionNoInput);
+
 
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(inputField);
         fLayout.addComponent(selectFromExisting);
         fLayout.addComponent(newMessage);
+        if (!subject.getProvidedMessages().isEmpty()) fLayout.addComponent(availableProvidedMessages);
+
     }
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         LogHelper.logInfo("Elaboration: inserting new additional step " + inputField.getValue() + " into " + subject);
-        processChanges.add(new AddStateCommand(subject,instance.getHistoryForSubject(subject).getFirst(),new ActionState(inputField.getValue()),false));
+
+        RecvState newRecvState = null;
+        if (availableProvidedMessages.getValue() instanceof Message) {
+            Message m = (Message) availableProvidedMessages.getValue();
+            newRecvState = new RecvState("Wait for " + m);
+            newRecvState.addRecvdMessage(m);
+            processChanges.add(new AddStateCommand(subject,instance.getHistoryForSubject(subject).getFirst(),newRecvState,false));
+            processChanges.add(new RemoveProvidedMessageCommand(subject, m));
+        }
+        State newActionState = new ActionState(inputField.getValue());
+        if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
+        else processChanges.add(new AddStateCommand(subject, instance.getHistoryForSubject(subject).getFirst(), newActionState,false));
         return processChanges;
     }
 }

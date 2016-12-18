@@ -1,7 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.process.*;
-import at.jku.ce.CoMPArE.scaffolding.scaffolds.Scaffold;
 
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +43,10 @@ public class RemoveStateCommand extends ProcessChangeCommand {
                 pre.removeNextState(state);
             }
         }
+
+        if (nextStates.size()==1) newActiveState = nextStates.keySet().iterator().next();
+        else newActiveState = predecessorStates.iterator().next();
+
         return true;
     }
 

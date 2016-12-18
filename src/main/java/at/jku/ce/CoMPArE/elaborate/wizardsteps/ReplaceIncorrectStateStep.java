@@ -86,6 +86,8 @@ public class ReplaceIncorrectStateStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
+
         if (state != null) {
             State newState = new ActionState(inputField.getValue());
             processChanges.add(new ReplaceStateCommand(subject, state, newState));

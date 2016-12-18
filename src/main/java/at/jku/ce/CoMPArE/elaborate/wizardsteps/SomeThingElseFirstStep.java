@@ -64,16 +64,22 @@ public class SomeThingElseFirstStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
         LogHelper.logInfo("Elaboration: inserting " + inputField.getValue() + " into " + subject);
         Object selectedItem = availableProvidedMessages.getValue();
-        processChanges.add(new AddStateCommand(subject, state, new ActionState(inputField.getValue()),true));
+
+        RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {
             Message m = (Message) availableProvidedMessages.getValue();
-            RecvState newState = new RecvState("Wait for " + m);
-            newState.addRecvdMessage(m);
-            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            newRecvState = new RecvState("Wait for " + m);
+            newRecvState.addRecvdMessage(m);
+            processChanges.add(new AddStateCommand(subject,state,newRecvState,true));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
+        State newActionState = new ActionState(inputField.getValue());
+        if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
+        else processChanges.add(new AddStateCommand(subject, state, newActionState,true));
+
         return processChanges;
     }
 }

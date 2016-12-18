@@ -119,6 +119,8 @@ public class SomeThingElseInsteadStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
+
         String selection = relationship.getValue().toString();
 
         if (selection.equals(optionAdditionalActivity)) {

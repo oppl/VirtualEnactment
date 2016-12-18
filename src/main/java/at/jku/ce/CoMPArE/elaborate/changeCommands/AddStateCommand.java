@@ -27,6 +27,7 @@ public class AddStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean perform() {
+        newActiveState = newState;
         if (before) {
             if (target == s.getFirstState() || s.getFirstState() == null) {
                 LogHelper.logInfo("Elaboration: inserting " + newState + " as new first state in subject " + s);

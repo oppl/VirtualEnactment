@@ -18,6 +18,8 @@ import java.util.List;
  */
 public class TooVagueStep extends ElaborationStep {
 
+    State state;
+
     Label questionPrompt;
     TextField inputField;
     CheckBox newMessage;
@@ -25,7 +27,7 @@ public class TooVagueStep extends ElaborationStep {
 
     public TooVagueStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
-        State state = instance.getAvailableStateForSubject(subject);
+        state = instance.getAvailableStateForSubject(subject);
         caption = new String("\"" + state + "\" is too vague.");
 
         questionPrompt = new Label("\"" + state + "\" is too vague.");
@@ -54,6 +56,8 @@ public class TooVagueStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
+
         State newState = new ActionState(inputField.getValue());
         processChanges.add(new ReplaceStateCommand(subject, instance.getAvailableStateForSubject(subject),newState));
         return processChanges;

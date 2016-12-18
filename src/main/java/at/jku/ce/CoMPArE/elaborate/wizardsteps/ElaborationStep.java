@@ -130,4 +130,5 @@ public class ElaborationStep implements WizardStep {
         this.canGoBack = canGoBack;
         owner.getBackButton().setEnabled(canGoBack);
     }
+
 }

@@ -95,6 +95,8 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
+
         if (inputField.isEnabled() && infoTarget.getValue() != null) {
             String selection = infoTarget.getValue().toString();
             if (selection.equals(optionDontKnow)) {
@@ -119,7 +121,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             Message m = (Message) availableExpectedMessages.getValue();
             SendState newState = new SendState("Send " + m);
             newState.setSentMessage(m);
-            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new AddStateCommand(subject,state,newState,false));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));
             return processChanges;
         }

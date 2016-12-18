@@ -3,10 +3,10 @@ package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddConditionalStateCommand;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.SetFirstStateInSubjectCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import org.vaadin.teemu.wizards.Wizard;
 
@@ -63,6 +63,25 @@ public class AskForConditionsStep extends ElaborationStep {
         for (State predecessor : predecessorStates) {
             inputFieldNew = new TextField("What is the condition for \"" + newState + "\" when coming from \"" + predecessor + "\"?");
             inputFieldOld = new TextField("What is the condition for \"" + state + "\" when coming from \"" + predecessor + "\"?");
+
+            inputFieldNew.addValueChangeListener( e -> {
+                if (inputFieldNew.getValue().equals("") || inputFieldOld.getValue().equals("")) setCanAdvance(false);
+                else setCanAdvance(true);
+                if (inputFieldNew.getValue().equals(inputFieldOld.getValue())) {
+                    Notification.show("Conditions must not be identical!",Notification.Type.WARNING_MESSAGE);
+                    setCanAdvance(false);
+                }
+            });
+
+            inputFieldOld.addValueChangeListener( e -> {
+                if (inputFieldNew.getValue().equals("") || inputFieldOld.getValue().equals("")) setCanAdvance(false);
+                else setCanAdvance(true);
+                if (inputFieldNew.getValue().equals(inputFieldOld.getValue())) {
+                    Notification.show("Conditions must not be identical!",Notification.Type.WARNING_MESSAGE);
+                    setCanAdvance(false);
+                }
+            });
+
             Condition originalCondition = predecessor.getNextStates().get(state);
             if (originalCondition != null && !originalCondition.getCondition().equals(""))
                 originalConditions.put(predecessor, originalCondition);
@@ -84,6 +103,7 @@ public class AskForConditionsStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         State newInsertedState = new ActionState(newState);
+        state = instance.getAvailableStateForSubject(subject);
 
         for (State predecessor : predecessorStates) {
             if (!(originalConditions.get(predecessor) instanceof MessageCondition))

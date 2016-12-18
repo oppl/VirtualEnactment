@@ -61,16 +61,17 @@ public class AddInitialStepStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         LogHelper.logInfo("Elaboration: inserting new initial step " + inputField.getValue() + " into " + subject);
-        State state = new ActionState(inputField.getValue());
-        processChanges.add(new AddStateCommand(subject, null, state,true));
+        RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {
             Message m = (Message) availableProvidedMessages.getValue();
-            RecvState newState = new RecvState("Wait for " + m);
-            newState.addRecvdMessage(m);
-            processChanges.add(new AddStateCommand(subject,state,newState,true));
+            newRecvState = new RecvState("Wait for " + m);
+            newRecvState.addRecvdMessage(m);
+            processChanges.add(new AddStateCommand(subject,null,newRecvState,true));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
-            return processChanges;
         }
+        State newActionState = new ActionState(inputField.getValue());
+        if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
+        else processChanges.add(new AddStateCommand(subject, null, newActionState,true));
         return processChanges;
     }
 }

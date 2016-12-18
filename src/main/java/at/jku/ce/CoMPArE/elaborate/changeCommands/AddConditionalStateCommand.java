@@ -46,6 +46,7 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
                 predecessorState.addNextState(newState, newConditions.get(predecessorState));
             }
         }
+        newActiveState = newState;
         return true;
     }
 

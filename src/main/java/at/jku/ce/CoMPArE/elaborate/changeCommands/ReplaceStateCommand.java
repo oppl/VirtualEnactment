@@ -46,6 +46,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
             }
         }
 
+        newActiveState = newState;
+
         return true;
     }
 

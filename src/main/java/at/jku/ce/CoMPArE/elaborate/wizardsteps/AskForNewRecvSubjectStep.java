@@ -47,6 +47,7 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
         Subject newSubject = new Subject(inputField.getValue());
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         RecvState newState = new RecvState("Wait for " + messageName);

@@ -102,6 +102,8 @@ public class NeedMoreInputStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
+        state = instance.getAvailableStateForSubject(subject);
+
         if (inputField.isEnabled() && infoSource.getValue() != null) {
             String selection = infoSource.getValue().toString();
             if (selection.equals(optionDontKnow)) {
