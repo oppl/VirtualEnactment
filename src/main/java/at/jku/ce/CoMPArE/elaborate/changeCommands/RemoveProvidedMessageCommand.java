@@ -21,11 +21,13 @@ public class RemoveProvidedMessageCommand extends ProcessChangeCommand {
     public boolean perform() {
         if (!subject.getProvidedMessages().contains(message)) return false;
         subject.removeProvidedMessage(message);
-        return false;
+        return true;
     }
 
     @Override
     public boolean undo() {
-        return false;
+        if (subject == null || message == null) return false;
+        subject.addProvidedMessage(message);
+        return true;
     }
 }

@@ -20,6 +20,7 @@ public class Process {
     public void addSubject(Subject s) {
         subjects.add(s);
     }
+    public void removeSubject(Subject s) { subjects.remove(s); }
 
     public Set<Subject> getSubjects() {
         return subjects;

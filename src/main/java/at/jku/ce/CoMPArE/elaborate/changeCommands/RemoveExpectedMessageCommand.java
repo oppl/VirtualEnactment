@@ -26,6 +26,8 @@ public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        return false;
+        if (subject == null || message == null) return false;
+        subject.addExpectedMessage(message);
+        return true;
     }
 }

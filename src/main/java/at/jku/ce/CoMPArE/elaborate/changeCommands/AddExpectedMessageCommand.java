@@ -26,6 +26,8 @@ public class AddExpectedMessageCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        return false;
+        if (!subject.getExpectedMessages().contains(message)) return false;
+        subject.removeExpectedMessage(message);
+        return true;
     }
 }
