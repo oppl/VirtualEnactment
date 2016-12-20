@@ -2,7 +2,7 @@
 
 A web-base application (using [Vaadin](http://www.vaadin.com)), that implements the concept of "Elaboration through Virtual Enactment". This approach is used to reflect on, validate and modify existing work process models in collaborative settings of stakeholders. The details are summarized and scientifically grounded in a [working paper](https://zenodo.org/record/207008#.WFQGULGZOb8) I wrote. 
 
-The motivation and larger context for this approach is grounded in my believe, that workers themselves should be supported in understanding how they are embedded in a collaborative socio-technical work system and should be able the models that aim at influencing their work processes. I have described this idea in much extent in an [article](http://www.oppl.info/files/ArticulationOfWorkProcessModels.pdf) that was published in the journal ["Information and Management"](http://www.journals.elsevier.com/information-and-management). 
+The motivation and larger context for this approach is grounded in my believe that workers themselves should be supported in understanding how they are embedded in a collaborative socio-technical work system and should be able the models that aim at influencing their work processes. I have described this idea in much extent in an [article](http://www.oppl.info/files/ArticulationOfWorkProcessModels.pdf) that was published in the journal ["Information and Management"](http://www.journals.elsevier.com/information-and-management). 
 
 ## Usage
 
