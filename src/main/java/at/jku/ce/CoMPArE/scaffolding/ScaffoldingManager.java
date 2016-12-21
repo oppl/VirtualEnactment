@@ -4,10 +4,7 @@ import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
-import at.jku.ce.CoMPArE.scaffolding.agents.ExplorationAgent;
-import at.jku.ce.CoMPArE.scaffolding.agents.ScaffoldingAgent;
-import at.jku.ce.CoMPArE.scaffolding.agents.ElaborationProcessAgent;
-import at.jku.ce.CoMPArE.scaffolding.agents.UnhandledCommunicationAgent;
+import at.jku.ce.CoMPArE.scaffolding.agents.*;
 import at.jku.ce.CoMPArE.scaffolding.scaffolds.Scaffold;
 import com.vaadin.shared.ui.slider.SliderOrientation;
 import com.vaadin.ui.*;
@@ -44,6 +41,7 @@ public class ScaffoldingManager {
         addScaffoldingAgent(new ElaborationProcessAgent(p, this));
         addScaffoldingAgent(new ExplorationAgent(p, this));
         addScaffoldingAgent(new UnhandledCommunicationAgent(p, this));
+        addScaffoldingAgent(new OnboardingAgent(p, this, scaffoldingPanel));
 
         table = new Table("");
         table.addContainerProperty("Advice", String.class, null);
@@ -113,7 +111,8 @@ public class ScaffoldingManager {
     public void updateScaffolds(Instance finishedInstance) {
 //        LogHelper.logInfo("ScaffoldingManager: now checking for agents to be informed about a finishing instance");
         for (ScaffoldingAgent agent: scaffoldingAgents) {
-            if (agent.getFreq() == ScaffoldingAgent.FREQ_EACHINSTANCE) agent.updateScaffolds(finishedInstance);
+            if (agent.getFreq() == ScaffoldingAgent.FREQ_EACHINSTANCE)
+                agent.updateScaffolds(finishedInstance);
         }
         updateScaffoldingPanel();
     }

@@ -50,7 +50,7 @@ public class XMLStore {
     }
 
     public String saveToServerFile(String processName, String xml) {
-        LogHelper.logInfo("XMLStore: created XML: " + xml);
+//        LogHelper.logInfo("XMLStore: created XML: " + xml);
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
         LocalDateTime now = LocalDateTime.now();
