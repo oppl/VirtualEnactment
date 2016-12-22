@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Message;
@@ -72,8 +73,9 @@ public class NeedMoreInputStep extends ElaborationStep {
             }
         });
 
-        for (Subject sub : instance.getProcess().getSubjects())
-            if (sub != subject) infoSource.addItem(s);
+        for (Subject sub : instance.getProcess().getSubjects()) {
+            if (sub != subject) infoSource.addItem(sub);
+        }
         optionSomebodyElse = new String("I can get this input from somebody else.");
         optionSystem = new String("I can retrieve this input from a system I have access to.");
         optionDontKnow = new String("I do not know, where I can get this input from");

@@ -91,7 +91,7 @@ public class OnboardingAgent extends ScaffoldingAgent {
 
                                 public void onClose(ConfirmDialog dialog) {
                                     if (dialog.isConfirmed()) {
-                                        stage = OnboardingAgent.INTRO_VISUALIZATION;//INTRO_ENACTMENT;
+                                        stage = OnboardingAgent.INTRO_ENACTMENT;
                                         stepCounter = 1;
                                     } else {
                                         deactivate();

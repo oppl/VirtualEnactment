@@ -206,7 +206,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     @Override
     public void onToggle(boolean b) {
-        if (b) {
+        if (b && !selectionMode) {
             String toBeActivated = null;
             Set<Subject> candidates = new HashSet<>();
             for (Subject s: subjectPanels.keySet()) {
@@ -245,6 +245,14 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         simulate = new Button("Auto-progress");
         simulate.addClickListener( e -> {
             selectionMode = true;
+            Iterator<Component> i = visualizationTabs.iterator();
+            while (i.hasNext()) {
+                Component tab = i.next();
+                if (tab.getCaption().equals("Interaction")) {
+                    if (visualizationTabs.getSelectedTab() == tab) visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                    visualizationTabs.setSelectedTab(tab);
+                }
+            }
             Notification.show("Please select where to progress to.", Notification.Type.WARNING_MESSAGE);
             visualizationSlider.expand();
         });
@@ -252,6 +260,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         restart.addClickListener( e -> {
             mainLayoutFrame.removeAllComponents();
             createBasicLayout();
+            scaffoldingManager.updateScaffolds(currentInstance);
             currentInstance = new Instance(currentProcess);
             scaffoldingManager.updateScaffolds(currentInstance,null);
             simulator = new Simulator(currentInstance, subjectPanels, this);
