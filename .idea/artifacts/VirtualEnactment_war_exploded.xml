@@ -25,6 +25,7 @@
           <element id="library" level="project" name="Maven: xpp3:xpp3_min:1.1.4c" />
           <element id="library" level="project" name="Maven: org.vaadin.addons:wizards-for-vaadin:1.1.1" />
           <element id="library" level="project" name="Maven: org.vaadin.addons:vaadin-sliderpanel:1.4.2" />
+          <element id="library" level="project" name="Maven: org.vaadin.addon:confirmdialog:2.1.3" />
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.6.1" />
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.6.1" />
         </element>

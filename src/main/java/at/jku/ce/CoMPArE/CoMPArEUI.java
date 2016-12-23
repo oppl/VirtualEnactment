@@ -15,7 +15,6 @@ import at.jku.ce.CoMPArE.visualize.VizualizeModel;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
-import com.vaadin.data.util.filter.Not;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -54,17 +53,17 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private Process currentProcess;
     private Instance currentInstance;
 
-
     private GoogleAnalyticsTracker tracker;
     private ScaffoldingManager scaffoldingManager;
     private Simulator simulator;
     private StateClickListener stateClickListener;
     private boolean initialStartup;
     private boolean selectionMode;
+    private boolean onboardingActive;
 
     private ProcessChangeHistory processChangeHistory;
-    private Subject lastActiveSubject;
 
+    private Subject lastActiveSubject;
 
     private Button differentProcess;
     private Button simulate;
@@ -77,7 +76,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         id = UUID.randomUUID().getLeastSignificantBits();
         initialStartup = true;
         selectionMode = false;
-        lastActiveSubject = null;
+        onboardingActive = false;
         stateClickListener = null;
         currentProcess = DemoProcess.getComplexDemoProcess();
         processChangeHistory = new ProcessChangeHistory();
@@ -90,8 +89,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         scaffoldingPanel.setHeight("200px");
         scaffoldingPanel.setContent(new HorizontalLayout());
 
-        scaffoldingManager = new ScaffoldingManager(currentProcess,scaffoldingPanel);
-
         differentProcess = new Button("Select different Process");
         differentProcess.addClickListener( e -> {
             selectDifferentProcess();
@@ -99,8 +96,11 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         restart = new Button("Restart Process");
 
+        toolBar = new HorizontalLayout();
+
         createBasicLayout();
         simulator = new Simulator(currentInstance,subjectPanels,this);
+        scaffoldingManager = new ScaffoldingManager(currentProcess,scaffoldingPanel);
 
         updateUI();
 
@@ -127,6 +127,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         mainInteractionArea.addComponent(subjects);
         mainInteractionArea.addComponent(toolBar);
         mainInteractionArea.addComponent(scaffoldingPanel);
+        if (onboardingActive) scaffoldingPanel.setVisible(false);
         mainInteractionArea.setMargin(true);
         mainInteractionArea.setSpacing(true);
 
@@ -138,6 +139,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
 //        mainLayoutFrame.addComponent(scaffoldingSlider);
         mainLayoutFrame.addComponent(visualizationSlider);
+        if (onboardingActive) visualizationSlider.setVisible(false);
         mainLayoutFrame.addComponent(padding);
         mainLayoutFrame.addComponent(mainInteractionArea);
 
@@ -153,6 +155,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     private SliderPanel createVisualizationSlider() {
         VerticalLayout visualizationSliderContent = new VerticalLayout();
+        visualizationSliderContent.removeAllComponents();
         visualizationSliderContent.setWidth("950px");
         visualizationSliderContent.setHeight("600px");
         visualizationSliderContent.setMargin(true);
@@ -187,6 +190,9 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                     vizualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
                 }
                 vl.addComponent(vizualizeModel);
+                if (onboardingActive) {
+                    scaffoldingManager.updateScaffolds(currentInstance,null);
+                }
             }
         });
 
@@ -200,7 +206,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     @Override
     public void onToggle(boolean b) {
-        if (b) {
+        if (b && !selectionMode) {
             String toBeActivated = null;
             Set<Subject> candidates = new HashSet<>();
             for (Subject s: subjectPanels.keySet()) {
@@ -217,7 +223,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 if (tab.getCaption().equals(toBeActivated)) {
                     if (visualizationTabs.getSelectedTab() == tab) visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
                     visualizationTabs.setSelectedTab(tab);
-                    return;
                 }
             }
         }
@@ -228,14 +233,26 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 stateClickListener = null;
             }
         }
+        if (!b && onboardingActive) {
+            scaffoldingManager.updateScaffolds(currentInstance,null);
+        }
+
     }
 
     private HorizontalLayout createToolbar() {
-        toolBar = new HorizontalLayout();
+        toolBar.removeAllComponents();
 
         simulate = new Button("Auto-progress");
         simulate.addClickListener( e -> {
             selectionMode = true;
+            Iterator<Component> i = visualizationTabs.iterator();
+            while (i.hasNext()) {
+                Component tab = i.next();
+                if (tab.getCaption().equals("Interaction")) {
+                    if (visualizationTabs.getSelectedTab() == tab) visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                    visualizationTabs.setSelectedTab(tab);
+                }
+            }
             Notification.show("Please select where to progress to.", Notification.Type.WARNING_MESSAGE);
             visualizationSlider.expand();
         });
@@ -243,14 +260,16 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         restart.addClickListener( e -> {
             mainLayoutFrame.removeAllComponents();
             createBasicLayout();
-            currentInstance = new Instance(currentProcess);
             scaffoldingManager.updateScaffolds(currentInstance);
+            currentInstance = new Instance(currentProcess);
+            scaffoldingManager.updateScaffolds(currentInstance,null);
             simulator = new Simulator(currentInstance, subjectPanels, this);
 
             updateUI();
         });
 
         if (!currentProcess.getSubjects().isEmpty()) toolBar.addComponent(simulate);
+        if (onboardingActive) simulate.setVisible(false);
         toolBar.addComponent(restart);
         toolBar.addComponent(differentProcess);
         toolBar.setSpacing(true);
@@ -349,7 +368,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     private void updateUI() {
         differentProcess.setVisible(false);
-        simulate.setVisible(true);
 
         for (Subject s: currentInstance.getProcess().getSubjects()) {
             fillSubjectPanel(s);
@@ -361,7 +379,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         if (!currentInstance.processFinished() && !currentInstance.processIsBlocked()) {
             restart.setVisible(false);
-            scaffoldingPanel.setVisible(true);
+            if (!onboardingActive) scaffoldingPanel.setVisible(true);
         }
 
         if (!currentInstance.processFinished() && currentInstance.processIsBlocked()) {
@@ -483,8 +501,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             Condition c = null;
             if (nextStates.size() > 0) c = (Condition) nextStates.getValue();
             currentInstance.advanceStateForSubject(s, c);
-            scaffoldingManager.updateScaffolds(currentInstance,currentState);
             updateUI();
+            scaffoldingManager.updateScaffolds(currentInstance,currentState);
         });
 
         Button elaborate = new Button("I have a problem here");
@@ -492,6 +510,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             perform.setEnabled(false);
             elaborate.setEnabled(false);
             openElaborationOverlay(s,ElaborationUI.ELABORATE);
+            if (onboardingActive) scaffoldingManager.updateScaffolds(currentInstance,currentInstance.getAvailableStateForSubject(s));
+
         });
 
         perform.setEnabled(currentInstance.subjectCanProgress(s));
@@ -508,7 +528,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
         if (!(s.toString().equals(Subject.ANONYMOUS))) panelContent.addComponent(perform);
-        if (currentInstance.subjectCanProgress(s)) panelContent.addComponent(elaborate);
+        if (!onboardingActive && currentInstance.subjectCanProgress(s)) panelContent.addComponent(elaborate);
         if (!availableMessages.isEmpty()) panelContent.addComponent(availableMessageList);
         if (!processMessageLabel.getValue().equals("")) panelContent.addComponent(processMessageLabel);
         if (s.getExpectedMessages().size()>0) {
@@ -517,8 +537,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         if (s.getProvidedMessages().size()>0) {
             panelContent.addComponent(providedMessagesLabel);
         }
-        if (s.getFirstState() == null && !s.toString().equals(Subject.ANONYMOUS)) panelContent.addComponent(addInitialStep);
-        if (currentInstance.subjectFinished(s) && s.getFirstState() != null) panelContent.addComponent(addAdditionStep);
+        if (!onboardingActive && s.getFirstState() == null && !s.toString().equals(Subject.ANONYMOUS)) panelContent.addComponent(addInitialStep);
+        if (!onboardingActive && currentInstance.subjectFinished(s) && s.getFirstState() != null) panelContent.addComponent(addAdditionStep);
     }
 
     private void openElaborationOverlay(Subject s, int mode) {
@@ -540,35 +560,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
     }
-/*
-    private void openVisualizationOverlay() {
-        VisualizationUI visualizationUI = new VisualizationUI(currentInstance,"Interaction");
-        getUI().addWindow(visualizationUI);
-        visualizationUI.showSubjectInteraction();
-        visualizationUI.addCloseListener(new Window.CloseListener() {
-            @Override
-            public void windowClose(Window.CloseEvent e) {
-                createBasicLayout();
-                updateUI();
-            }
-        });
 
-    }
-
-    private void openVisualizationOverlay(Subject s) {
-        VisualizationUI visualizationUI = new VisualizationUI(currentInstance,s.toString());
-        getUI().addWindow(visualizationUI);
-        visualizationUI.showSubjectProgress(s);
-        visualizationUI.addCloseListener(new Window.CloseListener() {
-            @Override
-            public void windowClose(Window.CloseEvent e) {
-                createBasicLayout();
-                updateUI();
-            }
-        });
-
-    }
-*/
     private void selectDifferentProcess() {
         ProcessSelectorUI processSelectorUI = new ProcessSelectorUI();
         getUI().addWindow(processSelectorUI);
@@ -596,6 +588,52 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 "The process has already been executed too far. Finish this round and try again after restarting.",
                 Notification.Type.ASSISTIVE_NOTIFICATION);
         return simSuccessful;
+    }
+
+    public Map<Subject, Panel> getSubjectPanels() {
+        return subjectPanels;
+    }
+
+    public Panel getScaffoldingPanel() {
+        return scaffoldingPanel;
+    }
+
+    public HorizontalLayout getToolBar() {
+        return toolBar;
+    }
+
+    public GridLayout getSubjectLayout() {
+        return subjectLayout;
+    }
+
+    public TabSheet getVisualizationTabs() {
+        return visualizationTabs;
+    }
+
+    public SliderPanel getVisualizationSlider() {
+        return visualizationSlider;
+    }
+
+    public Button getDifferentProcess() {
+        return differentProcess;
+    }
+
+    public Button getSimulate() {
+        return simulate;
+    }
+
+    public Button getRestart() {
+        return restart;
+    }
+
+    public void setOnboardingActive(boolean onboardingActive) {
+        this.onboardingActive = onboardingActive;
+        for (Subject s: subjectPanels.keySet())
+            fillSubjectPanel(s);
+    }
+
+    public Subject getLastActiveSubject() {
+        return lastActiveSubject;
     }
 
     @WebServlet(urlPatterns = "/*", name = "CoMPArEServlet", asyncSupported = true)
