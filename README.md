@@ -2,7 +2,7 @@
 
 A web-based application (using [Vaadin][1]), which implements the concept of "Elaboration through Virtual Enactment". This approach is used to reflect on, validate and modify existing work process models in collaborative settings of stakeholders. The details are summarized and scientifically grounded in a [working paper][2] I wrote. 
 
-The motivation and larger context for this approach is grounded in my believe, that workers themselves should be supported in understanding how they are embedded in a collaborative socio-technical work system and should be able the models that aim at influencing their work processes. I have described this idea in much extent in an [article][3] that was published in the journal ["Information and Management"][4]. 
+The motivation and larger context for this approach is grounded in the hypothesis that workers themselves should be supported in understanding how they are embedded in a collaborative socio-technical work system and should be able the models that aim at influencing their work processes. I have described this idea in much extent in an [article][3] that was published in the journal ["Information and Management"][4]. 
 
 ## Usage
 
