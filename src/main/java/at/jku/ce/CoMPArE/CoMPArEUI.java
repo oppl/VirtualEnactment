@@ -60,6 +60,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private boolean initialStartup;
     private boolean selectionMode;
     private boolean onboardingActive;
+    private boolean elaborationAvailable;
+    private boolean doNotNotifyScaffoldingManager;
 
     private ProcessChangeHistory processChangeHistory;
 
@@ -77,6 +79,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         initialStartup = true;
         selectionMode = false;
         onboardingActive = false;
+        elaborationAvailable = true;
+        doNotNotifyScaffoldingManager = false;
         stateClickListener = null;
         currentProcess = DemoProcess.getComplexDemoProcess();
         processChangeHistory = new ProcessChangeHistory();
@@ -177,8 +181,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             if (selected != null) {
                 VerticalLayout vl = (VerticalLayout) e.getTabSheet().getSelectedTab();
                 vl.removeAllComponents();
-//                vl.addComponent(new MoreComplexDemoView());
-
                 VizualizeModel vizualizeModel = new VizualizeModel(selected, this);
                 vizualizeModel.setCaption(selected);
                 if (selected.equals("Interaction")) {
@@ -190,7 +192,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                     vizualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
                 }
                 vl.addComponent(vizualizeModel);
-                if (onboardingActive) {
+                if (onboardingActive && !doNotNotifyScaffoldingManager) {
                     scaffoldingManager.updateScaffolds(currentInstance,null);
                 }
             }
@@ -221,7 +223,11 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             while (i.hasNext()) {
                 Component tab = i.next();
                 if (tab.getCaption().equals(toBeActivated)) {
-                    if (visualizationTabs.getSelectedTab() == tab) visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                    if (visualizationTabs.getSelectedTab() == tab) {
+                        doNotNotifyScaffoldingManager = true;
+                        visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                        doNotNotifyScaffoldingManager = false;
+                    }
                     visualizationTabs.setSelectedTab(tab);
                 }
             }
@@ -528,7 +534,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
         if (!(s.toString().equals(Subject.ANONYMOUS))) panelContent.addComponent(perform);
-        if (!onboardingActive && currentInstance.subjectCanProgress(s)) panelContent.addComponent(elaborate);
+        if (elaborationAvailable && currentInstance.subjectCanProgress(s)) panelContent.addComponent(elaborate);
         if (!availableMessages.isEmpty()) panelContent.addComponent(availableMessageList);
         if (!processMessageLabel.getValue().equals("")) panelContent.addComponent(processMessageLabel);
         if (s.getExpectedMessages().size()>0) {
@@ -537,8 +543,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         if (s.getProvidedMessages().size()>0) {
             panelContent.addComponent(providedMessagesLabel);
         }
-        if (!onboardingActive && s.getFirstState() == null && !s.toString().equals(Subject.ANONYMOUS)) panelContent.addComponent(addInitialStep);
-        if (!onboardingActive && currentInstance.subjectFinished(s) && s.getFirstState() != null) panelContent.addComponent(addAdditionStep);
+        if (elaborationAvailable && s.getFirstState() == null && !s.toString().equals(Subject.ANONYMOUS)) panelContent.addComponent(addInitialStep);
+        if (elaborationAvailable && currentInstance.subjectFinished(s) && s.getFirstState() != null) panelContent.addComponent(addAdditionStep);
     }
 
     private void openElaborationOverlay(Subject s, int mode) {
@@ -628,8 +634,16 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     public void setOnboardingActive(boolean onboardingActive) {
         this.onboardingActive = onboardingActive;
+        this.elaborationAvailable = !onboardingActive;
         for (Subject s: subjectPanels.keySet())
             fillSubjectPanel(s);
+    }
+
+    public void setElaborationAvailable(boolean elaborationAvailable) {
+        this.elaborationAvailable = elaborationAvailable;
+        for (Subject s: subjectPanels.keySet())
+            fillSubjectPanel(s);
+
     }
 
     public Subject getLastActiveSubject() {

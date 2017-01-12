@@ -41,6 +41,7 @@ public class OnboardingAgent extends ScaffoldingAgent {
     private boolean restartShown;
 
     private int vizStep;
+    private int elabStep;
     private String lastVizCaption;
 
     public OnboardingAgent(Process p, ScaffoldingManager manager, Panel scaffoldingPanel) {
@@ -54,6 +55,7 @@ public class OnboardingAgent extends ScaffoldingAgent {
         decisionShown = false;
         restartShown = false;
         vizStep = 0;
+        elabStep = 0;
         lastVizCaption = new String("");
         stage = OnboardingAgent.INTRO_FUNDAMENTAL;
     }
@@ -401,6 +403,7 @@ public class OnboardingAgent extends ScaffoldingAgent {
                                         public void onClose(ConfirmDialog dialog) {
                                             if (dialog.isConfirmed()) {
                                                 stage = INTRO_ELABORATION;
+                                                stepCounter = 0;
                                                 updateScaffolds(currentInstance, finishedState);
                                             } else {
                                                 deactivate();
@@ -412,6 +415,30 @@ public class OnboardingAgent extends ScaffoldingAgent {
             }
         }
         if (stage == OnboardingAgent.INTRO_ELABORATION) {
+            if (elabStep == 0 && stepCounter == 1) {
+                mainUI.setElaborationAvailable(true);
+                ConfirmDialog d = ConfirmDialog
+                        .show(mainUI,
+                                "Get known to the Elaboration Functionality ",
+                                "In each of the actors' panels you can now find a new button labeled " +
+                                        "\"<b>I have a problem here</b>\". " +
+                                        "If you click this button, you can modify the stored actor behaviour.<p/>" +
+                                        "<i>Please continue by clicking on any active button reading \"<b>I have a problem here</b>\". We " +
+                                        "will now will explore this functionality.</i>",
+                                "OK", "Do not bug my anymore", new ConfirmDialog.Listener() {
+
+                                    public void onClose(ConfirmDialog dialog) {
+                                        if (dialog.isConfirmed()) {
+                                            elabStep=1;
+                                            updateScaffolds(currentInstance, finishedState);
+                                        } else {
+                                            deactivate();
+                                        }
+                                    }
+                                });
+                setDefaultDialogProperties(d, "20em", OnboardingAgent.MIDDLE, OnboardingAgent.MIDDLE);
+                alreadyActive = true;
+            }
 
         }
         if (stage == OnboardingAgent.INTRO_SCAFFOLDING) {
