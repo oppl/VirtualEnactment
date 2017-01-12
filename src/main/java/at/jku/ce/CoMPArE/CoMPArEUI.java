@@ -61,6 +61,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private boolean selectionMode;
     private boolean onboardingActive;
     private boolean elaborationAvailable;
+    private boolean elaborationActive;
     private boolean doNotNotifyScaffoldingManager;
 
     private ProcessChangeHistory processChangeHistory;
@@ -80,6 +81,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         selectionMode = false;
         onboardingActive = false;
         elaborationAvailable = true;
+        elaborationActive = false;
         doNotNotifyScaffoldingManager = false;
         stateClickListener = null;
         currentProcess = DemoProcess.getComplexDemoProcess();
@@ -548,6 +550,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     }
 
     private void openElaborationOverlay(Subject s, int mode) {
+        elaborationActive = true;
         ElaborationUI elaborationUI = new ElaborationUI(processChangeHistory);
         getUI().addWindow(elaborationUI);
 
@@ -559,12 +562,17 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         elaborationUI.addCloseListener(new Window.CloseListener() {
             @Override
             public void windowClose(Window.CloseEvent e) {
+                elaborationActive = false;
                 createBasicLayout();
                 scaffoldingManager.updateScaffolds(currentInstance,currentInstance.getAvailableStateForSubject(s));
                 updateUI();
             }
         });
 
+    }
+
+    public boolean isElaborationActive() {
+        return elaborationActive;
     }
 
     private void selectDifferentProcess() {
@@ -586,6 +594,10 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             }
         });
 
+    }
+
+    public ProcessChangeHistory getProcessChangeHistory() {
+        return processChangeHistory;
     }
 
     public boolean simulate(State toState) {

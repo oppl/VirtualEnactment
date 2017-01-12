@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.scaffolding.agents;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
@@ -93,7 +94,7 @@ public class OnboardingAgent extends ScaffoldingAgent {
 
                                 public void onClose(ConfirmDialog dialog) {
                                     if (dialog.isConfirmed()) {
-                                        stage = OnboardingAgent.INTRO_ENACTMENT;
+                                        stage = OnboardingAgent.INTRO_ELABORATION;
                                         stepCounter = 1;
                                     } else {
                                         deactivate();
@@ -439,7 +440,58 @@ public class OnboardingAgent extends ScaffoldingAgent {
                 setDefaultDialogProperties(d, "20em", OnboardingAgent.MIDDLE, OnboardingAgent.MIDDLE);
                 alreadyActive = true;
             }
+            if (elabStep == 1 && mainUI.isElaborationActive()) {
+                ConfirmDialog d = ConfirmDialog
+                        .show(mainUI,
+                                "This is the elaboration panel",
+                                "The elaboration panel guides you through the process of making changes to an actor's " +
+                                        "behaviour. You can explore the options in the panel by selecting them from the " +
+                                        "list displayed above. Each option adds further steps to the elaboration process. " +
+                                        "Changes to the process are only made if you click the \"<b>Finish</b>\"-button. " +
+                                        "\"<b>Cancel</b>\" returns to the main screen without any changes.<p/>" +
+                                        "<i>Please continue by adding a new activity to be performed before the presently " +
+                                        "active one by always selecting the top-most option and finally entering a name " +
+                                        "for the new activity. Confirm the change by clicking the \"<b>Finish</b>\"-button.",
+                                "OK", "Do not bug my anymore", new ConfirmDialog.Listener() {
 
+                                    public void onClose(ConfirmDialog dialog) {
+                                        if (dialog.isConfirmed()) {
+                                            elabStep=2;
+                                            updateScaffolds(currentInstance, finishedState);
+                                        } else {
+                                            deactivate();
+                                        }
+                                    }
+                                });
+                setDefaultDialogProperties(d, "20em", OnboardingAgent.MIDDLE, OnboardingAgent.BOTTOM);
+                alreadyActive = true;
+            }
+            if (elabStep == 2 && !mainUI.getProcessChangeHistory().getHistory().isEmpty()) {
+                ConfirmDialog d = ConfirmDialog
+                        .show(mainUI,
+                                "Explore the elaboration panel further",
+                                "The elaboration panel guides you through the process of making changes to an actor's " +
+                                        "behaviour. You can explore the options in the panel by selecting them from the " +
+                                        "list displayed above. Each option adds further steps to the elaboration process. " +
+                                        "Changes to the process are only made if you click the \"<b>Finish</b>\"-button. " +
+                                        "\"<b>Cancel</b>\" returns to the main screen without any changes.<p/>" +
+                                        "<i>Please continue by adding a new activity to be performed before the presently " +
+                                        "active one by always selecting the top-most option and finally entering a name " +
+                                        "for the new activity. Confirm the change by clicking the \"<b>Finish</b>\"-button.",
+                                "OK", "Do not bug my anymore", new ConfirmDialog.Listener() {
+
+                                    public void onClose(ConfirmDialog dialog) {
+                                        if (dialog.isConfirmed()) {
+                                            elabStep=3;
+                                            updateScaffolds(currentInstance, finishedState);
+                                        } else {
+                                            deactivate();
+                                        }
+                                    }
+                                });
+                setDefaultDialogProperties(d, "20em", OnboardingAgent.MIDDLE, OnboardingAgent.BOTTOM);
+                alreadyActive = true;
+            }
         }
         if (stage == OnboardingAgent.INTRO_SCAFFOLDING) {
 
