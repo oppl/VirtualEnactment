@@ -1,5 +1,7 @@
 package at.jku.ce.CoMPArE.process;
 
+import at.jku.ce.CoMPArE.LogHelper;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;

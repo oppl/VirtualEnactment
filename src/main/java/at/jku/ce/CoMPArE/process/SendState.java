@@ -1,5 +1,7 @@
 package at.jku.ce.CoMPArE.process;
 
+import at.jku.ce.CoMPArE.LogHelper;
+
 import java.util.UUID;
 
 /**

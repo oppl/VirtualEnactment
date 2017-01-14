@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.process;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import java.util.*;
@@ -19,8 +20,8 @@ public class Subject extends ProcessElement {
     private Process parentProcess;
 
     private Set<State> states;
-    private Set<Message> expectedMessages;
-    private Set<Message> providedMessages;
+    private Set<UUID> expectedMessages;
+    private Set<UUID> providedMessages;
 
     public Subject(String name) {
         super();
@@ -62,10 +63,10 @@ public class Subject extends ProcessElement {
         this.expectedMessages = new HashSet<>();
         this.providedMessages = new HashSet<>();
         for (Message m:s.getExpectedMessages()) {
-            expectedMessages.add(new Message(m));
+            expectedMessages.add(m.getUUID());
         }
         for (Message m:s.getProvidedMessages()) {
-            providedMessages.add(new Message(m));
+            providedMessages.add(m.getUUID());
         }
 
     }
@@ -105,7 +106,9 @@ public class Subject extends ProcessElement {
 
     public State getStateByUUID(UUID stateID) {
         for (State state: states)
-            if (state.getUUID().equals(stateID)) return state;
+            if (state.getUUID().equals(stateID)) {
+                return state;
+            }
         return null;
     }
 
@@ -139,28 +142,36 @@ public class Subject extends ProcessElement {
     }
 
     public Set<Message> getExpectedMessages() {
-        return expectedMessages;
+        Set<Message> messages = new HashSet<>();
+        if (parentProcess == null) return messages;
+        for (UUID mID: expectedMessages) {
+            messages.add(parentProcess.getMessageByUUID(mID));
+        }
+        return messages;
     }
 
     public void addExpectedMessage(Message expectedMessage) {
-        this.expectedMessages.add(expectedMessage);
+        this.expectedMessages.add(expectedMessage.getUUID());
     }
 
     public void removeExpectedMessage(Message expectedMessage) {
-        this.expectedMessages.remove(expectedMessage);
+        this.expectedMessages.remove(expectedMessage.getUUID());
     }
 
     public Set<Message> getProvidedMessages() {
-        return providedMessages;
+        Set<Message> messages = new HashSet<>();
+        if (parentProcess == null) return messages;
+        for (UUID mID: providedMessages) {
+            messages.add(parentProcess.getMessageByUUID(mID));
+        }
+        return messages;
     }
 
     public void addProvidedMessage(Message providedMessage) {
-        this.providedMessages.add(providedMessage);
+        this.providedMessages.add(providedMessage.getUUID());
     }
 
-    public void removeProvidedMessage(Message providedMessage) {
-        this.providedMessages.remove(providedMessage);
-    }
+    public void removeProvidedMessage(Message providedMessage) { this.providedMessages.remove(providedMessage.getUUID()); }
 
     public Set<State> getPredecessorStates(State target) {
         Set<State> predecessorStates = new HashSet<>();
