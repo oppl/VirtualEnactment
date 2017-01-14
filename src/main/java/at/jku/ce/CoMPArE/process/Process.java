@@ -1,20 +1,35 @@
 package at.jku.ce.CoMPArE.process;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Created by oppl on 22/11/2016.
  */
-public class Process {
+public class Process extends ProcessElement {
 
     private String name;
+    private Date timestamp;
 
     private Set<Subject> subjects;
 
     public Process(String name) {
+        super();
         this.name = name;
         subjects = new HashSet<Subject>();
+        this.timestamp = new Date();
+    }
+
+    public Process(Process p) {
+        super(p);
+        name = p.toString();
+        timestamp = p.getTimestamp();
+        subjects = new HashSet<Subject>();
+
+        for (Subject s: p.getSubjects()) {
+            subjects.add(new Subject(s));
+        }
     }
 
     public void addSubject(Subject s) {
@@ -79,4 +94,17 @@ public class Process {
     public String toString() {
         return name;
     }
+
+    public void setTimestampToNow() {
+        timestamp = new Date();
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
 }

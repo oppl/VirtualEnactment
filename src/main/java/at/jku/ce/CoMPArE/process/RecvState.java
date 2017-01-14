@@ -26,6 +26,14 @@ public class RecvState extends State {
 
     }
 
+    public RecvState(RecvState s, Subject container) {
+        super(s,container);
+        recvdMessages = new HashSet<>();
+        for (Message m:s.getRecvdMessages()) {
+            recvdMessages.add(new Message(m));
+        }
+    }
+
     public Set<Message> getRecvdMessages() {
         return recvdMessages;
     }

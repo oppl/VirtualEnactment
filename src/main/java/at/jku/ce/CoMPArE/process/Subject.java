@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Created by oppl on 22/11/2016.
  */
-public class Subject {
+public class Subject extends ProcessElement {
 
     public static String ANONYMOUS = "Anonymous";
 
@@ -18,10 +18,27 @@ public class Subject {
     private Set<Message> providedMessages;
 
     public Subject(String name) {
+        super();
         this.name = name;
         this.firstState = null;
         this.expectedMessages = new HashSet<Message>();
-        this.providedMessages = new HashSet<Message>();    }
+        this.providedMessages = new HashSet<Message>();
+    }
+
+    public Subject(Subject s) {
+        super(s);
+        this.name = name;
+        this.firstState = new State(s.getFirstState(),this);
+        this.expectedMessages = new HashSet<Message>();
+        this.providedMessages = new HashSet<Message>();
+        for (Message m:s.getExpectedMessages()) {
+            expectedMessages.add(new Message(m));
+        }
+        for (Message m:s.getProvidedMessages()) {
+            providedMessages.add(new Message(m));
+        }
+
+    }
 
     public State setFirstState(State firstState) {
         return this.firstState = firstState;

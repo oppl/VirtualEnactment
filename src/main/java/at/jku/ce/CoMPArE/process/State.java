@@ -6,14 +6,44 @@ import java.util.Map;
 /**
  * Created by oppl on 22/11/2016.
  */
-public class State {
+public class State extends ProcessElement {
 
     private String name;
     private Map<State, Condition> nextStates;
 
     public State(String name) {
+        super();
         this.name = name;
         this.nextStates = new HashMap<State, Condition>();
+    }
+
+    public State(State s, Subject container) {
+        super(s);
+        this.name = name;
+        this.nextStates = new HashMap<State, Condition>();
+        for (State next: s.getNextStates().keySet()) {
+            State clonedNextState = null;
+            for (State clonedState: container.getStates()) {
+                if (clonedState.equals(next)) {
+                    clonedNextState = clonedState;
+                    break;
+                }
+            }
+            if (clonedNextState == null) {
+                if (s instanceof ActionState) clonedNextState = new ActionState((ActionState) s, container);
+                if (s instanceof SendState) clonedNextState = new SendState((SendState) s, container);
+                if (s instanceof RecvState) clonedNextState = new RecvState((RecvState) s, container);
+            }
+            Condition clonedCondition = null;
+            Condition originalCondition = s.getNextStates().get(next);
+            if (originalCondition instanceof MessageCondition) {
+                clonedCondition = new MessageCondition((MessageCondition) originalCondition);
+            }
+            else {
+                clonedCondition = new Condition(originalCondition);
+            }
+            nextStates.put(clonedNextState, clonedCondition);
+        }
     }
 
     public Map<State,Condition> getNextStates() {
@@ -51,4 +81,5 @@ public class State {
     public void setName(String name) {
         this.name = name;
     }
+
 }

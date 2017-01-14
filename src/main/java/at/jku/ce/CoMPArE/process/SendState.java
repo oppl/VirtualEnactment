@@ -17,6 +17,11 @@ public class SendState extends State {
         this.sentMessage = sentMessage;
     }
 
+    public SendState(SendState s, Subject container) {
+        super(s,container);
+        sentMessage = new Message(s.getSentMessage());
+    }
+
     public Message getSentMessage() {
         return sentMessage;
     }

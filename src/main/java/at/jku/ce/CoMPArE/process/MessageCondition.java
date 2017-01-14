@@ -7,13 +7,14 @@ public class MessageCondition extends Condition {
 
     private Message receivedMessage;
 
-    public MessageCondition(String condition) {
-        super(condition);
-    }
-
     public MessageCondition(Message receivedMessage) {
         super(receivedMessage.toString());
         this.receivedMessage = receivedMessage;
+    }
+
+    public MessageCondition(MessageCondition messageCondition) {
+        super(messageCondition);
+        receivedMessage = new Message(messageCondition.getMessage());
     }
 
     public boolean checkCondition(Message messageToBeChecked) {
@@ -24,4 +25,5 @@ public class MessageCondition extends Condition {
     public Message getMessage() {
         return receivedMessage;
     }
+
 }
