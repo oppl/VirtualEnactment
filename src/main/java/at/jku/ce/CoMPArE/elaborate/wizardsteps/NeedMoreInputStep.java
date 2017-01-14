@@ -109,9 +109,9 @@ public class NeedMoreInputStep extends ElaborationStep {
         if (inputField.isEnabled() && infoSource.getValue() != null) {
             String selection = infoSource.getValue().toString();
             if (selection.equals(optionDontKnow)) {
-                Subject anonymous = new Subject(Subject.ANONYMOUS, instance.getProcess());
+                Subject anonymous = new Subject(Subject.ANONYMOUS);
                 processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
-                RecvState newState = new RecvState("Wait for " + inputField.getValue(), subject);
+                RecvState newState = new RecvState("Wait for " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 newState.addRecvdMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,true));
@@ -119,7 +119,7 @@ public class NeedMoreInputStep extends ElaborationStep {
                 return processChanges;
             }
             if (infoSource.getValue() instanceof Subject) {
-                RecvState newState = new RecvState("Wait for " + inputField.getValue(), subject);
+                RecvState newState = new RecvState("Wait for " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 newState.addRecvdMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,true));
@@ -128,7 +128,7 @@ public class NeedMoreInputStep extends ElaborationStep {
             }
         } else {
             Message m = (Message) availableProvidedMessages.getValue();
-            RecvState newState = new RecvState("Wait for " + m, subject);
+            RecvState newState = new RecvState("Wait for " + m);
             newState.addRecvdMessage(m);
             processChanges.add(new AddStateCommand(subject,state,newState,true));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));

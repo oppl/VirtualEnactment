@@ -12,10 +12,10 @@ public class Condition extends ProcessElement {
     @XStreamOmitField
     State parentState;
 
-    public Condition(String condition, State parentState) {
+    public Condition(String condition) {
         super();
         this.condition = condition;
-        this.parentState = parentState;
+        this.parentState = null;
     }
 
     public Condition(Condition condition, State newContainer) {
@@ -30,6 +30,10 @@ public class Condition extends ProcessElement {
 
     public void setCondition(String condition) {
         this.condition = condition;
+    }
+
+    public void setParentState(State parentState) {
+        this.parentState = parentState;
     }
 
     @Override

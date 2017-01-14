@@ -71,12 +71,12 @@ public class SomeThingElseFirstStep extends ElaborationStep {
         RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {
             Message m = (Message) availableProvidedMessages.getValue();
-            newRecvState = new RecvState("Wait for " + m, subject);
+            newRecvState = new RecvState("Wait for " + m);
             newRecvState.addRecvdMessage(m);
             processChanges.add(new AddStateCommand(subject,state,newRecvState,true));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
-        State newActionState = new ActionState(inputField.getValue(), subject);
+        State newActionState = new ActionState(inputField.getValue());
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
         else processChanges.add(new AddStateCommand(subject, state, newActionState,true));
 

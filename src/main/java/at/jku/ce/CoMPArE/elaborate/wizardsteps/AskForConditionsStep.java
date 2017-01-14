@@ -56,7 +56,7 @@ public class AskForConditionsStep extends ElaborationStep {
         newConditions = new HashMap<>();
 
         if (predecessorStates.isEmpty()) {
-            State dummyState = new ActionState("Make decision",s);
+            State dummyState = new ActionState("Make decision");
             dummyState.addNextState(state);
             predecessorStates.add(dummyState);
         }
@@ -85,7 +85,7 @@ public class AskForConditionsStep extends ElaborationStep {
             Condition originalCondition = predecessor.getNextStates().get(state);
             if (originalCondition != null && !originalCondition.getCondition().equals(""))
                 originalConditions.put(predecessor, originalCondition);
-            else originalConditions.put(predecessor, new Condition("", predecessor));
+            else originalConditions.put(predecessor, null);
             inputFieldOld.setValue(originalConditions.get(predecessor).getCondition());
             if (originalConditions.get(predecessor) instanceof MessageCondition) {
                 inputFieldOld.setEnabled(false);
@@ -102,13 +102,13 @@ public class AskForConditionsStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
-        State newInsertedState = new ActionState(newState, subject);
+        State newInsertedState = new ActionState(newState);
         state = instance.getAvailableStateForSubject(subject);
 
         for (State predecessor : predecessorStates) {
             if (!(originalConditions.get(predecessor) instanceof MessageCondition))
-                originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue(),predecessor));
-            newConditions.put(predecessor, new Condition(newConditionTextFields.get(predecessor).getValue(),predecessor));
+                originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue()));
+            newConditions.put(predecessor, new Condition(newConditionTextFields.get(predecessor).getValue()));
         }
 
         processChanges.add(new AddConditionalStateCommand(subject,state, newInsertedState, originalConditions, newConditions));

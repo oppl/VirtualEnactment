@@ -15,9 +15,9 @@ public class State extends ProcessElement {
     @XStreamOmitField
     Subject parentSubject;
 
-    public State(String name, Subject parentSubject) {
+    public State(String name) {
         super();
-        this.parentSubject = parentSubject;
+        this.parentSubject = null;
         this.name = name;
         this.nextStates = new HashMap<>();
     }
@@ -31,22 +31,26 @@ public class State extends ProcessElement {
 
     public Map<State,Condition> getNextStates() {
         Map<State,Condition> nextStateMap = new HashMap<>();
+        if (parentSubject == null) return nextStateMap;
         for (UUID nextStateID: nextStates.keySet())
             nextStateMap.put(parentSubject.getStateByUUID(nextStateID),nextStates.get(nextStateID));
         return nextStateMap;
     }
 
     public State addNextState(State nextState) {
+        if (parentSubject == null) return null;
         parentSubject.addState(nextState);
         this.nextStates.put(nextState.getUUID(), null);
         return parentSubject.getStateByUUID(nextState.getUUID());
     }
 
     public State addNextState(State nextState, Condition condition) {
+        if (parentSubject == null) return null;
         parentSubject.addState(nextState);
         Condition newCondition = condition;
         if (newCondition != null && newCondition.getCondition().equals("")) newCondition = null;
         this.nextStates.put(nextState.getUUID(), newCondition);
+        if (newCondition != null) newCondition.setParentState(this);
         return parentSubject.getStateByUUID(nextState.getUUID());
     }
 
@@ -87,6 +91,10 @@ public class State extends ProcessElement {
 
     public Subject getParentSubject() {
         return parentSubject;
+    }
+
+    public void setParentSubject(Subject parentSubject) {
+        this.parentSubject = parentSubject;
     }
 
     public void reconstructParentRelations(Subject subject) {

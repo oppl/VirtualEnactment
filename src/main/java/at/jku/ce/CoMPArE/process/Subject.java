@@ -22,10 +22,10 @@ public class Subject extends ProcessElement {
     private Set<Message> expectedMessages;
     private Set<Message> providedMessages;
 
-    public Subject(String name, Process parentProcess) {
+    public Subject(String name) {
         super();
         this.name = name;
-        this.parentProcess = parentProcess;
+        this.parentProcess = null;
         this.firstState = null;
         this.states = new HashSet<>();
         this.expectedMessages = new HashSet<>();
@@ -45,6 +45,7 @@ public class Subject extends ProcessElement {
             if (state instanceof RecvState) newState = new RecvState((RecvState) state, this);
             this.addState(newState);
             for (State nextState: state.getNextStates().keySet()) {
+                if (nextState == null) continue;
                 Condition clonedCondition = null;
                 Condition originalCondition = state.getNextStates().get(nextState);
                 if (originalCondition instanceof MessageCondition) {
@@ -75,6 +76,7 @@ public class Subject extends ProcessElement {
 
     public void addState(State state) {
         states.add(state);
+        state.setParentSubject(this);
     }
 
     public void removeState(State state) {
@@ -84,6 +86,7 @@ public class Subject extends ProcessElement {
     public State setFirstState(State firstState) {
         if (!states.contains(firstState)) {
             states.add(firstState);
+            firstState.setParentSubject(this);
         }
         this.firstState = firstState.getUUID();
         return firstState;
@@ -167,6 +170,10 @@ public class Subject extends ProcessElement {
             }
         }
         return predecessorStates;
+    }
+
+    public void setParentProcess(Process parentProcess) {
+        this.parentProcess = parentProcess;
     }
 
     public void reconstructParentRelations(Process p) {

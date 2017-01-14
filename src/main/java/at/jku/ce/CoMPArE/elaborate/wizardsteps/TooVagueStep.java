@@ -58,7 +58,7 @@ public class TooVagueStep extends ElaborationStep {
     public List<ProcessChangeCommand> getProcessChanges() {
         state = instance.getAvailableStateForSubject(subject);
 
-        State newState = new ActionState(inputField.getValue(), subject);
+        State newState = new ActionState(inputField.getValue());
         processChanges.add(new ReplaceStateCommand(subject, instance.getAvailableStateForSubject(subject),newState));
         return processChanges;
     }

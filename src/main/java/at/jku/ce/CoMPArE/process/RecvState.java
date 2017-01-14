@@ -11,22 +11,20 @@ public class RecvState extends State {
 
     private Set<UUID> recvdMessageIDs;
 
-    public RecvState(String name, Subject container) {
-        super(name, container);
+    public RecvState(String name) {
+        super(name);
         recvdMessageIDs = new HashSet<>();
     }
 
-    public RecvState(String name, Message recvdMessage, Subject container) {
-        this(name, container);
-        container.getParentProcess().addMessage(recvdMessage);
+    public RecvState(String name, Message recvdMessage) {
+        this(name);
         recvdMessageIDs.add(recvdMessage.getUUID());
     }
 
-    public RecvState(String name, Set<Message> recvdMessages, Subject container) {
-        this(name, container);
+    public RecvState(String name, Set<Message> recvdMessages) {
+        this(name);
         for (Message m: recvdMessages) {
             this.recvdMessageIDs.add(m.getUUID());
-            container.getParentProcess().addMessage(m);
         }
     }
 
@@ -50,4 +48,5 @@ public class RecvState extends State {
         parentSubject.getParentProcess().addMessage(recvdMessage);
         this.recvdMessageIDs.add(recvdMessage.getUUID());
     }
+
 }

@@ -9,8 +9,8 @@ public class MessageCondition extends Condition {
 
     private UUID receivedMessageID;
 
-    public MessageCondition(Message receivedMessage, State container) {
-        super(receivedMessage.toString(), container);
+    public MessageCondition(Message receivedMessage) {
+        super(receivedMessage.toString());
         this.receivedMessageID = receivedMessage.getUUID();
     }
 
@@ -25,6 +25,9 @@ public class MessageCondition extends Condition {
     }
 
     public Message getMessage() {
+        if (parentState == null) return null;
+        if (parentState.getParentSubject() == null) return null;
+        if (parentState.getParentSubject().getParentProcess() == null) return null;
         return parentState.getParentSubject().getParentProcess().getMessageByUUID(receivedMessageID);
     }
 

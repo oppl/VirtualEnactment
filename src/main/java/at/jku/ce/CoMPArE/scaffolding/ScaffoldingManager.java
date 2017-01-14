@@ -85,7 +85,7 @@ public class ScaffoldingManager {
         hLayout.addComponent(slider);
         hLayout.addComponent(table);
 
-        updateScaffolds(new Instance(p), new State("",null));
+        updateScaffolds(new Instance(p), new State(""));
     }
 
     public void addScaffoldingAgent(ScaffoldingAgent newAgent) {

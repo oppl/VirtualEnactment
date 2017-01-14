@@ -43,7 +43,7 @@ public class AskForSystemStep extends ElaborationStep{
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         state = instance.getAvailableStateForSubject(subject);
-        processChanges.add(new AddStateCommand(subject, state, new ActionState("Retrieve " + newMessage + " from " + inputField.getValue(), subject),true));
+        processChanges.add(new AddStateCommand(subject, state, new ActionState("Retrieve " + newMessage + " from " + inputField.getValue()),true));
         return processChanges;
     }
 }

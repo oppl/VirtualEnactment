@@ -118,7 +118,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         String selection = relationship.getValue().toString();
 
         if (selection.equals(optionAdditionalActivity)) {
-            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue(),subject),true));
+            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
         }
 
         return processChanges;

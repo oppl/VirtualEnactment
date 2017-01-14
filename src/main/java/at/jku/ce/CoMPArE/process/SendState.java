@@ -9,14 +9,13 @@ public class SendState extends State {
 
     private UUID sentMessageID;
 
-    public SendState(String name, Subject container) {
-        super(name, container);
+    public SendState(String name) {
+        super(name);
         sentMessageID = null;
     }
 
-    public SendState(String name, Message sentMessage, Subject container) {
-        super(name, container);
-        container.getParentProcess().addMessage(sentMessage);
+    public SendState(String name, Message sentMessage) {
+        super(name);
         this.sentMessageID = sentMessage.getUUID();
     }
 

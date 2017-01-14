@@ -42,9 +42,12 @@ public class Process extends ProcessElement {
 
     public void addSubject(Subject s) {
         subjects.add(s);
+        s.setParentProcess(this);
     }
 
     public void addMessage(Message m) { messages.add(m); }
+
+    public void addMessages(Set<Message> messages) { this.messages.addAll(messages); }
 
     public Set<Subject> getSubjects() {
         return subjects;

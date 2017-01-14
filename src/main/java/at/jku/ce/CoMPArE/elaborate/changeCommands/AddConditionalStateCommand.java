@@ -31,7 +31,7 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
     @Override
     public boolean perform() {
         if (state == subject.getFirstState()) {
-            State decisionState = new ActionState("Make decision", subject);
+            State decisionState = new ActionState("Make decision");
             subject.addState(decisionState);
             decisionState.addNextState(state, originalConditions.values().iterator().next());
             decisionState.addNextState(newState, newConditions.values().iterator().next());
