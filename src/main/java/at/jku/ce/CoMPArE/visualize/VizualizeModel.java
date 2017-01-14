@@ -132,10 +132,19 @@ public class VizualizeModel extends VerticalLayout {
             sender.setParam("label", "\""+p.getSenderOfMessage(m).toString()+"\"");
             recipient.setParam("label", "\""+p.getRecipientOfMessage(m).toString()+"\"");
 
-            graph.addEdge(sender, recipient);
-            Graph.Edge edge = graph.getEdge(sender,recipient);
-            edge.setParam("label", "\""+m.toString()+"\"");
-            edge.setParam("fontsize","12");
+            Graph.Node message = new Graph.Node((m.getUUID().toString()));
+            message.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
+            message.setParam("fontsize","10");
+            message.setParam("shape", "note");
+
+            graph.addEdge(sender, message);
+            graph.addEdge(message,recipient);
+
+
+/*            Graph.Edge edge = graph.getEdge(sender,recipient);
+            edge.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
+            edge.setParam("fontsize","10");
+            edge.setParam("tooltip","\""+m.toString()+"\"");*/
 //            LogHelper.logInfo("subjInteractionViz: Edge between "+sender+" and "+recipient+" with label "+edge.getParam("label")+" "+m.toString());
 
         }
