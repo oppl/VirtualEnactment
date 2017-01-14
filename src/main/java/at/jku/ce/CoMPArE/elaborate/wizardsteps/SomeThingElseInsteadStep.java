@@ -14,6 +14,7 @@ import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by oppl on 17/12/2016.
@@ -60,12 +61,15 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         });
 
         inputField.addValueChangeListener(e -> {
-            if (instance.getProcess().getStateWithName(inputField.getValue()) == null) {
+            if (!(inputField.getData() instanceof UUID)) {
                 newMessage.setVisible(true);
                 newMessage.setDescription("");
                 relationship.setEnabled(true);
                 relationship.setDescription("");
             }
+            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
+                inputField.setData(null);
+
             if (newMessageStep != null) newMessageStep.updateNameOfState(inputField.getValue());
         });
 
@@ -114,7 +118,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         String selection = relationship.getValue().toString();
 
         if (selection.equals(optionAdditionalActivity)) {
-            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
+            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue(),subject),true));
         }
 
         return processChanges;
@@ -127,6 +131,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         elaborationUI.setVisible(true);
         if (state != null) {
             inputField.setValue(state.getName());
+            inputField.setData(state.getUUID());
             newMessage.setVisible(false);
             newMessage.setDescription("You cannot alter the selected existing step here.");
             newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");

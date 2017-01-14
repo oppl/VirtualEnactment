@@ -310,7 +310,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         }
 
-        State selectedState = currentProcess.getStateWithName(name);
+        State selectedState = currentProcess.getStateByUUID(UUID.fromString(name));
         if (selectedState == null) return;
 
         selectionMode = false;
@@ -482,7 +482,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             if (nextPossibleSteps != null && nextPossibleSteps.size()>0) {
                 if (nextPossibleSteps.size() == 1) {
                     State nextState = nextPossibleSteps.iterator().next();
-                    if (!currentInstance.getConditionForStateInSubject(s, nextState).toString().equals("")) {
+                    if (currentInstance.getConditionForStateInSubject(s, nextState) != null) {
                         Label label2 = new Label("You can only progress under the following condition: <br>"+currentInstance.getConditionForStateInSubject(s,nextState),ContentMode.HTML);
                         panelContent.addComponent(label2);
                     }

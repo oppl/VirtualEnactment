@@ -24,7 +24,7 @@ public class ProcessElement {
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof ProcessElement)) return false;
-        if (((ProcessElement) obj).getUUID().equals(uuid)) return true;
+        if (obj.hashCode() == this.hashCode()) return true;
         return false;
     }
 

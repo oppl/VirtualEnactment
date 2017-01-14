@@ -32,7 +32,7 @@ public class FileStorageHandler {
 
     public void addProcessToStorageBuffer(Process process) {
         process.setTimestampToNow();
-        storageBuffer.add(process);
+        storageBuffer.add(new Process(process)); // use deep copy constructor to avoid influences of future changes
     }
 
     public void setGroupID(String id) {

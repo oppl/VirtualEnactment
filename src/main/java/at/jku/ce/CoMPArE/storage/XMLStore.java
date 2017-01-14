@@ -42,6 +42,11 @@ public class XMLStore {
 
         xStream.alias("condition", Condition.class);
         xStream.alias("messagecondition", MessageCondition.class);
+
+        xStream.useAttributeFor(ProcessElement.class,"uuid");
+
+        xStream.registerConverter(new UUIDConverter());
+        xStream.processAnnotations(Process.class);
     }
 
 

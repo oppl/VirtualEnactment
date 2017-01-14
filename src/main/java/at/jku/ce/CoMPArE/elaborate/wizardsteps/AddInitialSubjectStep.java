@@ -37,7 +37,7 @@ public class AddInitialSubjectStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
-        Subject newSubject = new Subject(inputField.getValue());
+        Subject newSubject = new Subject(inputField.getValue(),instance.getProcess());
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         return processChanges;
     }

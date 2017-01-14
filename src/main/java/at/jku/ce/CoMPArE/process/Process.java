@@ -3,6 +3,7 @@ package at.jku.ce.CoMPArE.process;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created by oppl on 22/11/2016.
@@ -13,11 +14,13 @@ public class Process extends ProcessElement {
     private Date timestamp;
 
     private Set<Subject> subjects;
+    private Set<Message> messages;
 
     public Process(String name) {
         super();
         this.name = name;
-        subjects = new HashSet<Subject>();
+        subjects = new HashSet<>();
+        messages = new HashSet<>();
         this.timestamp = new Date();
     }
 
@@ -25,10 +28,15 @@ public class Process extends ProcessElement {
         super(p);
         name = p.toString();
         timestamp = p.getTimestamp();
-        subjects = new HashSet<Subject>();
+        subjects = new HashSet<>();
+        messages = new HashSet<>();
+
+        for (Message m: p.getMessages()) {
+            messages.add(new Message (m));
+        }
 
         for (Subject s: p.getSubjects()) {
-            subjects.add(new Subject(s));
+            subjects.add(new Subject(s,this));
         }
     }
 
@@ -36,20 +44,13 @@ public class Process extends ProcessElement {
         subjects.add(s);
     }
 
+    public void addMessage(Message m) { messages.add(m); }
+
     public Set<Subject> getSubjects() {
         return subjects;
     }
 
-    public Set<Message> getMessages() {
-        HashSet<Message> messages = new HashSet<>();
-        for (Subject s: subjects) {
-            messages.addAll(s.getSentMessages());
-            messages.addAll(s.getRecvdMessages());
-//            messages.addAll(s.getExpectedMessages());
-//            messages.addAll(s.getProvidedMessages());
-        }
-        return messages;
-    }
+    public Set<Message> getMessages() { return messages; }
 
     public Subject getSenderOfMessage(Message message) {
         for (Subject s: subjects) {
@@ -67,11 +68,18 @@ public class Process extends ProcessElement {
         return null;
     }
 
-    public State getStateWithName(String name) {
+    public State getStateByUUID(UUID stateID) {
+        State state = null;
         for (Subject s: subjects) {
-            for (State state: s.getStates()) {
-                if (state.toString().equals(name)) return state;
-            }
+            state = s.getStateByUUID(stateID);
+            if (state != null) return state;
+        }
+        return null;
+    }
+
+    public Subject getSubjectByUUID(UUID subjectID) {
+        for (Subject s: subjects) {
+            if (s.getUUID().equals(subjectID)) return s;
         }
         return null;
     }
@@ -79,6 +87,13 @@ public class Process extends ProcessElement {
     public Subject getSubjectWithName(String name) {
         for (Subject s: subjects) {
             if (s.toString().equals(name)) return s;
+        }
+        return null;
+    }
+
+    public Message getMessageByUUID(UUID messageID) {
+        for (Message m: messages) {
+            if (m.getUUID().equals(messageID)) return m;
         }
         return null;
     }
@@ -107,4 +122,9 @@ public class Process extends ProcessElement {
         return timestamp;
     }
 
+    public void reconstructParentRelations() {
+        for (Subject s: subjects) {
+            s.reconstructParentRelations(this);
+        }
+    }
 }

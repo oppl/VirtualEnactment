@@ -7,12 +7,12 @@ public class ActionState extends State {
 
     private String description;
 
-    public ActionState(String name) {
-        super(name);
+    public ActionState(String name, Subject container) {
+        super(name, container);
     }
 
-    public ActionState(String name, String description) {
-        super(name);
+    public ActionState(String name, String description, Subject container) {
+        super(name, container);
         this.description = description;
     }
 

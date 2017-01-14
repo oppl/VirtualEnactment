@@ -118,9 +118,9 @@ public class ProcessSelectorUI extends Window implements Upload.Receiver, Upload
     }
 
     public void uploadSucceeded(Upload.SucceededEvent event) {
-        // Show the uploaded file in the image viewer
-        XMLStore xmlStore = new XMLStore(1);
+        XMLStore xmlStore = new XMLStore();
         Process p = xmlStore.readXML(file);
+        p.reconstructParentRelations();
         if (p!=null) selectedProcess = p;
         this.close();
     }

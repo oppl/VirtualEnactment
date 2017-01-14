@@ -16,6 +16,7 @@ import com.vaadin.pontus.vizcomponent.client.ZoomSettings;
 import com.vaadin.pontus.vizcomponent.model.Graph;
 import com.vaadin.ui.*;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -79,14 +80,15 @@ public class VizualizeModel extends VerticalLayout {
         component.fitGraph();
     }
 
-    public void addState(Graph.Node parentNode, State parentState, State state, Set<State> notYetAddedStates) {
+    public void addState(Graph.Node parentNode, State parentState, State state, Collection<State> notYetAddedStates) {
         Boolean loopFound = !notYetAddedStates.contains(state);
-        Graph.Node node = new Graph.Node(state.toString());
+        Graph.Node node = new Graph.Node(state.getUUID().toString());
         if (!loopFound) {
 //            LogHelper.logInfo("modelViz: adding node " + state);
 //            if (state instanceof SendState) node.setParam("color", "red");
 //            if (state instanceof RecvState) node.setParam("color", "green");
             node.setParam("shape", "box");
+            node.setParam("label", state.toString());
             graph.addNode(node);
             notYetAddedStates.remove(state);
         }
@@ -95,7 +97,7 @@ public class VizualizeModel extends VerticalLayout {
             graph.addEdge(parentNode, node);
             Graph.Edge edge = graph.getEdge(parentNode, node);
             Condition c = parentState.getNextStates().get(state);
-            if (c != null && !c.toString().equals("nC")) edge.setParam("label", "\"" + c.toString() + "\"");
+            if (c != null) edge.setParam("label", c.toString());
         }
         if (!loopFound)
             for (State nextState : state.getNextStates().keySet())
@@ -123,12 +125,14 @@ public class VizualizeModel extends VerticalLayout {
     public void showSubjectInteraction(Process p) {
         graph = new Graph("", Graph.DIGRAPH);
         for (Message m: p.getMessages()) {
-            Graph.Node sender = new Graph.Node(p.getSenderOfMessage(m).toString());
-            Graph.Node recipient = new Graph.Node(p.getRecipientOfMessage(m).toString());
+            Graph.Node sender = new Graph.Node(p.getSenderOfMessage(m).getUUID().toString());
+            Graph.Node recipient = new Graph.Node(p.getRecipientOfMessage(m).getUUID().toString());
+            sender.setParam("label", p.getSenderOfMessage(m).toString());
+            recipient.setParam("label", p.getRecipientOfMessage(m).toString());
 //            if (sender != null && recipient != null) {
                 graph.addEdge(sender, recipient);
                 Graph.Edge edge = graph.getEdge(sender,recipient);
-                edge.setParam("label", "\""+m.toString()+"\"");
+                edge.setParam("label", m.toString());
 //                LogHelper.logInfo("subjInteractionViz: Edge between "+sender+" and "+recipient+" with label "+edge.getParam("label")+" "+m.toString());
 //            }
         }

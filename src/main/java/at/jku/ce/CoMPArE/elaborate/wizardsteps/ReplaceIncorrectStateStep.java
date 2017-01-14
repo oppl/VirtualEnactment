@@ -17,6 +17,7 @@ import com.vaadin.ui.TextField;
 import org.vaadin.teemu.wizards.Wizard;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by oppl on 17/12/2016.
@@ -54,10 +55,12 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
         });
 
         inputField.addValueChangeListener(e -> {
-            if (instance.getProcess().getStateWithName(inputField.getValue()) == null) {
+            if (!(inputField.getData() instanceof UUID)) {
                 newMessage.setVisible(true);
                 newMessage.setDescription("");
             }
+            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
+                inputField.setData(null);
             if (step != null) step.updateNameOfState(inputField.getValue());
         });
 
@@ -81,7 +84,7 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
         state = instance.getAvailableStateForSubject(subject);
 
         if (state != null) {
-            State newState = new ActionState(inputField.getValue());
+            State newState = new ActionState(inputField.getValue(),subject);
             processChanges.add(new ReplaceStateCommand(subject, state, newState));
         }
         return processChanges;
@@ -94,6 +97,7 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
         elaborationUI.setVisible(true);
         if (state != null) {
             inputField.setValue(state.getName());
+            inputField.setData(state.getUUID());
             newMessage.setVisible(false);
             newMessage.setDescription("You cannot alter the selected existing step here.");
             newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");

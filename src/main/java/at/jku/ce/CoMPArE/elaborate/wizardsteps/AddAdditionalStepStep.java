@@ -14,6 +14,7 @@ import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.event.WizardProgressListener;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by oppl on 17/12/2016.
@@ -48,10 +49,12 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
         });
 
         inputField.addValueChangeListener(e -> {
-            if (instance.getProcess().getStateWithName(inputField.getValue()) == null) {
+            if (!(inputField.getData() instanceof UUID)) {
                 newMessage.setVisible(true);
                 newMessage.setDescription("");
             }
+            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
+                inputField.setData(null);
         });
 
         newMessage.addValueChangeListener(e -> {
@@ -87,12 +90,12 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
         RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {
             Message m = (Message) availableProvidedMessages.getValue();
-            newRecvState = new RecvState("Wait for " + m);
+            newRecvState = new RecvState("Wait for " + m, subject);
             newRecvState.addRecvdMessage(m);
             processChanges.add(new AddStateCommand(subject,instance.getHistoryForSubject(subject).getFirst(),newRecvState,false));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
-        State newActionState = new ActionState(inputField.getValue());
+        State newActionState = new ActionState(inputField.getValue(), subject);
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
         else processChanges.add(new AddStateCommand(subject, instance.getHistoryForSubject(subject).getFirst(), newActionState,false));
         return processChanges;
@@ -105,6 +108,7 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
         elaborationUI.setVisible(true);
         if (state != null) {
             inputField.setValue(state.getName());
+            inputField.setData(state.getUUID());
             newMessage.setVisible(false);
             newMessage.setDescription("You cannot alter the selected existing step here.");
             newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");

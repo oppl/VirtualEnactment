@@ -1,7 +1,8 @@
 package at.jku.ce.CoMPArE.process;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import java.util.*;
 
 /**
  * Created by oppl on 22/11/2016.
@@ -9,63 +10,52 @@ import java.util.Map;
 public class State extends ProcessElement {
 
     private String name;
-    private Map<State, Condition> nextStates;
+    private Map<UUID, Condition> nextStates;
 
-    public State(String name) {
+    @XStreamOmitField
+    Subject parentSubject;
+
+    public State(String name, Subject parentSubject) {
         super();
+        this.parentSubject = parentSubject;
         this.name = name;
-        this.nextStates = new HashMap<State, Condition>();
+        this.nextStates = new HashMap<>();
     }
 
-    public State(State s, Subject container) {
+    public State(State s, Subject newSubject) {
         super(s);
-        this.name = name;
-        this.nextStates = new HashMap<State, Condition>();
-        for (State next: s.getNextStates().keySet()) {
-            State clonedNextState = null;
-            for (State clonedState: container.getStates()) {
-                if (clonedState.equals(next)) {
-                    clonedNextState = clonedState;
-                    break;
-                }
-            }
-            if (clonedNextState == null) {
-                if (s instanceof ActionState) clonedNextState = new ActionState((ActionState) s, container);
-                if (s instanceof SendState) clonedNextState = new SendState((SendState) s, container);
-                if (s instanceof RecvState) clonedNextState = new RecvState((RecvState) s, container);
-            }
-            Condition clonedCondition = null;
-            Condition originalCondition = s.getNextStates().get(next);
-            if (originalCondition instanceof MessageCondition) {
-                clonedCondition = new MessageCondition((MessageCondition) originalCondition);
-            }
-            else {
-                clonedCondition = new Condition(originalCondition);
-            }
-            nextStates.put(clonedNextState, clonedCondition);
-        }
+        this.parentSubject = newSubject;
+        this.name = s.getName();
+        this.nextStates = new HashMap<>();
     }
 
     public Map<State,Condition> getNextStates() {
-        return nextStates;
+        Map<State,Condition> nextStateMap = new HashMap<>();
+        for (UUID nextStateID: nextStates.keySet())
+            nextStateMap.put(parentSubject.getStateByUUID(nextStateID),nextStates.get(nextStateID));
+        return nextStateMap;
     }
 
     public State addNextState(State nextState) {
-        this.nextStates.put(nextState, new Condition(""));
-        return nextState;
+        parentSubject.addState(nextState);
+        this.nextStates.put(nextState.getUUID(), null);
+        return parentSubject.getStateByUUID(nextState.getUUID());
     }
 
     public State addNextState(State nextState, Condition condition) {
-        this.nextStates.put(nextState, condition);
-        return nextState;
+        parentSubject.addState(nextState);
+        Condition newCondition = condition;
+        if (newCondition != null && newCondition.getCondition().equals("")) newCondition = null;
+        this.nextStates.put(nextState.getUUID(), newCondition);
+        return parentSubject.getStateByUUID(nextState.getUUID());
     }
 
     public void alterConditionForNextState(State nextState, Condition condition) {
-        nextStates.replace(nextState, condition);
+        nextStates.replace(nextState.getUUID(), condition);
     }
 
     public void removeNextState(State stateToBeRemoved) {
-        nextStates.remove(stateToBeRemoved);
+        nextStates.remove(stateToBeRemoved.getUUID());
     }
     public void removeAllNextStates() {nextStates.clear();}
 
@@ -82,4 +72,27 @@ public class State extends ProcessElement {
         this.name = name;
     }
 
+/*    public Set<State> getAllFollowingStates() { return this.getAllFollowingStates(this, new HashSet<State>());}
+
+    private Set<State> getAllFollowingStates(State state, Set<State> states) {
+        if (state == null) return states;
+        if (states.contains(state)) return null;
+        states.add(state);
+        for (State next: state.getNextStates().keySet()) {
+            Set<State> nextStates = this.getAllFollowingStates(next, states);
+            if (nextStates!=null) states.addAll(nextStates);
+        }
+        return states;
+    }*/
+
+    public Subject getParentSubject() {
+        return parentSubject;
+    }
+
+    public void reconstructParentRelations(Subject subject) {
+        this.parentSubject = subject;
+        for (Condition c: nextStates.values()) {
+            if (c!=null) c.reconstructParentRelations(this);
+        }
+    }
 }

@@ -100,9 +100,9 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
         if (inputField.isEnabled() && infoTarget.getValue() != null) {
             String selection = infoTarget.getValue().toString();
             if (selection.equals(optionDontKnow)) {
-                Subject anonymous = new Subject(Subject.ANONYMOUS);
+                Subject anonymous = new Subject(Subject.ANONYMOUS, instance.getProcess());
                 processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
-                SendState newState = new SendState("Send " + inputField.getValue());
+                SendState newState = new SendState("Send " + inputField.getValue(), subject);
                 Message newMessage = new Message(inputField.getValue());
                 newState.setSentMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,false));
@@ -110,7 +110,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 return processChanges;
             }
             if (infoTarget.getValue() instanceof Subject) {
-                SendState newState = new SendState("Send " + inputField.getValue());
+                SendState newState = new SendState("Send " + inputField.getValue(), subject);
                 Message newMessage = new Message(inputField.getValue());
                 newState.setSentMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,false));
@@ -119,7 +119,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             }
         } else {
             Message m = (Message) availableExpectedMessages.getValue();
-            SendState newState = new SendState("Send " + m);
+            SendState newState = new SendState("Send " + m, subject);
             newState.setSentMessage(m);
             processChanges.add(new AddStateCommand(subject,state,newState,false));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));

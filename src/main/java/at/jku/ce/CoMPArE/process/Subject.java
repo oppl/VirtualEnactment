@@ -1,7 +1,8 @@
 package at.jku.ce.CoMPArE.process;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import java.util.*;
 
 /**
  * Created by oppl on 22/11/2016.
@@ -12,25 +13,53 @@ public class Subject extends ProcessElement {
 
     private String name;
 
-    private State firstState;
+    private UUID firstState;
 
+    @XStreamOmitField
+    private Process parentProcess;
+
+    private Set<State> states;
     private Set<Message> expectedMessages;
     private Set<Message> providedMessages;
 
-    public Subject(String name) {
+    public Subject(String name, Process parentProcess) {
         super();
         this.name = name;
+        this.parentProcess = parentProcess;
         this.firstState = null;
-        this.expectedMessages = new HashSet<Message>();
-        this.providedMessages = new HashSet<Message>();
+        this.states = new HashSet<>();
+        this.expectedMessages = new HashSet<>();
+        this.providedMessages = new HashSet<>();
     }
 
-    public Subject(Subject s) {
+    public Subject(Subject s, Process newProcess) {
         super(s);
-        this.name = name;
-        this.firstState = new State(s.getFirstState(),this);
-        this.expectedMessages = new HashSet<Message>();
-        this.providedMessages = new HashSet<Message>();
+        this.name = s.toString();
+        this.parentProcess = newProcess;
+        this.states = new HashSet<>();
+
+        for (State state: s.getStates()) {
+            State newState = null;
+            if (state instanceof ActionState) newState = new ActionState((ActionState) state, this);
+            if (state instanceof SendState) newState = new SendState((SendState) state, this);
+            if (state instanceof RecvState) newState = new RecvState((RecvState) state, this);
+            this.addState(newState);
+            for (State nextState: state.getNextStates().keySet()) {
+                Condition clonedCondition = null;
+                Condition originalCondition = state.getNextStates().get(nextState);
+                if (originalCondition instanceof MessageCondition) {
+                    clonedCondition = new MessageCondition((MessageCondition) originalCondition, state);
+                }
+                else {
+                    if (originalCondition != null) clonedCondition = new Condition(originalCondition, state);
+                }
+                newState.addNextState(nextState,clonedCondition);
+            }
+        }
+
+        this.firstState = s.firstState;
+        this.expectedMessages = new HashSet<>();
+        this.providedMessages = new HashSet<>();
         for (Message m:s.getExpectedMessages()) {
             expectedMessages.add(new Message(m));
         }
@@ -40,12 +69,28 @@ public class Subject extends ProcessElement {
 
     }
 
+    public Process getParentProcess() {
+        return parentProcess;
+    }
+
+    public void addState(State state) {
+        states.add(state);
+    }
+
+    public void removeState(State state) {
+        states.remove(state.getUUID());
+    }
+
     public State setFirstState(State firstState) {
-        return this.firstState = firstState;
+        if (!states.contains(firstState)) {
+            states.add(firstState);
+        }
+        this.firstState = firstState.getUUID();
+        return firstState;
     }
 
     public State getFirstState() {
-        return this.firstState;
+        return getStateByUUID(firstState);
     }
 
     @Override
@@ -53,57 +98,41 @@ public class Subject extends ProcessElement {
         return name;
     }
 
-    public Set<State> getStates() { return this.getStates(firstState, new HashSet<State>());}
+    public Collection<State> getStates() { return this.states;}
 
-    public Set<State> getStates(State state, Set<State> states) {
-        if (states.contains(state)) return null;
-        states.add(state);
-        for (State next: state.getNextStates().keySet()) {
-            Set<State> nextStates = this.getStates(next, states);
-            if (nextStates!=null) states.addAll(nextStates);
-        }
-        return states;
+    public State getStateByUUID(UUID stateID) {
+        for (State state: states)
+            if (state.getUUID().equals(stateID)) return state;
+        return null;
     }
 
     public State getSendState(Message m) {
         for (State s: getStates()) {
-            if (s instanceof SendState && ((SendState) s).getSentMessage() == m) return s;
+            if (s instanceof SendState && ((SendState) s).getSentMessage().equals(m)) return s;
         }
         return null;
     }
 
     public Set<Message> getSentMessages() {
-        if (firstState == null) return new HashSet<>();
-        return this.getSentMessages(firstState, new HashSet<Message>());
-    }
-
-    private Set<Message> getSentMessages(State state, Set<Message> messages) {
-        if (state instanceof SendState) {
-            if (messages.contains(((SendState) state).getSentMessage())) return null;
-            messages.add(((SendState) state).getSentMessage());
+        HashSet<Message> sentMessages = new HashSet<>();
+        for (State s: states) {
+            if (s instanceof SendState) {
+                Message sentMessage = ((SendState) s).getSentMessage();
+                sentMessages.add(sentMessage);
+            }
         }
-        for (State next: state.getNextStates().keySet()) {
-            Set<Message> nextMessages = this.getSentMessages(next, messages);
-            if (nextMessages!=null) messages.addAll(nextMessages);
-        }
-        return messages;
+        return sentMessages;
     }
 
     public Set<Message> getRecvdMessages() {
-        return this.getRecvdMessages(firstState, new HashSet<Message>());
-    }
-
-    private Set<Message> getRecvdMessages(State state, Set<Message> messages) {
-        if (state == null) return new HashSet<Message>();
-        if (state instanceof RecvState) {
-            if (messages.contains(((RecvState) state).getRecvdMessages().iterator().next())) return null;
-            messages.addAll(((RecvState) state).getRecvdMessages());
+        HashSet<Message> recvdMessages = new HashSet<>();
+        for (State s: states) {
+            if (s instanceof RecvState) {
+                Set<Message> recvdMessagesFromState = ((RecvState) s).getRecvdMessages();
+                recvdMessages.addAll(recvdMessagesFromState);
+            }
         }
-        for (State next: state.getNextStates().keySet()) {
-            Set<Message> nextMessages = this.getRecvdMessages(next, messages);
-            if (nextMessages!=null) messages.addAll(nextMessages);
-        }
-        return messages;
+        return recvdMessages;
     }
 
     public Set<Message> getExpectedMessages() {
@@ -131,20 +160,20 @@ public class Subject extends ProcessElement {
     }
 
     public Set<State> getPredecessorStates(State target) {
-        Set<State> predecessorStates = getPredecessorStates(this.firstState, target, new HashSet<>());
-        if (predecessorStates == null) return new HashSet<>();
-        return predecessorStates;
-    }
-
-    private Set<State> getPredecessorStates(State state, State target, Set<State> predecessorStates) {
-        if (state.getNextStates().keySet().contains(target)) predecessorStates.add(state);
-        else {
-            for (State s: state.getNextStates().keySet()) {
-                Set<State> collectedStates = getPredecessorStates(s, target, predecessorStates);
-                if (collectedStates != null) predecessorStates.addAll(collectedStates);
+        Set<State> predecessorStates = new HashSet<>();
+        for (State s: states) {
+            for (State nextState: s.getNextStates().keySet()) {
+                if (nextState.equals(target)) predecessorStates.add(s);
             }
         }
         return predecessorStates;
+    }
+
+    public void reconstructParentRelations(Process p) {
+        this.parentProcess = p;
+        for (State s: states) {
+            s.reconstructParentRelations(this);
+        }
     }
 
 }

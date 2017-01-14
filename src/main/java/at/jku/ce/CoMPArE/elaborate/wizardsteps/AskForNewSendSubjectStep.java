@@ -42,9 +42,9 @@ public class AskForNewSendSubjectStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChanges() {
         state = instance.getAvailableStateForSubject(subject);
-        Subject newSubject = new Subject(inputField.getValue());
+        Subject newSubject = new Subject(inputField.getValue(),instance.getProcess());
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
-        SendState newState = new SendState("Send " + messageName);
+        SendState newState = new SendState("Send " + messageName,subject);
         Message newMessage = new Message(messageName);
         newState.setSentMessage(newMessage);
         processChanges.add(new AddStateCommand(subject,state,newState,false));
