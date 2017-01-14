@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
 import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
@@ -10,6 +11,7 @@ import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
 import at.jku.ce.CoMPArE.simulate.Simulator;
+import at.jku.ce.CoMPArE.storage.FileStorageHandler;
 import at.jku.ce.CoMPArE.storage.XMLStore;
 import at.jku.ce.CoMPArE.visualize.VizualizeModel;
 import com.vaadin.annotations.Push;
@@ -27,6 +29,7 @@ import org.vaadin.sliderpanel.client.SliderPanelListener;
 import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -72,11 +75,13 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private Button simulate;
     private Button restart;
 
+    private FileStorageHandler fileStorageHandler;
+
     private long id;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
-        id = UUID.randomUUID().getLeastSignificantBits();
+        id = -1;
         initialStartup = true;
         selectionMode = false;
         onboardingActive = false;
@@ -101,6 +106,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
         restart = new Button("Restart Process");
+        fileStorageHandler = new FileStorageHandler();
 
         toolBar = new HorizontalLayout();
 
@@ -403,8 +409,9 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingPanel.setVisible(false);
             if (currentInstance.getProcess().getSubjects().size() > 0) {
                 restart.setVisible(true);
-
-                XMLStore xmlStore = new XMLStore(id);
+                fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                fileStorageHandler.saveToServer();
+/*                XMLStore xmlStore = new XMLStore(id);
                 String xml = xmlStore.convertToXML(currentInstance.getProcess());
                 String fileName = xmlStore.saveToServerFile(currentInstance.getProcess().toString(),xml);
                 FileDownloader fd = new FileDownloader(new FileResource(new File(fileName)));
@@ -412,7 +419,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
                 fd.extend(save);
 
-                toolBar.addComponent(save);
+                toolBar.addComponent(save);*/
             }
             differentProcess.setVisible(true);
         }
@@ -665,5 +672,30 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     @WebServlet(urlPatterns = "/*", name = "CoMPArEServlet", asyncSupported = true)
     @VaadinServletConfiguration(ui = CoMPArEUI.class, productionMode = false)
     public static class CoMPArEServlet extends VaadinServlet {
+
+        protected void servletInitialized() throws ServletException {
+            super.servletInitialized();
+
+            // Get the result folder as defined in WEB-INF/web.xml
+            resultFolderName = getServletConfig().getServletContext()
+                    .getInitParameter(resultFolderKey);
+            File fRf = new File(resultFolderName);
+            boolean isWorking = fRf.exists() && fRf.isDirectory()
+                    || fRf.mkdirs();
+            if (!isWorking) {
+                resultFolderName = null;
+            }
+        }
+
+        private static String resultFolderName = null;
+        private final static String resultFolderKey = "at.jku.ce.CoMPAreE.resultfolder";
+
+        public static String getResultFolderName() {
+            return resultFolderName;
+        }
+
+
     }
+
+
 }

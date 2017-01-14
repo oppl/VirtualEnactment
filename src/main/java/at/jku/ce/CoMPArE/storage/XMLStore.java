@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * Created by oppl on 29/11/2016.
@@ -24,12 +25,12 @@ public class XMLStore {
 
     XStream xStream;
     FileDownloader fileDownloader;
-    long id;
 
-    public XMLStore(long id) {
-        this.id = id;
+
+    public XMLStore() {
         xStream = new XStream();
         xStream.alias("process", Process.class);
+        xStream.alias("timestamp", Date.class);
         xStream.alias("subject", Subject.class);
 
         xStream.alias("state", State.class);
@@ -47,33 +48,6 @@ public class XMLStore {
     public String convertToXML(Process p) {
         String xml = xStream.toXML(p);
         return xml;
-    }
-
-    public String saveToServerFile(String processName, String xml) {
-//        LogHelper.logInfo("XMLStore: created XML: " + xml);
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-        LocalDateTime now = LocalDateTime.now();
-        String fileName = new String(id+"_"+processName.replace(" ", "_") + "_" + dtf.format(now) + ".xml");
-
-        Writer writer = null;
-        File f = null;
-        try {
-            LogHelper.logInfo("XMLStore: storing process " + processName + " to " + System.getProperty("catalina.base") + "/" + fileName);
-            f = new File(System.getProperty("catalina.base") + "/" + fileName);
-            writer = new BufferedWriter(new FileWriter(f));
-            writer.write(xml);
-        } catch (IOException e) {
-            LogHelper.logError("XMLStore: storing failed");
-        } finally {
-            try {
-                if (writer != null)
-                    writer.close();
-            } catch (IOException e) {
-            }
-        }
-        return System.getProperty("catalina.base") + "/" + fileName;
-
     }
 
     public Process readXML(File f) {
