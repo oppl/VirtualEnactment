@@ -20,18 +20,18 @@ public class Instance {
 
     public Instance(Process p) {
         this.p = p;
+        LogHelper.logInfo("Constructing new instance of "+p+" "+p.getTimestamp());
         availableStates = new HashMap<>();
         inputBuffer = new HashMap<>();
         receivedMessages = new HashMap<>();
         latestProcessedMessages = new HashMap<>();
         history = new HashMap<>();
-
         for (Subject s: p.getSubjects()) {
             if (s.getFirstState() instanceof RecvState)
                 availableStates.put(s,null);
             else {
                 availableStates.put(s, s.getFirstState());
-                LogHelper.logInfo("instanceConstructor: "+s+" instantiated");
+//                LogHelper.logInfo("instanceConstructor: "+s+" instantiated in "+p);
             }
             inputBuffer.put(s,new HashSet<Message>());
             receivedMessages.put(s,new HashSet<Message>());
@@ -82,7 +82,6 @@ public class Instance {
     }
 
     public boolean subjectFinished(Subject s) {
-        LogHelper.logInfo("Checking if "+s+" has finished");
         if (!history.get(s).isEmpty() && getAvailableStateForSubject(s) == null) return true;
         return false;
     }
@@ -155,6 +154,7 @@ public class Instance {
         else {
             for (State nextState: nextStates.keySet()) {
                 Condition conditionToBeChecked = nextStates.get(nextState);
+//                LogHelper.logInfo("advanceStateForSubject "+s+": checking condition "+ conditionToBeChecked + conditionToBeChecked.getClass());
                 if (conditionToBeChecked == c) {
                     availableStates.replace(s, nextState);
 //                    LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state under condition "+ conditionToBeChecked);
@@ -172,7 +172,7 @@ public class Instance {
             }
         }
         if (nextStates.size() == 0) {
-//            LogHelper.logInfo("advanceStateForSubject "+s+": instance finished");
+            LogHelper.logInfo("advanceStateForSubject "+s+": instance finished");
             availableStates.replace(s, null);
         }
         history.get(s).addFirst(currentState);

@@ -4,13 +4,14 @@ import at.jku.ce.CoMPArE.CoMPArEUI;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.Process;
 import com.vaadin.server.VaadinService;
+import sun.rmi.runtime.Log;
 
 import javax.servlet.http.Cookie;
 import java.io.*;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.Vector;
 
 /**
@@ -21,13 +22,15 @@ public class FileStorageHandler {
     File baseDirectory;
     Vector<Process> storageBuffer;
     String groupID;
+    int counter;
 
 
     public FileStorageHandler() {
         baseDirectory = new File(CoMPArEUI.CoMPArEServlet.getResultFolderName());
         storageBuffer = new Vector<>();
-        groupID = "anonymous";
-        checkForAvailableIDCookie();
+        groupID = "anonymous-"+ UUID.randomUUID().toString().substring(0,7);
+        isIDCookieAvailable();
+        this.counter = getIntitalValueForCounter(groupID);
     }
 
     public void addProcessToStorageBuffer(Process process) {
@@ -37,10 +40,11 @@ public class FileStorageHandler {
 
     public void setGroupID(String id) {
         groupID = id;
+        this.counter = getIntitalValueForCounter(groupID);
         updateIDCookie();
     }
 
-    public boolean checkForAvailableIDCookie() {
+    public boolean isIDCookieAvailable() {
         Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
 
         // Iterate to find cookie by its name
@@ -67,14 +71,9 @@ public class FileStorageHandler {
         XMLStore xmlStore = new XMLStore();
         File groupBaseDir = null;
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        int counter = 1;
-        while (groupBaseDir == null) {
-            File testBaseDir = new File(baseDirectory,groupID + "_" + dtf.format(LocalDateTime.now())+"_"+counter);
-            if (!testBaseDir.exists()) {
-                groupBaseDir = testBaseDir;
-                groupBaseDir.mkdir();
-            }
-            else counter++;
+        groupBaseDir = new File(baseDirectory,groupID + "_" + dtf.format(LocalDateTime.now())+"_"+counter);
+        if (!groupBaseDir.exists()) {
+            groupBaseDir.mkdir();
         }
 
         for (Process process:storageBuffer) {
@@ -86,7 +85,7 @@ public class FileStorageHandler {
             Writer writer = null;
             File f;
             try {
-                LogHelper.logInfo("XMLStore: storing process " + processName + " to " + System.getProperty("catalina.base") + "/" + fileName);
+                LogHelper.logInfo("XMLStore: storing process " + processName + " to " + groupBaseDir.getName() + "/" + fileName);
                 f = new File(groupBaseDir, fileName);
                 if (!f.exists()) {
                     writer = new BufferedWriter(new FileWriter(f));
@@ -101,6 +100,24 @@ public class FileStorageHandler {
                 } catch (IOException e) {
                 }
             }
+        }
+        storageBuffer.removeAllElements();
+    }
+
+    public void newProcessStarted() {
+        counter++;
+    }
+
+    private int getIntitalValueForCounter(String groupID) {
+        File groupBaseDir = null;
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        int counter = 1;
+        while (true) {
+            groupBaseDir = new File(baseDirectory,groupID + "_" + dtf.format(LocalDateTime.now())+"_"+counter);
+            if (!groupBaseDir.exists()) {
+                return counter;
+            }
+            else counter++;
         }
     }
 }

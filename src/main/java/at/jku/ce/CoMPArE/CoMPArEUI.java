@@ -12,13 +12,14 @@ import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
 import at.jku.ce.CoMPArE.simulate.Simulator;
 import at.jku.ce.CoMPArE.storage.FileStorageHandler;
-import at.jku.ce.CoMPArE.storage.XMLStore;
+import at.jku.ce.CoMPArE.storage.GroupIDEntryWindow;
 import at.jku.ce.CoMPArE.visualize.VizualizeModel;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.shared.ui.ui.Transport;
 import com.vaadin.ui.*;
 import org.vaadin.googleanalytics.tracking.GoogleAnalyticsTracker;
 import org.vaadin.sliderpanel.SliderPanel;
@@ -29,7 +30,6 @@ import org.vaadin.sliderpanel.client.SliderPanelListener;
 import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -41,7 +41,7 @@ import java.util.*;
  */
 
 @Theme("demo")
-@Push
+@Push(transport= Transport.WEBSOCKET_XHR)
 public class CoMPArEUI extends UI implements SliderPanelListener {
 
     private Map<Subject,Panel> subjectPanels;
@@ -106,7 +106,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
         restart = new Button("Restart Process");
-        fileStorageHandler = new FileStorageHandler();
+        fileStorageHandler = null;
 
         toolBar = new HorizontalLayout();
 
@@ -125,7 +125,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     private void createBasicLayout() {
 
-        LogHelper.logInfo("Building basic layout");
+//        LogHelper.logInfo("Building basic layout");
         mainLayoutFrame = new HorizontalLayout();
 
 //        SliderPanel scaffoldingSlider = createScaffoldingSlider(process, instance);
@@ -185,7 +185,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         visualizationTabs.addTab(interaction, "Interaction");
         visualizationTabs.addSelectedTabChangeListener( e -> {
             String selected = e.getTabSheet().getSelectedTab().getCaption();
-            LogHelper.logInfo("Now processing visualizationTab "+selected);
+//            LogHelper.logInfo("Now processing visualizationTab "+selected);
             if (selected != null) {
                 VerticalLayout vl = (VerticalLayout) e.getTabSheet().getSelectedTab();
                 vl.removeAllComponents();
@@ -276,6 +276,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             visualizationSlider.expand();
         });
 
+        restart = new Button("Restart Process");
         restart.addClickListener( e -> {
             mainLayoutFrame.removeAllComponents();
             createBasicLayout();
@@ -415,8 +416,19 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingPanel.setVisible(false);
             if (currentInstance.getProcess().getSubjects().size() > 0) {
                 restart.setVisible(true);
-                fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
-                fileStorageHandler.saveToServer();
+                if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
+                if (!fileStorageHandler.isIDCookieAvailable()) {
+                    GroupIDEntryWindow groupIDEntryWindow = new GroupIDEntryWindow(fileStorageHandler);
+                    this.getUI().addWindow(groupIDEntryWindow);
+                    groupIDEntryWindow.addCloseListener( e -> {
+                        fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                        fileStorageHandler.saveToServer();
+                    });
+                }
+                else {
+                    fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                    fileStorageHandler.saveToServer();
+                }
 /*                XMLStore xmlStore = new XMLStore(id);
                 String xml = xmlStore.convertToXML(currentInstance.getProcess());
                 String fileName = xmlStore.saveToServerFile(currentInstance.getProcess().toString(),xml);
@@ -502,7 +514,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                             if (!(condition instanceof MessageCondition)) toBeShown = true;
                         }
                         nextStates.addValueChangeListener(event -> {
-                            LogHelper.logInfo("UI: condition for subject " + s + " changed to " + event.getProperty().getValue());
+//                            LogHelper.logInfo("UI: condition for subject " + s + " changed to " + event.getProperty().getValue());
                         });
                         if (toBeShown) panelContent.addComponent(nextStates);
                     }
@@ -517,7 +529,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         Button perform = new Button("Perform step");
         perform.addClickListener( e -> {
-            LogHelper.logInfo("UI: clicking on perfom button for subject "+s);
+//            LogHelper.logInfo("UI: clicking on perfom button for subject "+s);
             lastActiveSubject = s;
             Condition c = null;
             if (nextStates.size() > 0) c = (Condition) nextStates.getValue();
@@ -603,6 +615,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                     currentInstance = new Instance(currentProcess);
                     createBasicLayout();
                     simulator = new Simulator(currentInstance, subjectPanels, CoMPArEUI.this);
+                    fileStorageHandler.newProcessStarted();
                     updateUI();
                 }
             }

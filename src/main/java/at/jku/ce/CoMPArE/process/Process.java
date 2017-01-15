@@ -28,6 +28,7 @@ public class Process extends ProcessElement {
 
     public Process(Process p) {
         super(p);
+        LogHelper.logInfo("cloning process "+p);
         name = p.toString();
         timestamp = p.getTimestamp();
         subjects = new HashSet<>();

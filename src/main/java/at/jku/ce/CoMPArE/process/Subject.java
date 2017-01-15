@@ -45,8 +45,12 @@ public class Subject extends ProcessElement {
             if (state instanceof SendState) newState = new SendState((SendState) state, this);
             if (state instanceof RecvState) newState = new RecvState((RecvState) state, this);
             this.addState(newState);
+        }
+        for (State state: s.getStates()) {
+            State newState = this.getStateByUUID(state.getUUID());
             for (State nextState: state.getNextStates().keySet()) {
                 if (nextState == null) continue;
+                State nextNewState = this.getStateByUUID(nextState.getUUID());
                 Condition clonedCondition = null;
                 Condition originalCondition = state.getNextStates().get(nextState);
                 if (originalCondition instanceof MessageCondition) {
@@ -55,7 +59,7 @@ public class Subject extends ProcessElement {
                 else {
                     if (originalCondition != null) clonedCondition = new Condition(originalCondition, state);
                 }
-                newState.addNextState(nextState,clonedCondition);
+                newState.addNextState(nextNewState,clonedCondition);
             }
         }
 
