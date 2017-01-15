@@ -105,6 +105,7 @@ public class Process extends ProcessElement {
 
     public Subject getSubjectWithState(State state) {
         for (Subject s: subjects) {
+            LogHelper.logInfo("Checking "+s.getStates().size()+" states of subject "+s);
             if (s.getStates().contains(state)) return s;
         }
         return null;

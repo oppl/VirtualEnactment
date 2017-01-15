@@ -92,6 +92,16 @@ public class VizualizeModel extends VerticalLayout {
             node.setParam("label", "\""+state.toString()+"\"");
             graph.addNode(node);
             alreadyVisitedStates.add(state);
+/*            if (state instanceof SendState) {
+                Message m = ((SendState) state).getSentMessage();
+                Graph.Node message = new Graph.Node(m.getUUID().toString());
+                message.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
+                message.setParam("fontsize","10");
+                message.setParam("shape","note");
+
+                graph.addNode(message);
+                graph.addEdge(node,message);
+            }*/
         }
         if (parentNode != null) {
 //            LogHelper.logInfo("modelViz: adding edge from " + parentNode.getId() + " to " + node.getId());

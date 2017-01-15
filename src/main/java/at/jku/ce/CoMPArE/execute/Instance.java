@@ -82,6 +82,7 @@ public class Instance {
     }
 
     public boolean subjectFinished(Subject s) {
+        LogHelper.logInfo("Checking if "+s+" has finished");
         if (!history.get(s).isEmpty() && getAvailableStateForSubject(s) == null) return true;
         return false;
     }

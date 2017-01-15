@@ -260,10 +260,15 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         simulate.addClickListener( e -> {
             selectionMode = true;
             Iterator<Component> i = visualizationTabs.iterator();
+            String targetTab = new String("Interaction");
+            if (currentProcess.getSubjects().size()==1) targetTab = currentProcess.getSubjects().iterator().next().toString();
             while (i.hasNext()) {
                 Component tab = i.next();
-                if (tab.getCaption().equals("Interaction")) {
-                    if (visualizationTabs.getSelectedTab() == tab) visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                if (tab.getCaption().equals(targetTab)) {
+                    if (visualizationTabs.getSelectedTab() == tab) {
+                        if (targetTab.equals("Interaction")) visualizationTabs.setSelectedTab(0);
+                        else visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                    }
                     visualizationTabs.setSelectedTab(tab);
                 }
             }
@@ -300,9 +305,10 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         if (vizName.equals("Interaction")) {
             Iterator<Component> i = visualizationTabs.iterator();
+            Subject selectedSubject = currentProcess.getSubjectByUUID(UUID.fromString(name));
             while (i.hasNext()) {
                 Component tab = i.next();
-                if (tab.getCaption().equals(name)) {
+                if (tab.getCaption().equals(selectedSubject.toString())) {
                     visualizationTabs.setSelectedTab(tab);
                     return;
                 }
@@ -596,6 +602,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                     processChangeHistory = new ProcessChangeHistory();
                     currentInstance = new Instance(currentProcess);
                     createBasicLayout();
+                    simulator = new Simulator(currentInstance, subjectPanels, CoMPArEUI.this);
                     updateUI();
                 }
             }
