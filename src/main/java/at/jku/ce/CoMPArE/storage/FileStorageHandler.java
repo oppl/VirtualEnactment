@@ -4,6 +4,7 @@ import at.jku.ce.CoMPArE.CoMPArEUI;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.Process;
 import com.vaadin.server.VaadinService;
+import com.vaadin.ui.UI;
 import sun.rmi.runtime.Log;
 
 import javax.servlet.http.Cookie;
@@ -42,6 +43,10 @@ public class FileStorageHandler {
         groupID = id;
         this.counter = getIntitalValueForCounter(groupID);
         updateIDCookie();
+    }
+
+    public String getGroupID() {
+        return groupID;
     }
 
     public boolean isIDCookieAvailable() {
@@ -119,5 +124,9 @@ public class FileStorageHandler {
             }
             else counter++;
         }
+    }
+
+    public void openDownloadWindow(UI container) {
+        container.addWindow(new DownloadWindow(this));
     }
 }

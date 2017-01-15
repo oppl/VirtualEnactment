@@ -94,6 +94,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         tracker = new GoogleAnalyticsTracker("UA-37510687-4","auto");
         tracker.extend(this);
         currentInstance = new Instance(currentProcess);
+        currentInstance.setProcessHasBeenChanged(true);
 
         scaffoldingPanel = new Panel("What to consider:");
         scaffoldingPanel.setWidth("950px");
@@ -416,28 +417,25 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingPanel.setVisible(false);
             if (currentInstance.getProcess().getSubjects().size() > 0) {
                 restart.setVisible(true);
-                if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
-                if (!fileStorageHandler.isIDCookieAvailable()) {
-                    GroupIDEntryWindow groupIDEntryWindow = new GroupIDEntryWindow(fileStorageHandler);
-                    this.getUI().addWindow(groupIDEntryWindow);
-                    groupIDEntryWindow.addCloseListener( e -> {
+                if (currentInstance.isProcessHasBeenChanged()) {
+                    if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
+                    if (!fileStorageHandler.isIDCookieAvailable()) {
+                        GroupIDEntryWindow groupIDEntryWindow = new GroupIDEntryWindow(fileStorageHandler);
+                        this.getUI().addWindow(groupIDEntryWindow);
+                        groupIDEntryWindow.addCloseListener(e -> {
+                            fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                            fileStorageHandler.saveToServer();
+                        });
+                    } else {
                         fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
                         fileStorageHandler.saveToServer();
-                    });
+                    }
                 }
-                else {
-                    fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
-                    fileStorageHandler.saveToServer();
-                }
-/*                XMLStore xmlStore = new XMLStore(id);
-                String xml = xmlStore.convertToXML(currentInstance.getProcess());
-                String fileName = xmlStore.saveToServerFile(currentInstance.getProcess().toString(),xml);
-                FileDownloader fd = new FileDownloader(new FileResource(new File(fileName)));
-                Button save = new Button("Download Process");
-
-                fd.extend(save);
-
-                toolBar.addComponent(save);*/
+                Button download = new Button("Download");
+                download.addClickListener( e-> {
+                    fileStorageHandler.openDownloadWindow(this.getUI());
+                });
+                toolBar.addComponent(download);
             }
             differentProcess.setVisible(true);
         }

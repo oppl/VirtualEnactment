@@ -104,6 +104,7 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         }
         if (!steps.isEmpty()) processChangeHistory.setLatestStepAsLastInSequence();
         if (finalActiveState != null) instance.getAvailableStates().put(subject,finalActiveState);
+        instance.setProcessHasBeenChanged(true);
         this.close();
     }
 

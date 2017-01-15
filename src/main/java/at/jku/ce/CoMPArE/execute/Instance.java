@@ -17,6 +17,7 @@ public class Instance {
     private Map<Subject, Set<Message>> receivedMessages;
     private Map<Subject, Message> latestProcessedMessages;
     private Map<Subject, LinkedList<State>> history;
+    private boolean processHasBeenChanged;
 
     public Instance(Process p) {
         this.p = p;
@@ -25,6 +26,7 @@ public class Instance {
         inputBuffer = new HashMap<>();
         receivedMessages = new HashMap<>();
         latestProcessedMessages = new HashMap<>();
+        processHasBeenChanged = false;
         history = new HashMap<>();
         for (Subject s: p.getSubjects()) {
             if (s.getFirstState() instanceof RecvState)
@@ -207,5 +209,13 @@ public class Instance {
     public void addInputBufferAndHistoryForSubject(Subject s) {
         inputBuffer.put(s, new HashSet<Message>());
         history.put(s,new LinkedList<State>());
+    }
+
+    public boolean isProcessHasBeenChanged() {
+        return processHasBeenChanged;
+    }
+
+    public void setProcessHasBeenChanged(boolean processHasBeenChanged) {
+        this.processHasBeenChanged = processHasBeenChanged;
     }
 }
