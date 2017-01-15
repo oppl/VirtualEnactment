@@ -4,6 +4,7 @@ import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.storage.LoadFromArchiveWindow;
 import at.jku.ce.CoMPArE.storage.UploadWindow;
 import at.jku.ce.CoMPArE.storage.XMLStore;
 import com.vaadin.server.Page;
@@ -80,7 +81,7 @@ public class ProcessSelectorUI extends Window {
                 this.getUI().addWindow(new SelectDemoWindow());
             }
             if (availableSelectionOptions.getValue() == optionSelectFromServer) {
-
+                this.getUI().addWindow(new LoadFromArchiveWindow(this));
             }
             if (availableSelectionOptions.getValue() == optionUpload) {
                 this.getUI().addWindow(new UploadWindow(this));
