@@ -470,14 +470,44 @@ public class OnboardingAgent extends ScaffoldingAgent {
                 ConfirmDialog d = ConfirmDialog
                         .show(mainUI,
                                 "Explore the elaboration panel further",
-                                "The elaboration panel guides you through the process of making changes to an actor's " +
-                                        "behaviour. You can explore the options in the panel by selecting them from the " +
-                                        "list displayed above. Each option adds further steps to the elaboration process. " +
-                                        "Changes to the process are only made if you click the \"<b>Finish</b>\"-button. " +
-                                        "\"<b>Cancel</b>\" returns to the main screen without any changes.<p/>" +
-                                        "<i>Please continue by adding a new activity to be performed before the presently " +
-                                        "active one by always selecting the top-most option and finally entering a name " +
-                                        "for the new activity. Confirm the change by clicking the \"<b>Finish</b>\"-button.",
+                                "You have now changed the behaviour of the actor you selected before. As you can see, " +
+                                        "the actor's next activity is now set to the one you just added. You can now " +
+                                        "proceed to enact the process as you did before. Your changes are permanent and " +
+                                        "will also be available in future enactments of the process. In this way, you " +
+                                        "can alter the process step by step whenever you encounter anything that does" +
+                                        "not fit the process in the real world.<p/>" +
+                                        "<i>Please continue to explore the elaboration options by making further " +
+                                        "modifications to the actors' behaviours. You can be creative here, we will " +
+                                        "reset the process once you have finished exploring. As soon as you have made a " +
+                                        "few modifications (say, 2-3), we will be back with further input.",
+                                "OK", "Do not bug my anymore", new ConfirmDialog.Listener() {
+
+                                    public void onClose(ConfirmDialog dialog) {
+                                        if (dialog.isConfirmed()) {
+                                            elabStep=3;
+                                            updateScaffolds(currentInstance, finishedState);
+                                        } else {
+                                            deactivate();
+                                        }
+                                    }
+                                });
+                setDefaultDialogProperties(d, "20em", OnboardingAgent.MIDDLE, OnboardingAgent.BOTTOM);
+                alreadyActive = true;
+            }
+            if (elabStep == 3 && mainUI.getProcessChangeHistory().getHistory().size()>3) {
+                ConfirmDialog d = ConfirmDialog
+                        .show(mainUI,
+                                "Adding additional behaviour to an actor which has already finished.",
+                                "You have now changed the behaviour of the actor you selected before. As you can see, " +
+                                        "the actor's next activity is now set to the one you just added. You can now " +
+                                        "proceed to enact the process as you did before. Your changes are permanent and " +
+                                        "will also be available in future enactments of the process. In this way, you " +
+                                        "can alter the process step by step whenever you encounter anything that does" +
+                                        "not fit the process in the real world.<p/>" +
+                                        "<i>Please continue to explore the elaboration options by making further " +
+                                        "modifications to the actors' behaviours. You can be creative here, we will " +
+                                        "reset the process once you have finished exploring. As soon as you have made a " +
+                                        "few modifications (say, 2-3), we will be back with further input.",
                                 "OK", "Do not bug my anymore", new ConfirmDialog.Listener() {
 
                                     public void onClose(ConfirmDialog dialog) {
