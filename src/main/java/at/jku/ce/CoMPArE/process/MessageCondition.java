@@ -1,5 +1,7 @@
 package at.jku.ce.CoMPArE.process;
 
+import at.jku.ce.CoMPArE.LogHelper;
+
 import java.util.UUID;
 
 /**
@@ -16,10 +18,11 @@ public class MessageCondition extends Condition {
 
     public MessageCondition(MessageCondition messageCondition, State container) {
         super(messageCondition, container);
-        receivedMessageID = messageCondition.getUUID();
+        receivedMessageID = messageCondition.receivedMessageID;
     }
 
     public boolean checkCondition(Message messageToBeChecked) {
+        LogHelper.logInfo(messageToBeChecked.getUUID()+" "+receivedMessageID);
         if (messageToBeChecked.getUUID().equals(receivedMessageID)) return true;
         return false;
     }

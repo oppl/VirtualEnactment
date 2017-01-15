@@ -444,7 +444,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private void fillSubjectPanel(Subject s) {
 
         VerticalLayout panelContent = (VerticalLayout) subjectPanels.get(s).getContent();
-        final OptionGroup nextStates = new OptionGroup("Select one of the following options:");
+        final OptionGroup conditions = new OptionGroup("Select one of the following options:");
         panelContent.removeAllComponents();
 
         Label availableMessageList = new Label("");
@@ -508,13 +508,13 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                         boolean toBeShown = false;
                         for (State nextState : nextPossibleSteps) {
                             Condition condition = currentInstance.getConditionForStateInSubject(s, nextState);
-                            nextStates.addItem(condition);
+                            conditions.addItem(condition);
                             if (!(condition instanceof MessageCondition)) toBeShown = true;
                         }
-                        nextStates.addValueChangeListener(event -> {
+                        conditions.addValueChangeListener(event -> {
 //                            LogHelper.logInfo("UI: condition for subject " + s + " changed to " + event.getProperty().getValue());
                         });
-                        if (toBeShown) panelContent.addComponent(nextStates);
+                        if (toBeShown) panelContent.addComponent(conditions);
                     }
                 }
             }
@@ -530,7 +530,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 //            LogHelper.logInfo("UI: clicking on perfom button for subject "+s);
             lastActiveSubject = s;
             Condition c = null;
-            if (nextStates.size() > 0) c = (Condition) nextStates.getValue();
+            if (conditions.size() > 0) c = (Condition) conditions.getValue();
             currentInstance.advanceStateForSubject(s, c);
             updateUI();
             scaffoldingManager.updateScaffolds(currentInstance,currentState);

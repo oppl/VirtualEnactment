@@ -12,6 +12,8 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -103,6 +105,7 @@ public class FileStorageHandler {
             }
         }
         storageBuffer.removeAllElements();
+        cleanUpZipFiles();
     }
 
     public void newProcessStarted() {
@@ -124,5 +127,19 @@ public class FileStorageHandler {
 
     public void openDownloadWindow(UI container) {
         container.addWindow(new DownloadWindow(this));
+    }
+
+    public void cleanUpZipFiles() {
+        File[] files = baseDirectory.listFiles(f -> f.isFile()
+                && f.getName().endsWith(".zip") && f.getName().startsWith(groupID));
+        List<File> oldZIPs = Arrays.asList(files);
+        for (File f: oldZIPs) {
+            try {
+                f.delete();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
