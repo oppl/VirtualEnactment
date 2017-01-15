@@ -4,6 +4,7 @@ import at.jku.ce.CoMPArE.process.*;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created by oppl on 15/12/2016.
@@ -41,6 +42,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
 
         } else {
             for (State pre : predecessorStates) {
+                subject.addState(newState);
+                subject.removeState(state);
                 pre.addNextState(newState, nextStates.get(pre.getNextStates().get(state)));
                 pre.removeNextState(state);
             }

@@ -17,21 +17,24 @@ public class Instance {
     private Map<Subject, Set<Message>> receivedMessages;
     private Map<Subject, Message> latestProcessedMessages;
     private Map<Subject, LinkedList<State>> history;
+    private boolean processHasBeenChanged;
 
     public Instance(Process p) {
         this.p = p;
+        p.setTimestampToNow();
+        LogHelper.logInfo("Constructing new instance of "+p+" "+p.getTimestamp());
         availableStates = new HashMap<>();
         inputBuffer = new HashMap<>();
         receivedMessages = new HashMap<>();
         latestProcessedMessages = new HashMap<>();
+        processHasBeenChanged = false;
         history = new HashMap<>();
-
         for (Subject s: p.getSubjects()) {
             if (s.getFirstState() instanceof RecvState)
                 availableStates.put(s,null);
             else {
                 availableStates.put(s, s.getFirstState());
-                LogHelper.logInfo("instanceConstructor: "+s+" instantiated");
+//                LogHelper.logInfo("instanceConstructor: "+s+" instantiated in "+p);
             }
             inputBuffer.put(s,new HashSet<Message>());
             receivedMessages.put(s,new HashSet<Message>());
@@ -109,9 +112,9 @@ public class Instance {
     public State advanceStateForSubject(Subject s, Condition c) {
         State currentState = availableStates.get(s);
         latestProcessedMessages.replace(s,null);
-//        LogHelper.logInfo("advanceStateForSubject "+s+": now checking advancement options ...");
+        LogHelper.logInfo("advanceStateForSubject "+s+": now checking advancement options ...");
         if (currentState == null) {
-//            LogHelper.logInfo("advanceStateForSubject "+s+": instance not yet started");
+            LogHelper.logInfo("advanceStateForSubject "+s+": instance not yet started");
             if (s.getFirstState() instanceof RecvState) {
                 Set<Message> availableMessages = inputBuffer.get(s);
                 Set<Message> acceptableMessages = ((RecvState) s.getFirstState()).getRecvdMessages();
@@ -119,7 +122,7 @@ public class Instance {
                     if (acceptableMessages.contains(m)) {
                         availableStates.replace(s,s.getFirstState());
                         currentState = s.getFirstState();
-//                        LogHelper.logInfo("advanceStateForSubject "+s+": instantiated");
+                        LogHelper.logInfo("advanceStateForSubject "+s+": instantiated");
                     }
                 }
                 if (currentState == null) return currentState;
@@ -130,11 +133,11 @@ public class Instance {
         if (currentState instanceof RecvState) {
             Message m = inputBufferContainsAcceptableMessage(s);
             if (m == null) {
-//                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message not yet received, still waiting");
+                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message not yet received, still waiting");
                 return currentState;
             }
             else {
-//                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message received, state is now actionable");
+                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message received, state is now actionable");
                 inputBuffer.get(s).remove(m);
                 receivedMessages.get(s).add(m);
                 latestProcessedMessages.replace(s,m);
@@ -142,28 +145,30 @@ public class Instance {
         }
         if (currentState instanceof SendState) {
             Subject recipient = p.getRecipientOfMessage(((SendState) currentState).getSentMessage());
-//            LogHelper.logInfo("advanceStateForSubject "+s+": sending message to "+recipient);
+            LogHelper.logInfo("advanceStateForSubject "+s+": sending message to "+recipient);
             inputBuffer.get(recipient).add(((SendState) currentState).getSentMessage());
             advanceStateForSubject(recipient, null);
         }
         Map<State,Condition> nextStates = currentState.getNextStates();
-        if (nextStates.size() == 1 && nextStates.values().iterator().next().toString().equals("")) {
+        if (nextStates.size() == 1 && nextStates.values().iterator().next() == null) {
             availableStates.replace(s,nextStates.keySet().iterator().next());
-//            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state "+availableStates.get(s));
+            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state "+availableStates.get(s));
         }
         else {
             for (State nextState: nextStates.keySet()) {
                 Condition conditionToBeChecked = nextStates.get(nextState);
-                if (conditionToBeChecked == c) {
+                LogHelper.logInfo("advanceStateForSubject "+s+": checking condition "+ conditionToBeChecked + ", which is a "+conditionToBeChecked.getClass());
+                if (conditionToBeChecked.equals(c)) {
                     availableStates.replace(s, nextState);
-//                    LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state under condition "+ conditionToBeChecked);
+                    LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state under condition "+ conditionToBeChecked);
                     break;
                 }
                 if (conditionToBeChecked instanceof MessageCondition) {
                     for (Message m: receivedMessages.get(s)) {
+                        LogHelper.logInfo("advanceStateForSubject "+s+": checking message "+m);
                         if (((MessageCondition) conditionToBeChecked).checkCondition(m)) {
                             availableStates.replace(s, nextState);
-//                            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state because of message condition "+ conditionToBeChecked);
+                            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state because of message condition "+ conditionToBeChecked);
                             break;
                         }
                     }
@@ -171,7 +176,7 @@ public class Instance {
             }
         }
         if (nextStates.size() == 0) {
-//            LogHelper.logInfo("advanceStateForSubject "+s+": instance finished");
+            LogHelper.logInfo("advanceStateForSubject "+s+": instance finished");
             availableStates.replace(s, null);
         }
         history.get(s).addFirst(currentState);
@@ -206,5 +211,13 @@ public class Instance {
     public void addInputBufferAndHistoryForSubject(Subject s) {
         inputBuffer.put(s, new HashSet<Message>());
         history.put(s,new LinkedList<State>());
+    }
+
+    public boolean isProcessHasBeenChanged() {
+        return processHasBeenChanged;
+    }
+
+    public void setProcessHasBeenChanged(boolean processHasBeenChanged) {
+        this.processHasBeenChanged = processHasBeenChanged;
     }
 }

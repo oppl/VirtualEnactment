@@ -32,7 +32,7 @@ public class ElaborationUI extends Window implements WizardProgressListener {
 
     public ElaborationUI(ProcessChangeHistory processChangeHistory) {
         super("Elaborate on this problem");
-        this.setWidth("100%");
+        this.setWidth("90%");
         this.setHeight("500px");
         this.center();
         this.processChangeHistory = processChangeHistory;
@@ -104,6 +104,7 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         }
         if (!steps.isEmpty()) processChangeHistory.setLatestStepAsLastInSequence();
         if (finalActiveState != null) instance.getAvailableStates().put(subject,finalActiveState);
+        instance.setProcessHasBeenChanged(true);
         this.close();
     }
 

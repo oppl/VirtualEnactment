@@ -1,27 +1,37 @@
 package at.jku.ce.CoMPArE.process;
 
+import at.jku.ce.CoMPArE.LogHelper;
+
+import java.util.UUID;
+
 /**
  * Created by oppl on 22/11/2016.
  */
 public class SendState extends State {
 
-    private Message sentMessage;
+    private UUID sentMessageID;
 
     public SendState(String name) {
         super(name);
-        sentMessage = null;
+        sentMessageID = null;
     }
 
     public SendState(String name, Message sentMessage) {
         super(name);
-        this.sentMessage = sentMessage;
+        this.sentMessageID = sentMessage.getUUID();
+    }
+
+    public SendState(SendState s, Subject container) {
+        super(s,container);
+        sentMessageID = container.getParentProcess().getMessageByUUID(s.sentMessageID).getUUID();
     }
 
     public Message getSentMessage() {
-        return sentMessage;
+        return parentSubject.getParentProcess().getMessageByUUID(sentMessageID);
     }
 
     public void setSentMessage(Message sentMessage) {
-        this.sentMessage = sentMessage;
+        parentSubject.getParentProcess().addMessage(sentMessage);
+        this.sentMessageID = sentMessage.getUUID();
     }
 }

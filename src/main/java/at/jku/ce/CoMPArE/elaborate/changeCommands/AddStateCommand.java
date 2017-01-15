@@ -1,9 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.LogHelper;
-import at.jku.ce.CoMPArE.process.Condition;
-import at.jku.ce.CoMPArE.process.State;
-import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.process.*;
 
 import java.util.Set;
 
@@ -28,6 +26,12 @@ public class AddStateCommand extends ProcessChangeCommand {
     @Override
     public boolean perform() {
         newActiveState = newState;
+        if (newState instanceof RecvState) {
+            s.getParentProcess().addMessages(((RecvState) newState).getRecvdMessages());
+        }
+        if (newState instanceof SendState) {
+            s.getParentProcess().addMessage(((SendState) newState).getSentMessage());
+        }
         if (before) {
             if (target == s.getFirstState() || s.getFirstState() == null) {
                 LogHelper.logInfo("Elaboration: inserting " + newState + " as new first state in subject " + s);

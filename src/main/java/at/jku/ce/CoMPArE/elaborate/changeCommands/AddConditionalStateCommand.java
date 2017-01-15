@@ -32,6 +32,7 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
     public boolean perform() {
         if (state == subject.getFirstState()) {
             State decisionState = new ActionState("Make decision");
+            subject.addState(decisionState);
             decisionState.addNextState(state, originalConditions.values().iterator().next());
             decisionState.addNextState(newState, newConditions.values().iterator().next());
             subject.setFirstState(decisionState);
@@ -41,7 +42,7 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
 
         if (!predecessorStates.isEmpty()) {
             for (State predecessorState : predecessorStates) {
-                predecessorState.getNextStates().remove(state);
+                predecessorState.getNextStates().remove(state.getUUID());
                 predecessorState.addNextState(state, originalConditions.get(predecessorState));
                 predecessorState.addNextState(newState, newConditions.get(predecessorState));
             }

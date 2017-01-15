@@ -50,7 +50,7 @@ public class ExplorationAgent extends ScaffoldingAgent {
         Set<State> remainingStates = new HashSet<>();
         remainingStates.addAll(s.getStates());
         remainingStates.removeAll(visitedStates.get(s));
-        LogHelper.logInfo("ExplorationAgent: removing "+visitedStates.get(s).size()+" visited states of "+s.getStates().size()+" overall states for "+s+" ... now "+remainingStates.size()+" states remaining");
+//        LogHelper.logInfo("ExplorationAgent: removing "+visitedStates.get(s).size()+" visited states of "+s.getStates().size()+" overall states for "+s+" ... now "+remainingStates.size()+" states remaining");
         if (remainingStates.isEmpty()) return null;
         State nextSuggestedState = findNextSuggestedState(s.getFirstState(),remainingStates);
         if (nextSuggestedState!=null) {

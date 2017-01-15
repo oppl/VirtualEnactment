@@ -85,7 +85,7 @@ public class AskForConditionsStep extends ElaborationStep {
             Condition originalCondition = predecessor.getNextStates().get(state);
             if (originalCondition != null && !originalCondition.getCondition().equals(""))
                 originalConditions.put(predecessor, originalCondition);
-            else originalConditions.put(predecessor, new Condition(""));
+            else originalConditions.put(predecessor, null);
             inputFieldOld.setValue(originalConditions.get(predecessor).getCondition());
             if (originalConditions.get(predecessor) instanceof MessageCondition) {
                 inputFieldOld.setEnabled(false);

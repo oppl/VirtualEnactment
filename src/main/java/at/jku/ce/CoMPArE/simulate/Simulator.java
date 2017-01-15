@@ -41,6 +41,7 @@ public class Simulator {
         Thread thread = new Thread(){
             public void run() {
                 LinkedList<SimulatorStep> overallSteps = findOverallPathToState(targetState);
+                delayNextStep();
                 for (SimulatorStep ss : overallSteps) {
                     LogHelper.logInfo("Simulator: executing simulator step: " + ss.subject + " " + ss.state + " " + ss.condition);
                     Panel subjectPanel = subjectPanels.get(ss.subject);
@@ -133,6 +134,7 @@ public class Simulator {
     }
 
     public boolean findPathToState(State targetState, LinkedList<SimulatorStep> overallList, int entryIndex) {
+        LogHelper.logInfo("Searching for subject with state "+targetState);
         Subject targetSubject = instance.getProcess().getSubjectWithState(targetState);
         if (instance.subjectFinished(targetSubject)) return false;
         boolean pathFound;

@@ -11,20 +11,34 @@ import java.util.Set;
  */
 public class DemoProcess {
 
+    private static void addSubjectToProcess(Subject s, Process p) {
+        p.addSubject(s);
+    }
+
+    private static void addMessageToProcess(Message m, Process p) {
+        p.addMessage(m);
+    }
+
     public static Process getDemoProcess() {
         Process p = new Process("Vacation Application (incomplete version)");
 
         Subject s1 = new Subject("Employee");
         Subject s2 = new Subject("Secretary");
         Subject s3 = new Subject("Boss");
-        p.addSubject(s1);
-        p.addSubject(s2);
-        p.addSubject(s3);
+
+        addSubjectToProcess(s1,p);
+        addSubjectToProcess(s2,p);
+        addSubjectToProcess(s3,p);
 
         Message applicationForm = new Message("Filled Application Form");
         Message checkedApplicationForm = new Message("Checked Application Form");
         Message confirmedApplication = new Message("Confirmed Application Form");
         Message confirmation = new Message("Confirmation");
+
+        addMessageToProcess(applicationForm, p);
+        addMessageToProcess(checkedApplicationForm, p);
+        addMessageToProcess(confirmedApplication, p);
+        addMessageToProcess(confirmation, p);
 
         State s = s1.setFirstState(new ActionState("Fill Application Form"));
         s = s.addNextState(new SendState("Send Application Form", applicationForm));
@@ -52,9 +66,9 @@ public class DemoProcess {
         Subject s2 = new Subject("Secretary");
         Subject s3 = new Subject("Boss");
 
-        p.addSubject(s1);
-        p.addSubject(s2);
-        p.addSubject(s3);
+        addSubjectToProcess(s1,p);
+        addSubjectToProcess(s2,p);
+        addSubjectToProcess(s3,p);
 
         Message applicationForm = new Message("Filled Application Form");
         Message checkedApplicationForm = new Message("Checked Application Form");
@@ -62,6 +76,13 @@ public class DemoProcess {
         Message declinedApplication = new Message("Declined Application Form");
         Message confirmation = new Message("Confirmation");
         Message rejection = new Message("Rejection");
+
+        addMessageToProcess(applicationForm, p);
+        addMessageToProcess(checkedApplicationForm, p);
+        addMessageToProcess(confirmedApplication, p);
+        addMessageToProcess(declinedApplication, p);
+        addMessageToProcess(confirmation, p);
+        addMessageToProcess(rejection, p);
 
         State s = s1.setFirstState(new ActionState("Fill Application Form"));
         s = s.addNextState(new SendState("Send Application Form", applicationForm));

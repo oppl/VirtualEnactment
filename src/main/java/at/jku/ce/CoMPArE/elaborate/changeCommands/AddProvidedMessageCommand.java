@@ -21,6 +21,7 @@ public class AddProvidedMessageCommand extends ProcessChangeCommand {
     public boolean perform() {
         if (subject == null || message == null) return false;
         subject.addProvidedMessage(message);
+        subject.getParentProcess().addMessage(message);
         return true;
     }
 
