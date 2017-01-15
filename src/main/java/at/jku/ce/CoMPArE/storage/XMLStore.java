@@ -64,12 +64,20 @@ public class XMLStore {
             xml = new String(encoded, Charset.defaultCharset());
         }
         catch (IOException e) {
-            LogHelper.logError("XMLStore: reading failed");
+//            LogHelper.logError("XMLStore: reading failed");
         }
         if (xml != null) {
-            p = (Process) xStream.fromXML(xml);
+            try {
+                p = (Process) xStream.fromXML(xml);
+            }
+            catch (Exception e1) {
+//                LogHelper.logError("XMLStore: XML conversion failed");
+            }
         }
-        if (p!=null) LogHelper.logInfo("XMLStore: process read successfully");
+        if (p!=null) {
+            p.reconstructParentRelations();
+//            LogHelper.logInfo("XMLStore: process "+p+" read successfully (original timestamp: "+p.getTimestamp());
+        }
         return p;
     }
 }

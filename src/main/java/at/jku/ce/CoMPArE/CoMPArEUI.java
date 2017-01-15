@@ -613,6 +613,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                     currentInstance = new Instance(currentProcess);
                     createBasicLayout();
                     simulator = new Simulator(currentInstance, subjectPanels, CoMPArEUI.this);
+                    if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
                     fileStorageHandler.newProcessStarted();
                     updateUI();
                 }

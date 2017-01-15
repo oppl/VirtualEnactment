@@ -35,7 +35,6 @@ public class FileStorageHandler {
     }
 
     public void addProcessToStorageBuffer(Process process) {
-        process.setTimestampToNow();
         storageBuffer.add(new Process(process)); // use deep copy constructor to avoid influences of future changes
     }
 
@@ -52,7 +51,6 @@ public class FileStorageHandler {
     public boolean isIDCookieAvailable() {
         Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
 
-        // Iterate to find cookie by its name
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("groupid")) {
                 groupID = cookie.getValue();
@@ -64,11 +62,9 @@ public class FileStorageHandler {
 
     private void updateIDCookie() {
         Cookie groupCookie = new Cookie("groupid", groupID);
-// Make cookie expire in 2 hours
-        groupCookie.setMaxAge(7200);
-// Set the cookie path.
+
+        groupCookie.setMaxAge(7200); // Make cookie expire in 2 hours
         groupCookie.setPath(VaadinService.getCurrentRequest().getContextPath());
-// Save cookie
         VaadinService.getCurrentResponse().addCookie(groupCookie);
     }
 

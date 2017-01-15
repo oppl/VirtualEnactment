@@ -21,6 +21,7 @@ public class Instance {
 
     public Instance(Process p) {
         this.p = p;
+        p.setTimestampToNow();
         LogHelper.logInfo("Constructing new instance of "+p+" "+p.getTimestamp());
         availableStates = new HashMap<>();
         inputBuffer = new HashMap<>();

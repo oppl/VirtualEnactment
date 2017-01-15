@@ -4,18 +4,24 @@ import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.storage.UploadWindow;
 import at.jku.ce.CoMPArE.storage.XMLStore;
 import com.vaadin.server.Page;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * Created by oppl on 26/11/2016.
  */
-public class ProcessSelectorUI extends Window implements Upload.Receiver, Upload.SucceededListener {
+public class ProcessSelectorUI extends Window {
     FormLayout fLayout = new FormLayout();
     File file;
 
@@ -36,62 +42,56 @@ public class ProcessSelectorUI extends Window implements Upload.Receiver, Upload
 
         final Button confirm = new Button("Done");
         final Label questionPrompt = new Label("Select a new process to be explored:");
-        final Upload upload = new Upload("Select file",this);
-        upload.addSucceededListener(this);
         final TextField inputField = new TextField("How should it be named?");
 
-        final OptionGroup availableDemoProcesses = new OptionGroup("Please select:");
-        for (Process p : DemoProcess.getDemoProcesses()) {
-            availableDemoProcesses.addItem(p);
-        }
+        final OptionGroup availableSelectionOptions = new OptionGroup("Please select:");
         final String optionSpecifyMyself = new String("I want to start a new process from scratch.");
-        final String optionUpload = new String("I want to upload a process file.");
-        availableDemoProcesses.addItem(optionSpecifyMyself);
-        availableDemoProcesses.addItem(optionUpload);
-        availableDemoProcesses.addValueChangeListener( e -> {
-            Object selectedItem = e.getProperty().getValue();
-            if (selectedItem == optionSpecifyMyself) {
-                inputField.setEnabled(true);
-            }
-            else {
-                inputField.setEnabled(false);
-            }
-        });
+        final String optionUpload = new String("I want to upload a process file or an archive.");
+        final String optionSelectFromServer = new String("I want to select a process from my archives on the server.");
+        final String optionSelectDemo = new String("I want to select one of the demo processes.");
 
-        availableDemoProcesses.addValueChangeListener( e -> {
+        availableSelectionOptions.addItem(optionSpecifyMyself);
+        availableSelectionOptions.addItem(optionUpload);
+        availableSelectionOptions.addItem(optionSelectFromServer);
+        availableSelectionOptions.addItem(optionSelectDemo);
+
+        availableSelectionOptions.addValueChangeListener( e -> {
             Object selectedItem = e.getProperty().getValue();
             if (selectedItem == optionUpload) {
                 confirm.setCaption("Upload");
-                upload.setVisible(true);
                 inputField.setVisible(false);
             }
-            else {
+            if (selectedItem == optionSelectFromServer || selectedItem == optionSelectDemo) {
+                confirm.setCaption("Select");
+                inputField.setVisible(false);
+            }
+            if (selectedItem == optionSpecifyMyself) {
                 confirm.setCaption("Done");
-                upload.setVisible(false);
                 inputField.setVisible(true);
             }
         });
 
         confirm.addClickListener( e -> {
-            if (inputField.isEnabled()) {
+            if (availableSelectionOptions.getValue() == optionSpecifyMyself) {
                 selectedProcess = new Process(inputField.getValue());
                 this.close();
             }
-            else {
-                if (availableDemoProcesses.getValue() != optionUpload) {
-                    selectedProcess = (Process) availableDemoProcesses.getValue();
-                    this.close();
-                }
+            if (availableSelectionOptions.getValue() == optionSelectDemo) {
+                this.getUI().addWindow(new SelectDemoWindow());
+            }
+            if (availableSelectionOptions.getValue() == optionSelectFromServer) {
+
+            }
+            if (availableSelectionOptions.getValue() == optionUpload) {
+                this.getUI().addWindow(new UploadWindow(this));
             }
         });
 
         fLayout.removeAllComponents();
         fLayout.addComponent(questionPrompt);
-        fLayout.addComponent(availableDemoProcesses);
+        fLayout.addComponent(availableSelectionOptions);
         fLayout.addComponent(inputField);
-        fLayout.addComponent(upload);
-        inputField.setEnabled(false);
-        upload.setVisible(false);
+        inputField.setVisible(false);
         fLayout.addComponent(confirm);
     }
 
@@ -99,30 +99,39 @@ public class ProcessSelectorUI extends Window implements Upload.Receiver, Upload
         return selectedProcess;
     }
 
-    @Override
-    public OutputStream receiveUpload(String filename, String mimeType) {
-        FileOutputStream fos = null; // Stream to write to
-        try {
-            // Open the file for writing.
-            file = new File(System.getProperty("catalina.base") + "/" + filename);
-            fos = new FileOutputStream(file);
-
-        } catch (final java.io.FileNotFoundException e) {
-            new Notification("Could not open file<br/>",
-                    e.getMessage(),
-                    Notification.Type.ERROR_MESSAGE)
-                    .show(Page.getCurrent());
-            return null;
-        }
-        return fos; // Return the output stream to write to
+    public void setSelectedProcess(Process selectedProcess) {
+        this.selectedProcess = selectedProcess;
+        this.close();
     }
 
-    public void uploadSucceeded(Upload.SucceededEvent event) {
-        XMLStore xmlStore = new XMLStore();
-        Process p = xmlStore.readXML(file);
-        p.reconstructParentRelations();
-        if (p!=null) selectedProcess = p;
-        this.close();
+    private class SelectDemoWindow extends Window {
+
+        public SelectDemoWindow() {
+            super("Select a new Process");
+            this.setWidth("500px");
+            this.center();
+
+            VerticalLayout layout = new VerticalLayout();
+            layout.setMargin(true);
+            layout.setSpacing(true);
+            final Button confirm = new Button("Done");
+            final Label questionPrompt = new Label("Select one of the demo processes:");
+
+            final OptionGroup availableDemoProcesses = new OptionGroup("Please select:");
+            for (Process p : DemoProcess.getDemoProcesses()) {
+                availableDemoProcesses.addItem(p);
+            }
+
+            confirm.addClickListener( e -> {
+                this.close();
+                ProcessSelectorUI.this.setSelectedProcess((Process) availableDemoProcesses.getValue());
+            });
+
+            layout.addComponent(questionPrompt);
+            layout.addComponent(availableDemoProcesses);
+            layout.addComponent(confirm);
+            setContent(layout);
+        }
     }
 
 }
