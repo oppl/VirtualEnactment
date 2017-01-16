@@ -101,7 +101,7 @@ public class AskForConditionsStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         State newInsertedState = new ActionState(newState);
         state = instance.getAvailableStateForSubject(subject);
 

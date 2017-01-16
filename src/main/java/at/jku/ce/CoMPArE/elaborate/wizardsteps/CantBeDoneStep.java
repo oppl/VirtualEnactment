@@ -1,11 +1,14 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import org.vaadin.teemu.wizards.Wizard;
+
+import java.util.List;
 
 /**
  * Created by oppl on 16/12/2016.
@@ -42,4 +45,10 @@ public class CantBeDoneStep extends ElaborationStep {
         fLayout.addComponent(questionPrompt);
         fLayout.addComponent(answerOptions);
     }
+
+    @Override
+    public List<ProcessChangeCommand> getProcessChangeList() {
+        return processChanges;
+    }
+
 }

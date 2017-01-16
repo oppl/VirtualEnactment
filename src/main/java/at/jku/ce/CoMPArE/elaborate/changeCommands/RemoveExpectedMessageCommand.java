@@ -32,4 +32,10 @@ public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
         subject.getParentProcess().addMessage(message);
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Removed expected input \""+message+"\" from \""+subject+"\"";
+    }
+
 }

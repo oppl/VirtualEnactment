@@ -44,4 +44,10 @@ public class AddSubjectCommand extends ProcessChangeCommand {
         process.removeSubject(subject);
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added actor \""+subject+"\"";
+    }
+
 }

@@ -47,9 +47,9 @@ public class Process extends ProcessElement {
         subjects.add(s);
         s.setParentProcess(this);
     }
-    public void removeSubject(Subject s) { subjects.remove(s); }
+    public void removeSubject(Subject s) { if (s!=null) subjects.remove(s); }
 
-    public void addMessage(Message m) { messages.add(m); }
+    public void addMessage(Message m) { if (m!=null) messages.add(m); }
 
     public void addMessages(Set<Message> messages) { this.messages.addAll(messages); }
 

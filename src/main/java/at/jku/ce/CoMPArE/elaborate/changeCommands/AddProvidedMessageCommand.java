@@ -32,4 +32,10 @@ public class AddProvidedMessageCommand extends ProcessChangeCommand {
         subject.removeProvidedMessage(message);
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added provided input \""+message+"\" to \""+subject+"\"";
+    }
+
 }

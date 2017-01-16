@@ -14,8 +14,6 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     private State state;
     private State newState;
     private Subject subject;
-    private boolean before;
-
 
     public ReplaceStateCommand(Subject s, State state, State newState) {
         super();
@@ -81,4 +79,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "Replaced \""+state+"\" with \""+newState+"\" in \""+subject+"\"";
+    }
 }

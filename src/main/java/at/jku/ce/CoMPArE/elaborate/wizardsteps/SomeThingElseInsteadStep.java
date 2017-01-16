@@ -1,7 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
-import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
 import at.jku.ce.CoMPArE.elaborate.StateClickListener;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
@@ -112,7 +111,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
 
         String selection = relationship.getValue().toString();

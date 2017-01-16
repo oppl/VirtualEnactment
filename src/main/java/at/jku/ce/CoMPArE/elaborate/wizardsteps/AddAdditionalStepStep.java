@@ -11,7 +11,6 @@ import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
-import org.vaadin.teemu.wizards.event.WizardProgressListener;
 
 import java.util.List;
 import java.util.UUID;
@@ -84,7 +83,7 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         LogHelper.logInfo("Elaboration: inserting new additional step " + inputField.getValue() + " into " + subject);
 
         RecvState newRecvState = null;

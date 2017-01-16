@@ -32,4 +32,10 @@ public class RemoveProvidedMessageCommand extends ProcessChangeCommand {
         subject.getParentProcess().addMessage(message);
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Removed provided input \""+message+"\" from \""+subject+"\"";
+    }
+
 }

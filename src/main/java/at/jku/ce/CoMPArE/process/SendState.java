@@ -27,6 +27,7 @@ public class SendState extends State {
     }
 
     public Message getSentMessage() {
+        if (sentMessageID == null) return null;
         return parentSubject.getParentProcess().getMessageByUUID(sentMessageID);
     }
 

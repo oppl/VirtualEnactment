@@ -99,5 +99,11 @@ public class AddStateCommand extends ProcessChangeCommand {
             return true;
         }
     }
+
+    @Override
+    public String toString() {
+        return "Added \""+newState+"\" "+(before?"before":"after")+" \""+target+"\"";
+    }
+
 }
 

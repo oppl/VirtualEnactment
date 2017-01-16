@@ -59,7 +59,7 @@ public class AddInitialStepStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         LogHelper.logInfo("Elaboration: inserting new initial step " + inputField.getValue() + " into " + subject);
         RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {

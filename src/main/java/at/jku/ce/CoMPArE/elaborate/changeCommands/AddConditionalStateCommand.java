@@ -74,4 +74,10 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
         newActiveState = target;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added \""+newState+"\" as an alternative to \""+target+"\"";
+    }
+
 }

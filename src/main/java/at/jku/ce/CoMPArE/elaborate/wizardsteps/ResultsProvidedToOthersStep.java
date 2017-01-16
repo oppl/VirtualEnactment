@@ -29,7 +29,6 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
 
     public ResultsProvidedToOthersStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
-        state = instance.getAvailableStateForSubject(subject);
         this.newState = newState;
         caption = new String("\"" + newState + "\" leads to results I can provide to others.");
         questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
@@ -94,7 +93,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
 
         if (inputField.isEnabled() && infoTarget.getValue() != null) {
@@ -105,7 +104,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 newState.setSentMessage(newMessage);
-                processChanges.add(new AddStateCommand(subject,state,newState,false));
+                processChanges.add(new AddStateCommand(subject,state,newState,true));
                 processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
                 return processChanges;
             }
@@ -113,7 +112,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 newState.setSentMessage(newMessage);
-                processChanges.add(new AddStateCommand(subject,state,newState,false));
+                processChanges.add(new AddStateCommand(subject,state,newState,true));
                 processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
                 return processChanges;
             }
@@ -121,7 +120,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             Message m = (Message) availableExpectedMessages.getValue();
             SendState newState = new SendState("Send " + m);
             newState.setSentMessage(m);
-            processChanges.add(new AddStateCommand(subject,state,newState,false));
+            processChanges.add(new AddStateCommand(subject,state,newState,true));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));
             return processChanges;
         }

@@ -1,9 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddExpectedMessageCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddSubjectCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.RecvState;
@@ -46,14 +43,14 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
         Subject newSubject = new Subject(inputField.getValue());
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         RecvState newState = new RecvState("Wait for " + messageName);
         Message newMessage = new Message(messageName);
-        newState.addRecvdMessage(newMessage);
         processChanges.add(new AddStateCommand(subject,state,newState,true));
+        processChanges.add(new AddMessageToRecvStateCommand(newState,newMessage));
         processChanges.add(new AddExpectedMessageCommand(newSubject,newMessage));
         return processChanges;
     }

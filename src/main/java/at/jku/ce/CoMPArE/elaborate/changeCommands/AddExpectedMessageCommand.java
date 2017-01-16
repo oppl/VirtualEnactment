@@ -32,4 +32,10 @@ public class AddExpectedMessageCommand extends ProcessChangeCommand {
         subject.removeExpectedMessage(message);
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added expected input \""+message+"\" to \""+subject+"\"";
+    }
+
 }

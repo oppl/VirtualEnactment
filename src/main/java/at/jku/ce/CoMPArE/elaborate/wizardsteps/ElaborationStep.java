@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by oppl on 16/12/2016.
  */
-public class ElaborationStep implements WizardStep {
+public abstract class ElaborationStep implements WizardStep {
 
     protected Wizard owner;
 
@@ -69,9 +69,7 @@ public class ElaborationStep implements WizardStep {
         return canGoBack;
     }
 
-    public List<ProcessChangeCommand> getProcessChanges() {
-        return processChanges;
-    }
+    public abstract List<ProcessChangeCommand> getProcessChangeList();
 
     protected final void removeNextSteps() {
         if (nextStep!=null) {

@@ -10,35 +10,23 @@ import java.util.Vector;
  */
 public class ProcessChangeHistory {
 
-    private Vector<ProcessChangeCommand> changes;
+    private Vector<ProcessChangeTransaction> changes;
 
     public ProcessChangeHistory() {
         changes = new Vector<>();
     }
 
-    public void add(ProcessChangeCommand processChange) {
+    public void add(ProcessChangeTransaction processChange) {
         changes.add(processChange);
     }
 
-    public boolean undoLatestChangeSequence(Process p) {
-        ProcessChangeCommand pc = changes.lastElement();
-        do {
-            boolean success = pc.undo();
-            if (!success) return false;
-            changes.remove(pc);
-            pc = changes.lastElement();
-        }
-        while (!pc.isChangeStepCompleted());
-
-        return true;
+    public boolean undoLatestChangeTransaction(Process p) {
+        ProcessChangeTransaction pc = changes.lastElement();
+        return pc.undo();
     }
 
-    public void setLatestStepAsLastInSequence() {
-        if (changes.isEmpty()) return;
-        changes.lastElement().setChangeStepCompleted(true);
-    }
 
-    public Vector<ProcessChangeCommand> getHistory() {
+    public Vector<ProcessChangeTransaction> getHistory() {
         return changes;
     }
 }

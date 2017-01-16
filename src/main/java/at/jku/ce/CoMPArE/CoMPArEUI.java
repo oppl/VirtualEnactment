@@ -4,6 +4,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
 import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
+import at.jku.ce.CoMPArE.elaborate.HistoryUI;
 import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
 import at.jku.ce.CoMPArE.elaborate.StateClickListener;
 import at.jku.ce.CoMPArE.execute.Instance;
@@ -14,6 +15,7 @@ import at.jku.ce.CoMPArE.simulate.Simulator;
 import at.jku.ce.CoMPArE.storage.FileStorageHandler;
 import at.jku.ce.CoMPArE.storage.GroupIDEntryWindow;
 import at.jku.ce.CoMPArE.visualize.VizualizeModel;
+import com.google.gwt.user.client.History;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
@@ -74,6 +76,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private Button differentProcess;
     private Button simulate;
     private Button restart;
+    private Button elaborationHistory;
 
     private FileStorageHandler fileStorageHandler;
 
@@ -289,10 +292,21 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             updateUI();
         });
 
+        elaborationHistory = new Button("Open Process Change History");
+        elaborationHistory.addClickListener( e -> {
+            HistoryUI historyUI = new HistoryUI(processChangeHistory);
+            this.getUI().addWindow(historyUI);
+            historyUI.addCloseListener( e1 -> {
+                // TODO rollback until selected change
+            });
+        });
+        if (processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(false);
+
         if (!currentProcess.getSubjects().isEmpty()) toolBar.addComponent(simulate);
         if (onboardingActive) simulate.setVisible(false);
         toolBar.addComponent(restart);
         toolBar.addComponent(differentProcess);
+        toolBar.addComponent(elaborationHistory);
         toolBar.setSpacing(true);
         return toolBar;
 
@@ -586,6 +600,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             @Override
             public void windowClose(Window.CloseEvent e) {
                 elaborationActive = false;
+                if (!processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(true);
                 createBasicLayout();
                 scaffoldingManager.updateScaffolds(currentInstance,currentInstance.getAvailableStateForSubject(s));
                 updateUI();

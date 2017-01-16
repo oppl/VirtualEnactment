@@ -91,4 +91,9 @@ public class RemoveStateCommand extends ProcessChangeCommand {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "Removed \""+state+"\" from \""+subject+"\"";
+    }
+
 }
