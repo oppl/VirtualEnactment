@@ -31,19 +31,18 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
             for (Message m : ((RecvState) state).getRecvdMessages())
                 subject.addProvidedMessage(m);
         }
-        for (State s : nextStates.keySet()) {
-            newState.addNextState(s, nextStates.get(s));
+        for (State nextState : nextStates.keySet()) { // TODO: check why this does not work
+            newState.addNextState(nextState, nextStates.get(nextState));
         }
 
         if (predecessorStates.isEmpty()) {
             subject.setFirstState(newState);
 
         } else {
-            for (State pre : predecessorStates) {
-                subject.addState(newState);
-                subject.removeState(state);
-                pre.addNextState(newState, nextStates.get(pre.getNextStates().get(state)));
-                pre.removeNextState(state);
+            for (State predecessor : predecessorStates) {
+                Condition c = predecessor.getNextStates().get(state);
+                predecessor.removeNextState(state);
+                predecessor.addNextState(newState, c);
             }
         }
         subject.removeState(state);
@@ -68,8 +67,9 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
 
         } else {
             for (State pre : predecessorStates) {
-                pre.addNextState(state, nextStates.get(pre.getNextStates().get(state)));
+                Condition c = pre.getNextStates().get(newState);
                 pre.removeNextState(newState);
+                pre.addNextState(state, c);
             }
         }
         subject.addState(state);

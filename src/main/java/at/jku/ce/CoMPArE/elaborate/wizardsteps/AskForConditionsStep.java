@@ -34,15 +34,15 @@ public class AskForConditionsStep extends ElaborationStep {
     final Map<State, Condition> originalConditions;
     final Map<State, Condition> newConditions;
 
-    final String newState;
+    String newState;
 
     public AskForConditionsStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
         state = instance.getAvailableStateForSubject(subject);
         this.newState = newState;
 
-        caption = new String(newState + "\" replaces \"" + state + "\" under certain conditions.");
-        questionPrompt = new Label(newState + "\" replaces \"" + state + "\" under certain conditions.");
+        caption = new String("\"" + newState + "\" replaces \"" + state + "\" under certain conditions.");
+        questionPrompt = new Label("\"" + newState + "\" replaces \"" + state + "\" under certain conditions.");
         inputFieldNew = new TextField("What is the condition for \"" + newState + "\"?");
         inputFieldOld = new TextField("What is the condition for \"" + state + "\"?");
 
@@ -56,7 +56,7 @@ public class AskForConditionsStep extends ElaborationStep {
         newConditions = new HashMap<>();
 
         if (predecessorStates.isEmpty()) {
-            State dummyState = new ActionState("Make decision");
+            State dummyState = new ActionState("Make Decision");
             dummyState.addNextState(state);
             predecessorStates.add(dummyState);
         }
@@ -86,7 +86,7 @@ public class AskForConditionsStep extends ElaborationStep {
             if (originalCondition != null && !originalCondition.getCondition().equals(""))
                 originalConditions.put(predecessor, originalCondition);
             else originalConditions.put(predecessor, null);
-            inputFieldOld.setValue(originalConditions.get(predecessor).getCondition());
+            if (originalConditions.get(predecessor) != null) inputFieldOld.setValue(originalConditions.get(predecessor).getCondition());
             if (originalConditions.get(predecessor) instanceof MessageCondition) {
                 inputFieldOld.setEnabled(false);
                 inputFieldOld.setDescription("This condition is bound to incoming input and cannot be changed here");
@@ -96,8 +96,10 @@ public class AskForConditionsStep extends ElaborationStep {
         }
 
         fLayout.addComponent(questionPrompt);
-        fLayout.addComponent(inputFieldOld);
-        fLayout.addComponent(inputFieldNew);
+        for (State predecessor: originalConditionTextFields.keySet()) {
+            fLayout.addComponent(originalConditionTextFields.get(predecessor));
+            fLayout.addComponent(newConditionTextFields.get(predecessor));
+        }
     }
 
     @Override
@@ -106,7 +108,8 @@ public class AskForConditionsStep extends ElaborationStep {
         state = instance.getAvailableStateForSubject(subject);
 
         for (State predecessor : predecessorStates) {
-            if (!(originalConditions.get(predecessor) instanceof MessageCondition))
+            LogHelper.logInfo(originalConditionTextFields.get(predecessor).getValue()+" "+newConditionTextFields.get(predecessor).getValue());
+            if (!(originalConditions.get(predecessor) instanceof MessageCondition)) // TODO: check whether this really works (entry might be missing when executing the command
                 originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue()));
             newConditions.put(predecessor, new Condition(newConditionTextFields.get(predecessor).getValue()));
         }

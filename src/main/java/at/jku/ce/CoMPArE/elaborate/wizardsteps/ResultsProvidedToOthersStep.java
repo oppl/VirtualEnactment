@@ -103,24 +103,24 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
-                newState.setSentMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,true));
+                processChanges.add(new AddMessageToSendStateCommand(newState,newMessage));
                 processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
                 return processChanges;
             }
             if (infoTarget.getValue() instanceof Subject) {
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
-                newState.setSentMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,true));
+                processChanges.add(new AddMessageToSendStateCommand(newState,newMessage));
                 processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
                 return processChanges;
             }
         } else {
             Message m = (Message) availableExpectedMessages.getValue();
             SendState newState = new SendState("Send " + m);
-            newState.setSentMessage(m);
             processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new AddMessageToSendStateCommand(newState,m));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));
             return processChanges;
         }

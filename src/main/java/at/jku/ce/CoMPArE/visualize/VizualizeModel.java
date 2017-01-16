@@ -117,7 +117,7 @@ public class VizualizeModel extends VerticalLayout {
 
     public void greyOutCompletedStates(LinkedList<State> history, State currentState) {
         for (State s : history) {
-            Graph.Node node = graph.getNode(s.toString());
+            Graph.Node node = graph.getNode(s.getUUID().toString());
             if (node != null) {
                 component.addCss(node, "stroke", "grey");
                 component.addCss(node, "stroke-width", "3");

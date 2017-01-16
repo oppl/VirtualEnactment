@@ -347,8 +347,20 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         }
     }
 
-    public void expandVisualizationSlider() {
+    public void expandVisualizationSlider(Subject withSubject) {
         selectionMode = true;
+        Iterator<Component> i = visualizationTabs.iterator();
+        while (i.hasNext()) {
+            Component tab = i.next();
+            if (tab.getCaption().equals(withSubject.toString())) {
+                doNotNotifyScaffoldingManager = true;
+                if (visualizationTabs.getSelectedTab() == tab) {
+                    visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                }
+                visualizationTabs.setSelectedTab(tab);
+                doNotNotifyScaffoldingManager = false;
+            }
+        }
         Notification.show("Please select the existing step you want to use.", Notification.Type.WARNING_MESSAGE);
         visualizationSlider.expand();
     }

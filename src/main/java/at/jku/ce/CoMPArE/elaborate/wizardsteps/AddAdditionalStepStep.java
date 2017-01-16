@@ -42,7 +42,7 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
         selectFromExisting.addClickListener(e -> {
             CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
             parent.notifyAboutClickedState(this);
-            parent.expandVisualizationSlider();
+            parent.expandVisualizationSlider(s);
             ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
             elaborationUI.setVisible(false);
         });

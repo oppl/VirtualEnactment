@@ -40,14 +40,16 @@ public class ProcessChangeTransaction {
            if (!successful) break;
            else {
                rollbackBuffer.add(processChangeCommand);
-               newActiveState = processChangeCommand.getNewActiveState();
+               State s = processChangeCommand.getNewActiveState();
+               if (s != null && !s.getParentSubject().getPredecessorStates(s).contains(newActiveState)) newActiveState = s;
            }
         }
         if (!successful) {
             Collections.reverse(rollbackBuffer);
             for (ProcessChangeCommand rollbackCommand:rollbackBuffer) {
                 rollbackCommand.undo();
-                newActiveState = rollbackCommand.getNewActiveState();
+                State s = rollbackCommand.getNewActiveState();
+                if (s != null && !s.getParentSubject().getPredecessorStates(s).contains(newActiveState)) newActiveState = s;
             }
         }
         return successful;
@@ -65,14 +67,18 @@ public class ProcessChangeTransaction {
             if (!successful) break;
             else {
                 rollbackBuffer.add(processChangeCommand);
-                newActiveState = processChangeCommand.getNewActiveState();
+                State s = processChangeCommand.getNewActiveState();
+                if (s != null && !s.getParentSubject().getPredecessorStates(s).contains(newActiveState)) newActiveState = s;
+
             }
         }
         if (!successful) {
             Collections.reverse(rollbackBuffer);
             for (ProcessChangeCommand rollbackCommand:rollbackBuffer) {
                 rollbackCommand.perform();
-                newActiveState = rollbackCommand.getNewActiveState();
+                State s = rollbackCommand.getNewActiveState();
+                if (s != null && !s.getParentSubject().getPredecessorStates(s).contains(newActiveState)) newActiveState = s;
+
             }
         }
         return successful;

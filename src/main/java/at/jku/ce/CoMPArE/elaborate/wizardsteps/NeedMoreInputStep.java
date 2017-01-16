@@ -112,24 +112,24 @@ public class NeedMoreInputStep extends ElaborationStep {
                 processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
                 RecvState newState = new RecvState("Wait for " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
-                newState.addRecvdMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,true));
+                processChanges.add(new AddMessageToRecvStateCommand(newState,newMessage));
                 processChanges.add(new AddExpectedMessageCommand(anonymous, newMessage));
                 return processChanges;
             }
             if (infoSource.getValue() instanceof Subject) {
                 RecvState newState = new RecvState("Wait for " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
-                newState.addRecvdMessage(newMessage);
                 processChanges.add(new AddStateCommand(subject,state,newState,true));
+                processChanges.add(new AddMessageToRecvStateCommand(newState,newMessage));
                 processChanges.add(new AddExpectedMessageCommand((Subject) infoSource.getValue(), newMessage));
                 return processChanges;
             }
         } else {
             Message m = (Message) availableProvidedMessages.getValue();
             RecvState newState = new RecvState("Wait for " + m);
-            newState.addRecvdMessage(m);
             processChanges.add(new AddStateCommand(subject,state,newState,true));
+            processChanges.add(new AddMessageToRecvStateCommand(newState,m));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
             return processChanges;
         }

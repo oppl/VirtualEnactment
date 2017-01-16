@@ -54,7 +54,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         selectFromExisting.addClickListener(e -> {
             CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
             parent.notifyAboutClickedState(this);
-            parent.expandVisualizationSlider();
+            parent.expandVisualizationSlider(s);
             ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
             elaborationUI.setVisible(false);
         });
@@ -65,6 +65,11 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
                 newMessage.setDescription("");
                 relationship.setEnabled(true);
                 relationship.setDescription("");
+                if (specifyConditionsStep != null) {
+                    removeParticularFollowingStep(specifyConditionsStep);
+                    specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
+                    addNextStep(specifyConditionsStep);
+                }
             }
             if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
                 inputField.setData(null);
@@ -117,7 +122,8 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         String selection = relationship.getValue().toString();
 
         if (selection.equals(optionAdditionalActivity)) {
-            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
+            if (inputField.getData() instanceof UUID) processChanges.add(new AddStateCommand(subject,state, subject.getStateByUUID((UUID) inputField.getData()),true));
+            else processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
         }
 
         return processChanges;

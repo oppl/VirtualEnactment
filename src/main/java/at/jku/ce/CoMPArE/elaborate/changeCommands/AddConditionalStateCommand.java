@@ -39,13 +39,14 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
             decisionState.addNextState(target, originalConditions.values().iterator().next());
             decisionState.addNextState(newState, newConditions.values().iterator().next());
             subject.setFirstState(decisionState);
+            return true;
         }
 
         Set<State> predecessorStates = subject.getPredecessorStates(target);
 
         if (!predecessorStates.isEmpty()) {
             for (State predecessorState : predecessorStates) {
-                predecessorState.getNextStates().remove(target.getUUID());
+                predecessorState.removeNextState(target);
                 predecessorState.addNextState(target, originalConditions.get(predecessorState));
                 predecessorState.addNextState(newState, newConditions.get(predecessorState));
             }
@@ -68,7 +69,7 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
 
         if (!predecessorStates.isEmpty()) {
             for (State predecessorState : predecessorStates) {
-                predecessorState.getNextStates().remove(newState.getUUID());
+                predecessorState.removeNextState(newState);
             }
         }
         newActiveState = target;
