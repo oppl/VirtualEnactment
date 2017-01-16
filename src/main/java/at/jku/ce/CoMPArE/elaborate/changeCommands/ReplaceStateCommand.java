@@ -48,7 +48,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
                 pre.removeNextState(state);
             }
         }
-
+        subject.removeState(state);
+        subject.addState(newState);
         newActiveState = newState;
 
         return true;
@@ -73,7 +74,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
                 pre.removeNextState(newState);
             }
         }
-
+        subject.addState(state);
+        subject.removeState(newState);
         newActiveState = state;
 
         return true;

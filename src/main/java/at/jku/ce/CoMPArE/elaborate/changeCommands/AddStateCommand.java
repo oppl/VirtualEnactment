@@ -26,6 +26,7 @@ public class AddStateCommand extends ProcessChangeCommand {
     @Override
     public boolean perform() {
         newActiveState = newState;
+        s.addState(newState);
         if (newState instanceof RecvState) {
             s.getParentProcess().addMessages(((RecvState) newState).getRecvdMessages());
         }
@@ -65,7 +66,38 @@ public class AddStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        return false;
+        newActiveState = target;
+        s.removeState(newState);
+        if (newState instanceof RecvState) {
+            for (Message m:((RecvState) newState).getRecvdMessages()) {
+                s.getParentProcess().removeMessage(m);
+            }
+        }
+        if (newState instanceof SendState) {
+            s.getParentProcess().removeMessage(((SendState) newState).getSentMessage());
+        }
+        if (before) {
+            if (newState == s.getFirstState()) {
+                s.setFirstState(target);
+                return true;
+            }
+
+            Set<State> predecessorStates = s.getPredecessorStates(newState);
+
+            if (!predecessorStates.isEmpty()) {
+                for (State predecessorState : predecessorStates) {
+                    Condition c = predecessorState.getNextStates().get(newState);
+                    predecessorState.getNextStates().remove(newState);
+                    predecessorState.getNextStates().put(target, c);
+                }
+                return true;
+            } else return false;
+        } else {
+            for (State nextState : newState.getNextStates().keySet()) {
+                target.addNextState(nextState, newState.getNextStates().get(nextState));
+            }
+            return true;
+        }
     }
 }
 

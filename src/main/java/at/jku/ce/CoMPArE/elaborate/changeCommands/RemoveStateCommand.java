@@ -26,14 +26,20 @@ public class RemoveStateCommand extends ProcessChangeCommand {
     public boolean perform() {
         Set<State> predecessorStates = subject.getPredecessorStates(state);
         Map<State, Condition> nextStates = state.getNextStates();
-        if (state instanceof SendState) subject.addExpectedMessage(((SendState) state).getSentMessage());
+        if (state instanceof SendState) {
+            subject.addExpectedMessage(((SendState) state).getSentMessage());
+            subject.getParentProcess().addMessage(((SendState) state).getSentMessage());
+        }
         if (state instanceof RecvState) {
-            for (Message m : ((RecvState) state).getRecvdMessages())
+            for (Message m : ((RecvState) state).getRecvdMessages()) {
                 subject.addProvidedMessage(m);
+                subject.getParentProcess().addMessage(m);
+            }
         }
         if (predecessorStates.isEmpty()) {
             if (nextStates.size() == 1) {
                 subject.setFirstState(nextStates.keySet().iterator().next());
+                subject.removeState(state);
             } else {
                 if (nextStates.size() > 1)
                     state.setName("Make decision");
@@ -44,6 +50,7 @@ public class RemoveStateCommand extends ProcessChangeCommand {
                 for (State s : nextStates.keySet())
                     pre.addNextState(s, nextStates.get(s));
                 pre.removeNextState(state);
+                subject.removeState(state);
             }
         }
 
@@ -58,10 +65,15 @@ public class RemoveStateCommand extends ProcessChangeCommand {
     @Override
     public boolean undo() {
         Set<State> predecessorStates = subject.getPredecessorStates(replacementState);
-        if (state instanceof SendState) subject.removeExpectedMessage(((SendState) state).getSentMessage());
+        if (state instanceof SendState) {
+            subject.removeExpectedMessage(((SendState) state).getSentMessage());
+            subject.getParentProcess().removeMessage(((SendState) state).getSentMessage());
+        }
         if (state instanceof RecvState) {
-            for (Message m : ((RecvState) state).getRecvdMessages())
+            for (Message m : ((RecvState) state).getRecvdMessages()) {
                 subject.removeProvidedMessage(m);
+                subject.getParentProcess().removeMessage(m);
+            }
         }
         if (predecessorStates.isEmpty()) {
             subject.setFirstState(state);
@@ -73,7 +85,7 @@ public class RemoveStateCommand extends ProcessChangeCommand {
                 pre.addNextState(state,c);
             }
         }
-
+        subject.addState(state);
         newActiveState = state;
 
         return true;

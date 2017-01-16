@@ -53,6 +53,8 @@ public class Process extends ProcessElement {
 
     public void addMessages(Set<Message> messages) { this.messages.addAll(messages); }
 
+    public void removeMessage(Message m) { messages.remove(m); }
+
     public Set<Subject> getSubjects() {
         return subjects;
     }

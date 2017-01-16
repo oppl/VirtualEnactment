@@ -28,6 +28,7 @@ public class AddProvidedMessageCommand extends ProcessChangeCommand {
     @Override
     public boolean undo() {
         if (!subject.getProvidedMessages().contains(message)) return false;
+        subject.getParentProcess().removeMessage(message);
         subject.removeProvidedMessage(message);
         return true;
     }

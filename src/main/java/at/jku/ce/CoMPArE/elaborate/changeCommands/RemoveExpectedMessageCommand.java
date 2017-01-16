@@ -21,6 +21,7 @@ public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
     public boolean perform() {
         if (!subject.getExpectedMessages().contains(message)) return false;
         subject.removeExpectedMessage(message);
+        subject.getParentProcess().removeMessage(message);
         return true;
     }
 
@@ -28,6 +29,7 @@ public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
     public boolean undo() {
         if (subject == null || message == null) return false;
         subject.addExpectedMessage(message);
+        subject.getParentProcess().addMessage(message);
         return true;
     }
 }
