@@ -10,7 +10,12 @@ The committed files contain the complete maven configuration for the project. It
 
 ## Branching Policy
 
-New features are developed in separate branches that are eventually merged with the master branch as soon as a stable and tested version is available. The master branch always only contains a version that can be deployed in real-world workshops.
+From the commit tagged as release v2.0 on, the following branching policy applies:
+- 'master' only contains release commits
+- the main development branch is named 'develop'
+- feature branches are branched and merged to 'develop' only
+- release-branches are branched from 'develop' and are merged to 'master' only after testing
+- merges are made as separate commits even if fast-forward merging would be possible to preserve the branch history
 
 If you want to contribute, you might want to have a look at the open issues and projects specified in this repository. While [issues][5] point at concrete bugs or potential enhancements that have been identified during testing and real-world deployment, the [projects][6] outline the general directions of further development. Feel free to contact [me][7], if you have any questions on any of the projects, or simply comment on any of the open issues. 
 
