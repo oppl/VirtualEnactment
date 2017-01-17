@@ -33,6 +33,6 @@ public class AddMessageToSendStateCommand extends ProcessChangeCommand {
 
     @Override
     public String toString() {
-        return "Added input \""+message+"\" to "+state+"\"";
+        return "Added input \""+message+"\" to \""+state+"\"";
     }
 }

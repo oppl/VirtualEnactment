@@ -15,11 +15,9 @@ import com.vaadin.pontus.vizcomponent.VizComponent.NodeClickListener;
 import com.vaadin.pontus.vizcomponent.client.ZoomSettings;
 import com.vaadin.pontus.vizcomponent.model.Graph;
 import com.vaadin.ui.*;
+import sun.rmi.runtime.Log;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 public class VizualizeModel extends VerticalLayout {
 
@@ -109,6 +107,7 @@ public class VizualizeModel extends VerticalLayout {
             Graph.Edge edge = graph.getEdge(parentNode, node);
             Condition c = parentState.getNextStates().get(state);
             if (c != null) edge.setParam("label", "\""+c.toString()+"\"");
+
         }
         if (!loopFound)
             for (State nextState : state.getNextStates().keySet())
@@ -116,19 +115,41 @@ public class VizualizeModel extends VerticalLayout {
     }
 
     public void greyOutCompletedStates(LinkedList<State> history, State currentState) {
-        for (State s : history) {
-            Graph.Node node = graph.getNode(s.getUUID().toString());
-            if (node != null) {
-                component.addCss(node, "stroke", "grey");
-                component.addCss(node, "stroke-width", "3");
-                component.addTextCss(node, "fill", "grey");
+        Graph.Node currentNode = null;
+        Graph.Node previousNode = null;
+        LinkedList<State> reverseHistory = new LinkedList<>(history);
+        Collections.reverse(reverseHistory);
+        for (State s : reverseHistory) {
+            currentNode = graph.getNode(s.getUUID().toString());
+            if (currentNode != null) {
+                component.addCss(currentNode, "stroke", "darkgreen");
+                component.addCss(currentNode, "fill", "lightgrey");
+                component.addCss(currentNode, "stroke-width", "3");
+                component.addTextCss(currentNode, "fill", "darkgreen");
             }
+            if (previousNode!=null && currentNode != null) {
+                Graph.Edge edge = graph.getEdge(previousNode, currentNode);
+                if (edge != null) {
+                    component.addCss(edge,"stroke","darkgreen");
+                    component.addCss(edge,"fill","darkgreen");
+                    component.addTextCss(edge, "fill", "darkgreen");
+                }
+            }
+            previousNode = currentNode;
         }
-        Graph.Node node = null;
-        if (currentState != null) graph.getNode(currentState.toString());
-        if (node != null) {
-            component.addCss(node, "stroke-width", "3");
-            component.addTextCss(node, "font-weight", "bold");
+        if (currentState != null) currentNode = graph.getNode(currentState.getUUID().toString());
+        if (currentNode != null) {
+            component.addCss(currentNode, "stroke-width", "3");
+            component.addCss(currentNode, "fill", "lightgreen");
+            component.addTextCss(currentNode, "font-weight", "bold");
+            if (previousNode!=null) {
+                Graph.Edge edge = graph.getEdge(previousNode, currentNode);
+                if (edge != null) {
+                    component.addCss(edge, "stroke", "darkgreen");
+                    component.addCss(edge,"fill","darkgreen");
+                    component.addTextCss(edge, "fill", "darkgreen");
+                }
+            }
         }
 
     }
@@ -136,7 +157,6 @@ public class VizualizeModel extends VerticalLayout {
     public void showSubjectInteraction(Process p) {
         graph = new Graph("", Graph.DIGRAPH);
         for (Message m: p.getMessages()) {
-//            LogHelper.logInfo("showSubjectInteraction: "+m.toString()+" from "+p.getSenderOfMessage(m)+" to "+p.getRecipientOfMessage(m));
             Graph.Node sender = new Graph.Node(p.getSenderOfMessage(m).getUUID().toString());
             Graph.Node recipient = new Graph.Node(p.getRecipientOfMessage(m).getUUID().toString());
             sender.setParam("label", "\""+p.getSenderOfMessage(m).toString()+"\"");
@@ -149,13 +169,6 @@ public class VizualizeModel extends VerticalLayout {
 
             graph.addEdge(sender, message);
             graph.addEdge(message,recipient);
-
-
-/*            Graph.Edge edge = graph.getEdge(sender,recipient);
-            edge.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
-            edge.setParam("fontsize","10");
-            edge.setParam("tooltip","\""+m.toString()+"\"");*/
-//            LogHelper.logInfo("subjInteractionViz: Edge between "+sender+" and "+recipient+" with label "+edge.getParam("label")+" "+m.toString());
 
         }
         component.drawGraph(graph);

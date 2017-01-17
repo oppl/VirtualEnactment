@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.*;
 
 import java.util.Map;
@@ -26,12 +27,13 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     public boolean perform() {
         Set<State> predecessorStates = subject.getPredecessorStates(state);
         Map<State, Condition> nextStates = state.getNextStates();
+        subject.addState(newState);
         if (state instanceof SendState) subject.addExpectedMessage(((SendState) state).getSentMessage());
         if (state instanceof RecvState) {
             for (Message m : ((RecvState) state).getRecvdMessages())
                 subject.addProvidedMessage(m);
         }
-        for (State nextState : nextStates.keySet()) { // TODO: check why this does not work
+        for (State nextState : nextStates.keySet()) {
             newState.addNextState(nextState, nextStates.get(nextState));
         }
 
@@ -46,7 +48,6 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
             }
         }
         subject.removeState(state);
-        subject.addState(newState);
         newActiveState = newState;
 
         return true;
@@ -55,7 +56,7 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     @Override
     public boolean undo() {
         Set<State> predecessorStates = subject.getPredecessorStates(state);
-        Map<State, Condition> nextStates = state.getNextStates();
+        subject.addState(state);
         if (state instanceof SendState) subject.removeExpectedMessage(((SendState) state).getSentMessage());
         if (state instanceof RecvState) {
             for (Message m : ((RecvState) state).getRecvdMessages())
@@ -72,7 +73,6 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
                 pre.addNextState(state, c);
             }
         }
-        subject.addState(state);
         subject.removeState(newState);
         newActiveState = state;
 

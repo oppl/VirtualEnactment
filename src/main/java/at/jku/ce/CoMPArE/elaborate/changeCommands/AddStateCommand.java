@@ -3,6 +3,7 @@ package at.jku.ce.CoMPArE.elaborate.changeCommands;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.*;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -14,6 +15,7 @@ public class AddStateCommand extends ProcessChangeCommand {
     private State newState;
     private Subject s;
     private boolean before;
+    private String delayedTarget;
 
     public AddStateCommand(Subject s, State target, State newState, boolean before) {
         super();
@@ -21,10 +23,27 @@ public class AddStateCommand extends ProcessChangeCommand {
         this.newState = newState;
         this.before = before;
         this.s = s;
+        this.delayedTarget = null;
     }
+
+    public AddStateCommand(Subject s, String target, State newState, boolean before) {
+        super();
+        this.target = null;
+        this.delayedTarget = target;
+        this.newState = newState;
+        this.before = before;
+        this.s = s;
+    }
+
 
     @Override
     public boolean perform() {
+        Iterator<State> i = s.getStates().iterator();
+        while (i.hasNext()) {
+            State state = i.next();
+            if (state.getName().equals(delayedTarget)) target = state;
+        }
+        if (target == null) return false;
         newActiveState = newState;
         s.addState(newState);
         if (newState instanceof RecvState) {
@@ -66,6 +85,7 @@ public class AddStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
+        if (target == null) return false;
         newActiveState = target;
         s.removeState(newState);
         if (newState instanceof RecvState) {

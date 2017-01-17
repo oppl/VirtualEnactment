@@ -20,9 +20,12 @@ public class AskForNewSendSubjectStep extends ElaborationStep {
     final TextField inputField;
     final String messageName;
 
-    public AskForNewSendSubjectStep(Wizard owner, String input, Subject s, Instance i) {
+    String newState;
+
+    public AskForNewSendSubjectStep(Wizard owner, String newState, String input, Subject s, Instance i) {
         super(owner, s, i);
 
+        this.newState = newState;
         state = instance.getAvailableStateForSubject(subject);
 
         caption = new String("I can provide this input to somebody else.");
@@ -46,7 +49,7 @@ public class AskForNewSendSubjectStep extends ElaborationStep {
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         SendState newState = new SendState("Send " + messageName);
         Message newMessage = new Message(messageName);
-        processChanges.add(new AddStateCommand(subject,state,newState,true));
+        processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
         processChanges.add(new AddMessageToSendStateCommand(newState,newMessage));
         processChanges.add(new AddProvidedMessageCommand(newSubject,newMessage));
 
