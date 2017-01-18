@@ -27,6 +27,15 @@ public class AddExpectedMessageCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        return false;
+        if (!subject.getExpectedMessages().contains(message)) return false;
+        subject.getParentProcess().removeMessage(message);
+        subject.removeExpectedMessage(message);
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added expected input \""+message+"\" to \""+subject+"\"";
+    }
+
 }

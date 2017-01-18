@@ -2,6 +2,8 @@ package at.jku.ce.CoMPArE.scaffolding.agents;
 
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.execute.Instance;
+import at.jku.ce.CoMPArE.execute.InstanceHistory;
+import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldGroup;
@@ -39,7 +41,8 @@ public class ExplorationAgent extends ScaffoldingAgent {
         clearAllScaffolds();
         for (Subject s : finishedInstance.getProcess().getSubjects()) {
             if (!visitedStates.keySet().contains(s)) visitedStates.put(s,new HashSet<>());
-            visitedStates.get(s).addAll(finishedInstance.getHistoryForSubject(s));
+            LinkedList<InstanceHistoryStep> steps = finishedInstance.getHistoryForSubject(s);
+            for (InstanceHistoryStep step: steps) visitedStates.get(s).add(step.getState());
             ScaffoldGroup sg = generateScaffoldsForSubject(s);
             if (sg != null) scaffoldGroups.add(sg);
         }

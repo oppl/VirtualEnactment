@@ -22,11 +22,20 @@ public class AddProvidedMessageCommand extends ProcessChangeCommand {
         if (subject == null || message == null) return false;
         subject.addProvidedMessage(message);
         subject.getParentProcess().addMessage(message);
-        return false;
+        return true;
     }
 
     @Override
     public boolean undo() {
-        return false;
+        if (!subject.getProvidedMessages().contains(message)) return false;
+        subject.getParentProcess().removeMessage(message);
+        subject.removeProvidedMessage(message);
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added provided input \""+message+"\" to \""+subject+"\"";
+    }
+
 }

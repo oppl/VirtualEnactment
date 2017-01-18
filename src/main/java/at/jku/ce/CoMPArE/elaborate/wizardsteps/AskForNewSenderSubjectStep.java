@@ -1,9 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddExpectedMessageCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.AddSubjectCommand;
-import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.RecvState;
@@ -18,7 +15,7 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AskForNewRecvSubjectStep extends ElaborationStep {
+public class AskForNewSenderSubjectStep extends ElaborationStep {
 
     State state;
 
@@ -26,13 +23,13 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
     final TextField inputField;
     final String messageName;
 
-    public AskForNewRecvSubjectStep(Wizard owner, String input, Subject s, Instance i) {
+    public AskForNewSenderSubjectStep(Wizard owner, String input, Subject s, Instance i) {
         super(owner, s, i);
 
         state = instance.getAvailableStateForSubject(subject);
-        caption = new String("I can get this input from somebody else.");
-        questionPrompt = new Label("I can get this input from somebody else.");
-        inputField = new TextField("Whom do you get this input from?");
+        caption = new String("I can get \"" + input + "\" from somebody else.");
+        questionPrompt = new Label("I can get \"" + input + "\" from somebody else.");
+        inputField = new TextField("Whom do you get \"" + input + "\" from?");
         messageName = input;
 
         inputField.addValueChangeListener(e -> {
@@ -46,14 +43,14 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
         Subject newSubject = new Subject(inputField.getValue());
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         RecvState newState = new RecvState("Wait for " + messageName);
         Message newMessage = new Message(messageName);
-        newState.addRecvdMessage(newMessage);
         processChanges.add(new AddStateCommand(subject,state,newState,true));
+        processChanges.add(new AddMessageToRecvStateCommand(newState,newMessage));
         processChanges.add(new AddExpectedMessageCommand(newSubject,newMessage));
         return processChanges;
     }

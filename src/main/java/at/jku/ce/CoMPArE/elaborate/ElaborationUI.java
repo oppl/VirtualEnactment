@@ -42,6 +42,9 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         setContent(fLayout);
         fLayout.addComponent(wizard);
         wizard.addListener(this);
+        ElaborationWizardProgressBar progressBar = new ElaborationWizardProgressBar(wizard);
+        wizard.setHeader(progressBar);
+        wizard.addListener(progressBar);
         subject = null;
         instance = null;
     }
@@ -86,24 +89,19 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         LogHelper.logInfo("Wizard completed, now performing changes");
         List<WizardStep> steps = wizard.getSteps();
         State finalActiveState = null;
+        ProcessChangeTransaction transaction = new ProcessChangeTransaction();
         for (WizardStep ws: steps) {
-            List<ProcessChangeCommand> changes = ((ElaborationStep) ws).getProcessChanges();
-            if (!changes.isEmpty()) {
-                for (ProcessChangeCommand pc: changes) {
-                    LogHelper.logInfo("Wizard: Executing "+pc);
-                    pc.perform();
-                    processChangeHistory.add(pc);
-                    State newActiveState = pc.getNewActiveState();
-                    if (subject != null && newActiveState != null) {
-                        instance.getAvailableStates().put(subject,newActiveState);
-                        if (finalActiveState == null) finalActiveState = newActiveState;
-                        LogHelper.logInfo("Wizard: Setting active state in "+subject+" to "+newActiveState);
-                    }
-                }
-            }
+            transaction.add(((ElaborationStep) ws).getProcessChangeList());
         }
-        if (!steps.isEmpty()) processChangeHistory.setLatestStepAsLastInSequence();
-        if (finalActiveState != null) instance.getAvailableStates().put(subject,finalActiveState);
+        transaction.perform();
+        State newActiveState = transaction.getNewActiveState();
+        if (subject != null && newActiveState != null) {
+            instance.updateAvailableStateForSubject(subject, newActiveState);
+            LogHelper.logInfo("Wizard: Setting active state in "+subject+" to "+newActiveState);
+        }
+        transaction.setAffectedInstanceHistoryState(instance.getLatestInstanceHistoryStep());
+        processChangeHistory.add(transaction);
+        instance.checkForRemovedSubjects();
         instance.setProcessHasBeenChanged(true);
         this.close();
     }

@@ -21,11 +21,21 @@ public class RemoveProvidedMessageCommand extends ProcessChangeCommand {
     public boolean perform() {
         if (!subject.getProvidedMessages().contains(message)) return false;
         subject.removeProvidedMessage(message);
-        return false;
+        subject.getParentProcess().removeMessage(message);
+        return true;
     }
 
     @Override
     public boolean undo() {
-        return false;
+        if (subject == null || message == null) return false;
+        subject.addProvidedMessage(message);
+        subject.getParentProcess().addMessage(message);
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "Removed provided input \""+message+"\" from \""+subject+"\"";
+    }
+
 }

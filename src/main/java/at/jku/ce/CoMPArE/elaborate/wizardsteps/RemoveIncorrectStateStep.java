@@ -54,7 +54,7 @@ public class RemoveIncorrectStateStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
 
         String selection = (String) answerOptions.getValue();

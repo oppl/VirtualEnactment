@@ -3,10 +3,9 @@ package at.jku.ce.CoMPArE;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
-import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
-import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
-import at.jku.ce.CoMPArE.elaborate.StateClickListener;
+import at.jku.ce.CoMPArE.elaborate.*;
 import at.jku.ce.CoMPArE.execute.Instance;
+import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
@@ -14,6 +13,7 @@ import at.jku.ce.CoMPArE.simulate.Simulator;
 import at.jku.ce.CoMPArE.storage.FileStorageHandler;
 import at.jku.ce.CoMPArE.storage.GroupIDEntryWindow;
 import at.jku.ce.CoMPArE.visualize.VizualizeModel;
+import com.google.gwt.user.client.History;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
@@ -74,6 +74,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private Button differentProcess;
     private Button simulate;
     private Button restart;
+    private Button elaborationHistory;
 
     private FileStorageHandler fileStorageHandler;
 
@@ -289,13 +290,39 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             updateUI();
         });
 
+        elaborationHistory = new Button("Open Process Change History");
+        elaborationHistory.addClickListener( e -> {
+            HistoryUI historyUI = new HistoryUI(processChangeHistory);
+            this.getUI().addWindow(historyUI);
+            historyUI.addCloseListener( e1 -> {
+                rollbackChangesTo(historyUI.getSelectedTransaction());
+            });
+        });
+        if (processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(false);
+
         if (!currentProcess.getSubjects().isEmpty()) toolBar.addComponent(simulate);
         if (onboardingActive) simulate.setVisible(false);
         toolBar.addComponent(restart);
         toolBar.addComponent(differentProcess);
+        toolBar.addComponent(elaborationHistory);
         toolBar.setSpacing(true);
         return toolBar;
 
+    }
+
+    private void rollbackChangesTo(ProcessChangeTransaction rollbackTo) {
+        if (rollbackTo != null) {
+            for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
+                LogHelper.logInfo("undoing "+transaction);
+                transaction.undo();
+                if (transaction == rollbackTo) break;
+            }
+            InstanceHistoryStep instanceState = rollbackTo.getAffectedInstanceHistoryState();
+            currentInstance.reconstructInstanceState(instanceState);
+            processChangeHistory.removeUntil(rollbackTo);
+            createBasicLayout();
+            updateUI();
+        }
     }
 
     public void notifyAboutClickedState(StateClickListener listener) {
@@ -333,8 +360,20 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         }
     }
 
-    public void expandVisualizationSlider() {
+    public void expandVisualizationSlider(Subject withSubject) {
         selectionMode = true;
+        Iterator<Component> i = visualizationTabs.iterator();
+        while (i.hasNext()) {
+            Component tab = i.next();
+            if (tab.getCaption().equals(withSubject.toString())) {
+                doNotNotifyScaffoldingManager = true;
+                if (visualizationTabs.getSelectedTab() == tab) {
+                    visualizationTabs.setSelectedTab(visualizationTabs.getComponentCount()-1);
+                }
+                visualizationTabs.setSelectedTab(tab);
+                doNotNotifyScaffoldingManager = false;
+            }
+        }
         Notification.show("Please select the existing step you want to use.", Notification.Type.WARNING_MESSAGE);
         visualizationSlider.expand();
     }
@@ -586,6 +625,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             @Override
             public void windowClose(Window.CloseEvent e) {
                 elaborationActive = false;
+                currentInstance.removeLatestHistoryStepForSubject(s);
+                if (!processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(true);
                 createBasicLayout();
                 scaffoldingManager.updateScaffolds(currentInstance,currentInstance.getAvailableStateForSubject(s));
                 updateUI();

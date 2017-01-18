@@ -12,6 +12,7 @@ import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
+import sun.rmi.runtime.Log;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,45 +45,78 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         optionConditionalReplace = new String("It replaces \"" + state + "\" under certain conditions.");
         optionAdditionalActivity = new String("It is complementary to \"" + state + "\", I still need to do \"" + state + "\", too.");
 
-        inputField.addValueChangeListener(e -> {
-            if (relationship.getValue() != null) {
-                if (inputField.getValue().equals("")) setCanAdvance(false);
-                else setCanAdvance(true);
-            }
-        });
-
-        final Button selectFromExisting = new Button("Let me choose from existing steps");
+        final Button selectFromExisting = new Button("Let me choose from existing steps"); // needs to remove
         selectFromExisting.addClickListener(e -> {
             CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
             parent.notifyAboutClickedState(this);
-            parent.expandVisualizationSlider();
+            parent.expandVisualizationSlider(s);
             ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
             elaborationUI.setVisible(false);
         });
 
         inputField.addValueChangeListener(e -> {
+            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
+                inputField.setData(null);
+
             if (!(inputField.getData() instanceof UUID)) {
                 newMessage.setVisible(true);
                 newMessage.setDescription("");
                 relationship.setEnabled(true);
                 relationship.setDescription("");
-            }
-            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
-                inputField.setData(null);
+                if (specifyConditionsStep != null) {
+                    removeParticularFollowingStep(specifyConditionsStep);
+                    if (inputField.getData() instanceof UUID) specifyConditionsStep = new AskForConditionsStep(owner, subject.getStateByUUID((UUID) inputField.getData()), subject, instance);
+                    else specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
+                    if (newMessageStep != null) {
+                        removeParticularFollowingStep(newMessageStep);
+                        specifyConditionsStep.addNextStep(newMessageStep);
+                    }
+                    addNextStep(specifyConditionsStep);
+                }
+                if (newMessageStep != null) {
+                    removeParticularFollowingStep(newMessageStep);
+                    newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                    if (specifyConditionsStep != null) {
+                        specifyConditionsStep.addNextStep(newMessageStep);
+                    }
+                    else addNextStep(newMessageStep);
 
-            if (newMessageStep != null) newMessageStep.updateNameOfState(inputField.getValue());
+                }
+            }
+            if ((inputField.getData() instanceof UUID) && (newMessageStep != null)) {
+                removeParticularFollowingStep(newMessageStep);
+                newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                if (specifyConditionsStep != null) {
+                    specifyConditionsStep.addNextStep(newMessageStep);
+                }
+                else addNextStep(newMessageStep);
+            }
+            if (specifyConditionsStep != null) {
+                if (inputField.getValue().equals("")) setCanAdvance(false);
+                else setCanAdvance(true);
+            }
+
         });
 
         relationship.addItem(optionConditionalReplace);
         relationship.addItem(optionAdditionalActivity);
 
         relationship.addValueChangeListener(e -> {
-            if (!inputField.getValue().equals("")) setCanAdvance(true);
+            LogHelper.logInfo("---");
             Object selectedItem = e.getProperty().getValue();
 
             if (selectedItem == optionConditionalReplace) {
-                specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
-                addNextStep(specifyConditionsStep);
+                if (inputField.getData() instanceof UUID) specifyConditionsStep = new AskForConditionsStep(owner, subject.getStateByUUID((UUID) inputField.getData()), subject, instance);
+                else specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
+                if (newMessageStep != null) {
+                    removeParticularFollowingStep(newMessageStep);
+                    addNextStep(specifyConditionsStep);
+                    specifyConditionsStep.addNextStep(newMessageStep);
+                }
+                else {
+                    addNextStep(specifyConditionsStep);
+                }
+                if (!inputField.getValue().equals("")) setCanAdvance(true);
             }
             else {
                 removeParticularFollowingStep(specifyConditionsStep);
@@ -94,7 +128,9 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) {
                 newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
-                addNextStep(newMessageStep);
+                if (specifyConditionsStep != null) specifyConditionsStep.addNextStep(newMessageStep);
+                else addNextStep(newMessageStep);
+                if (!inputField.getValue().equals("") && specifyConditionsStep != null) setCanAdvance(true);
             }
             else {
                 removeParticularFollowingStep(newMessageStep);
@@ -112,13 +148,14 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
 
         String selection = relationship.getValue().toString();
 
         if (selection.equals(optionAdditionalActivity)) {
-            processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
+            if (inputField.getData() instanceof UUID) processChanges.add(new AddStateCommand(subject,state, subject.getStateByUUID((UUID) inputField.getData()),true));
+            else processChanges.add(new AddStateCommand(subject,state, new ActionState(inputField.getValue()),true));
         }
 
         return processChanges;
@@ -132,10 +169,20 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         if (state != null) {
             inputField.setValue(state.getName());
             inputField.setData(state.getUUID());
+            newMessage.setValue(false);
             newMessage.setVisible(false);
-            newMessage.setDescription("You cannot alter the selected existing step here.");
-            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+            newMessage.setDescription("You cannot alter the selected existing newMessageStep here.");
+            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current newMessageStep.");
+            if (newMessageStep != null) {
+                removeParticularFollowingStep(newMessageStep);
+                newMessageStep = null;
+            }
         }
-    }
+        if (specifyConditionsStep != null) {
+            removeParticularFollowingStep(specifyConditionsStep);
+            specifyConditionsStep = new AskForConditionsStep(owner, subject.getStateByUUID((UUID) inputField.getData()), subject, instance);
+            addNextStep(specifyConditionsStep);
+        }
+     }
 
 }

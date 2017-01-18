@@ -25,12 +25,12 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
     final String optionSpecifyMyself;
     final String optionSomebodyElse;
     final String optionDontKnow;
-
+    AskForNewRecipientSubjectStep step;
 
     public ResultsProvidedToOthersStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
-        state = instance.getAvailableStateForSubject(subject);
         this.newState = newState;
+        step = null;
         caption = new String("\"" + newState + "\" leads to results I can provide to others.");
         questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
         inputField = new TextField("What can you provide to others?");
@@ -40,6 +40,11 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             if (infoTarget.getValue() != null) {
                 if (inputField.getValue().equals("")) setCanAdvance(false);
                 else setCanAdvance(true);
+            }
+            if (step != null) {
+                removeParticularFollowingStep(step);
+                step = new AskForNewRecipientSubjectStep(owner, newState, inputField.getValue(), subject, instance);
+                addNextStep(step);
             }
         });
 
@@ -81,9 +86,10 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 setCanAdvance(true);
             Object selectedItem = e.getProperty().getValue();
             removeNextSteps();
-            ElaborationStep step = null;
-            if (selectedItem.equals(optionSomebodyElse)) step = new AskForNewSendSubjectStep(owner, inputField.getValue(), subject, instance);
-            addNextStep(step);
+            if (selectedItem.equals(optionSomebodyElse)) {
+                step = new AskForNewRecipientSubjectStep(owner, newState, inputField.getValue(), subject, instance);
+                addNextStep(step);
+            }
         });
 
         fLayout.addComponent(questionPrompt);
@@ -94,8 +100,8 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
-        state = instance.getAvailableStateForSubject(subject);
+    public List<ProcessChangeCommand> getProcessChangeList() {
+//        state = instance.getAvailableStateForSubject(subject);
 
         if (inputField.isEnabled() && infoTarget.getValue() != null) {
             String selection = infoTarget.getValue().toString();
@@ -104,34 +110,34 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
-                newState.setSentMessage(newMessage);
-                processChanges.add(new AddStateCommand(subject,state,newState,false));
+                processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
+                processChanges.add(new AddMessageToSendStateCommand(newState,newMessage));
                 processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
                 return processChanges;
             }
             if (infoTarget.getValue() instanceof Subject) {
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
-                newState.setSentMessage(newMessage);
-                processChanges.add(new AddStateCommand(subject,state,newState,false));
+                processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
+                processChanges.add(new AddMessageToSendStateCommand(newState,newMessage));
                 processChanges.add(new AddProvidedMessageCommand((Subject) infoTarget.getValue(),newMessage));
                 return processChanges;
             }
         } else {
             Message m = (Message) availableExpectedMessages.getValue();
             SendState newState = new SendState("Send " + m);
-            newState.setSentMessage(m);
-            processChanges.add(new AddStateCommand(subject,state,newState,false));
+            processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
+            processChanges.add(new AddMessageToSendStateCommand(newState,m));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));
             return processChanges;
         }
         return processChanges;
     }
 
-    public void updateNameOfState(String newState) {
+/*    public void updateNameOfState(String newState) {
         this.newState = newState;
         caption = new String("\"" + newState + "\" leads to results I can provide to others.");
         questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
 
-    }
+    }*/
 }
