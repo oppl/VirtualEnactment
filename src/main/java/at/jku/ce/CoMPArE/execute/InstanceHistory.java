@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.execute;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.Subject;
 
 import java.util.LinkedList;
@@ -42,7 +43,9 @@ public class InstanceHistory {
 
     public void removeAllStepsUntil(InstanceHistoryStep step) {
         if (!history.contains(step)) return;
-        while (!history.getFirst().equals(step)) history.removeFirst();
+        while (!history.getFirst().equals(step)) {
+            history.removeFirst();
+        }
         history.removeFirst();
     }
 

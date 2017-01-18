@@ -41,7 +41,12 @@ public class HistoryUI extends Window {
         layout.setWidth("100%");
         layout.setMargin(true);
         layout.setSpacing(true);
+        Label description = new Label("<p>Below you see an overview about all changes made to the process with the most current on top.</p>" +
+                "<p>You can undo them in reverse order. This means that all changes that have been made after the selected " +
+                "change will also be undone to assure consistency of the process.</p><p><b>Undo is permanent, changes cannot " +
+                "be re-done automatically.</b></p>",ContentMode.HTML);
         buildTable();
+        layout.addComponent(description);
         layout.addComponent(table);
         Button close = new Button("Close");
         close.addClickListener( e-> {
@@ -57,30 +62,35 @@ public class HistoryUI extends Window {
         if (table != null) layout.removeComponent(table);
 
         table = new Table("Process Change History");
+        table.addContainerProperty("ChangeID", Integer.class, null);
         table.addContainerProperty("ChangeName", Label.class, null);
         table.addContainerProperty("ButtonRollback",  Button.class, null);
         table.setWidth("90%");
 
-        table.setColumnWidth("ButtonRollback",200);
+        table.setColumnWidth("ChangeID",50);
+        table.setColumnWidth("ButtonRollback",250);
         table.setColumnHeaderMode(Table.ColumnHeaderMode.HIDDEN);
+        table.setColumnAlignment("ChangeID", Table.Align.CENTER);
         table.setColumnAlignment("ButtonRollback", Table.Align.CENTER);
 
-        int itemID = 0;
+        int itemID = processChangeHistory.getHistory().size();
 
         for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
 
-            Button rollbackButton = new Button("undo until here");
+            Button rollbackButton = new Button("undo this and all above");
+            if (itemID == processChangeHistory.getHistory().size()) rollbackButton = new Button("undo this");
             rollbackButton.addClickListener( e-> {
                 selectedTransaction = transaction;
                 this.close();
             });
 
             table.addItem(new Object[]{
+                    new Integer(itemID),
                     new Label(transaction.toString(), ContentMode.HTML),
                     rollbackButton
             }, itemID);
 //                LogHelper.logInfo("ResultView: added "+result.getName());
-            itemID++;
+            itemID--;
         }
         table.setPageLength(table.size());
     }

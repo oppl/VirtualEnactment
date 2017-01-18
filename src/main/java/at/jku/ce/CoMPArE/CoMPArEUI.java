@@ -313,11 +313,14 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private void rollbackChangesTo(ProcessChangeTransaction rollbackTo) {
         if (rollbackTo != null) {
             for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
+                LogHelper.logInfo("undoing "+transaction);
                 transaction.undo();
                 if (transaction == rollbackTo) break;
             }
             InstanceHistoryStep instanceState = rollbackTo.getAffectedInstanceHistoryState();
             currentInstance.reconstructInstanceState(instanceState);
+            processChangeHistory.removeUntil(rollbackTo);
+            createBasicLayout();
             updateUI();
         }
     }

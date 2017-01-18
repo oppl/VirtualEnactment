@@ -39,6 +39,7 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
             decisionState.addNextState(target, originalConditions.values().iterator().next());
             decisionState.addNextState(newState, newConditions.values().iterator().next());
             subject.setFirstState(decisionState);
+            newActiveState = decisionState;
             return true;
         }
 

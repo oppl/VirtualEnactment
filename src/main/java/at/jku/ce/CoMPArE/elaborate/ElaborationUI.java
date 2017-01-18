@@ -98,6 +98,7 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         }
         transaction.setAffectedInstanceHistoryState(instance.getLatestInstanceHistoryStep());
         processChangeHistory.add(transaction);
+        instance.checkForRemovedSubjects();
         instance.setProcessHasBeenChanged(true);
         this.close();
     }

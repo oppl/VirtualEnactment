@@ -63,7 +63,9 @@ public class Instance {
 
     public Set<Message> getAvailableMessagesForSubject(Subject subject) {
  //       LogHelper.logInfo("getAvailableMessagesForSubject "+subject+": "+inputBuffer.get(subject).size()+" messages available");
-        return inputBuffer.get(subject);
+        Set <Message> availableMessages = inputBuffer.get(subject);
+        if (availableMessages == null) availableMessages = new HashSet<>();
+        return availableMessages;
     }
 
     public Message getLatestProcessedMessageForSubject(Subject subject) {
@@ -103,10 +105,6 @@ public class Instance {
         return isBlocked;
     }
 
-    public void addMessageToInputBuffer(Subject recipient, Message m) {
-        inputBuffer.get(recipient).add(m);
-    }
-
     public State advanceStateForSubject(Subject s, Condition c) {
         State currentState = availableStates.get(s);
         Map<Subject,State> currentAvailableStates = new HashMap<>(availableStates);
@@ -115,9 +113,9 @@ public class Instance {
         Map<Subject, Message> currentLatestProcessedMessages = new HashMap<>(latestProcessedMessages);
 
         latestProcessedMessages.replace(s,null);
-        LogHelper.logInfo("advanceStateForSubject "+s+": now checking advancement options ...");
+//        LogHelper.logInfo("advanceStateForSubject "+s+": now checking advancement options ...");
         if (currentState == null) {
-            LogHelper.logInfo("advanceStateForSubject "+s+": instance not yet started");
+//            LogHelper.logInfo("advanceStateForSubject "+s+": instance not yet started");
             if (s.getFirstState() instanceof RecvState) {
                 Set<Message> availableMessages = inputBuffer.get(s);
                 Set<Message> acceptableMessages = ((RecvState) s.getFirstState()).getRecvdMessages();
@@ -125,7 +123,7 @@ public class Instance {
                     if (acceptableMessages.contains(m)) {
                         availableStates.replace(s,s.getFirstState());
                         currentState = s.getFirstState();
-                        LogHelper.logInfo("advanceStateForSubject "+s+": instantiated");
+//                        LogHelper.logInfo("advanceStateForSubject "+s+": instantiated");
                     }
                 }
                 if (currentState == null) return currentState;
@@ -136,11 +134,11 @@ public class Instance {
         if (currentState instanceof RecvState) {
             Message m = inputBufferContainsAcceptableMessage(s);
             if (m == null) {
-                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message not yet received, still waiting");
+//                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message not yet received, still waiting");
                 return currentState;
             }
             else {
-                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message received, state is now actionable");
+//                LogHelper.logInfo("advanceStateForSubject "+s+": necessary message received, state is now actionable");
                 inputBuffer.get(s).remove(m);
                 receivedMessages.get(s).add(m);
                 latestProcessedMessages.replace(s,m);
@@ -148,30 +146,30 @@ public class Instance {
         }
         if (currentState instanceof SendState) {
             Subject recipient = p.getRecipientOfMessage(((SendState) currentState).getSentMessage());
-            LogHelper.logInfo("advanceStateForSubject "+s+": sending message to "+recipient);
-            inputBuffer.get(recipient).add(((SendState) currentState).getSentMessage());
+//            LogHelper.logInfo("advanceStateForSubject "+s+": sending message to "+recipient);
+            this.addMessageToInputBuffer(recipient,((SendState) currentState).getSentMessage());
             advanceStateForSubject(recipient, null);
         }
         Map<State,Condition> nextStates = currentState.getNextStates();
         if (nextStates.size() == 1 && nextStates.values().iterator().next() == null) {
             availableStates.replace(s,nextStates.keySet().iterator().next());
-            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state "+availableStates.get(s));
+//            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state "+availableStates.get(s));
         }
         else {
             for (State nextState: nextStates.keySet()) {
                 Condition conditionToBeChecked = nextStates.get(nextState);
-                LogHelper.logInfo("advanceStateForSubject "+s+": checking condition "+ conditionToBeChecked + ", which is a "+conditionToBeChecked.getClass());
+//                LogHelper.logInfo("advanceStateForSubject "+s+": checking condition "+ conditionToBeChecked + ", which is a "+conditionToBeChecked.getClass());
                 if (conditionToBeChecked.equals(c)) {
                     availableStates.replace(s, nextState);
-                    LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state under condition "+ conditionToBeChecked);
+//                    LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state under condition "+ conditionToBeChecked);
                     break;
                 }
                 if (conditionToBeChecked instanceof MessageCondition) {
                     for (Message m: receivedMessages.get(s)) {
-                        LogHelper.logInfo("advanceStateForSubject "+s+": checking message "+m);
+//                        LogHelper.logInfo("advanceStateForSubject "+s+": checking message "+m);
                         if (((MessageCondition) conditionToBeChecked).checkCondition(m)) {
                             availableStates.replace(s, nextState);
-                            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state because of message condition "+ conditionToBeChecked);
+//                            LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state because of message condition "+ conditionToBeChecked);
                             break;
                         }
                     }
@@ -209,9 +207,13 @@ public class Instance {
         return null;
     }
 
+    private void addMessageToInputBuffer(Subject recipient, Message m) {
+        if (!inputBuffer.keySet().contains(recipient)) inputBuffer.put(recipient,new HashSet<>());
+        inputBuffer.get(recipient).add(m);
+    }
+
     public void putMessageInInputbuffer(Subject s, Message m) {
-        if (inputBuffer.get(s) == null) inputBuffer.put(s, new HashSet<Message>());
-        inputBuffer.get(s).add(m);
+        addMessageToInputBuffer(s,m);
         advanceStateForSubject(s, null);
     }
 
@@ -224,7 +226,8 @@ public class Instance {
     }
 
     public InstanceHistoryStep getLatestInstanceHistoryStep() {
-        return history.getWholeHistory().getFirst();
+        if (history.getWholeHistory().isEmpty()) return null;
+        else return history.getWholeHistory().getFirst();
     }
 
     public boolean isProcessHasBeenChanged() {
@@ -236,10 +239,44 @@ public class Instance {
     }
 
     public void reconstructInstanceState(InstanceHistoryStep state) {
-        this.inputBuffer = state.getInputBuffer();
-        this.receivedMessages = state.getReceivedMessages();
-        this.availableStates = state.getAvailableStates();
-        this.latestProcessedMessages = state.getLatestProcessedMessages();
-        this.history.removeAllStepsUntil(state);
+        if (state == null) {
+            this.inputBuffer = new HashMap<>();
+            this.receivedMessages = new HashMap<>();
+            this.availableStates = new HashMap<>();
+            this.latestProcessedMessages = new HashMap<>();
+            for (Subject s: p.getSubjects()) {
+                if (s.getFirstState() instanceof RecvState)
+                    availableStates.put(s,null);
+                else {
+                    availableStates.put(s, s.getFirstState());
+                }
+                inputBuffer.put(s,new HashSet<Message>());
+                receivedMessages.put(s,new HashSet<Message>());
+                latestProcessedMessages.put(s,null);
+            }
+            this.history = new InstanceHistory();
+        }
+        else {
+            this.inputBuffer = state.getInputBuffer();
+            this.receivedMessages = state.getReceivedMessages();
+            this.availableStates = state.getAvailableStates();
+            this.latestProcessedMessages = state.getLatestProcessedMessages();
+            this.history.removeAllStepsUntil(state);
+        }
+    }
+
+    public boolean checkForRemovedSubjects() {
+        boolean subjectRemoved = false;
+        Set<Subject> registeredSubjects = availableStates.keySet();
+        for (Subject s:registeredSubjects) {
+            if (p.getSubjectByUUID(s.getUUID())==null) {
+                availableStates.remove(s);
+                inputBuffer.remove(s);
+                receivedMessages.remove(s);
+                latestProcessedMessages.remove(s);
+                subjectRemoved = true;
+            }
+        }
+        return subjectRemoved;
     }
 }

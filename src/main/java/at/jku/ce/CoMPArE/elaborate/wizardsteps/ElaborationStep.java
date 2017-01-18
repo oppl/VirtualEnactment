@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Subject;
@@ -90,7 +91,6 @@ public abstract class ElaborationStep implements WizardStep {
                 nextStep.removeParticularFollowingStep(step);
             }
             setCanAdvance(canAdvance);
-
         }
     }
 
@@ -107,19 +107,24 @@ public abstract class ElaborationStep implements WizardStep {
     }
 
     protected final void setCanAdvance(boolean canAdvance) {
+//        LogHelper.logInfo(this+": stetting canAdvance to "+canAdvance+"(nextStep is "+nextStep+")");
         this.canAdvance = canAdvance;
         if (!canAdvance) {
             owner.getFinishButton().setEnabled(false);
             owner.getNextButton().setEnabled(false);
+//            LogHelper.logInfo("All Buttons disabled");
+
         }
         else {
             if (nextStep == null) {
                 owner.getFinishButton().setEnabled(true);
                 owner.getNextButton().setEnabled(false);
+//                LogHelper.logInfo("Finish-Button enabled");
             }
             else {
                 owner.getFinishButton().setEnabled(false);
                 owner.getNextButton().setEnabled(true);
+//                LogHelper.logInfo("Next-Button enabled");
             }
         }
     }

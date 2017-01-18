@@ -80,9 +80,11 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
                 setCanAdvance(true);
             Object selectedItem = e.getProperty().getValue();
             removeNextSteps();
-            ElaborationStep step = null;
-            if (selectedItem.equals(optionSomebodyElse)) step = new AskForNewSendSubjectStep(owner, newState, inputField.getValue(), subject, instance);
-            addNextStep(step);
+            if (selectedItem.equals(optionSomebodyElse)) {
+                ElaborationStep step = null;
+                step = new AskForNewSendSubjectStep(owner, newState, inputField.getValue(), subject, instance);
+                addNextStep(step);
+            }
         });
 
         fLayout.addComponent(questionPrompt);

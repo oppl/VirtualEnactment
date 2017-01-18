@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
 import at.jku.ce.CoMPArE.elaborate.StateClickListener;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.AddStateCommand;
@@ -11,6 +12,7 @@ import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
+import sun.rmi.runtime.Log;
 
 import java.util.List;
 import java.util.UUID;
@@ -68,7 +70,20 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
                 if (specifyConditionsStep != null) {
                     removeParticularFollowingStep(specifyConditionsStep);
                     specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
+                    if (newMessageStep != null) {
+                        removeParticularFollowingStep(newMessageStep);
+                        specifyConditionsStep.addNextStep(newMessageStep);
+                    }
                     addNextStep(specifyConditionsStep);
+                }
+                if (newMessageStep != null) {
+                    removeParticularFollowingStep(newMessageStep);
+                    newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                    if (specifyConditionsStep != null) {
+                        specifyConditionsStep.addNextStep(newMessageStep);
+                    }
+                    else addNextStep(newMessageStep);
+
                 }
             }
             if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
@@ -81,12 +96,20 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         relationship.addItem(optionAdditionalActivity);
 
         relationship.addValueChangeListener(e -> {
-            if (!inputField.getValue().equals("")) setCanAdvance(true);
+            LogHelper.logInfo("---");
             Object selectedItem = e.getProperty().getValue();
 
             if (selectedItem == optionConditionalReplace) {
                 specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
-                addNextStep(specifyConditionsStep);
+                if (newMessageStep != null) {
+                    removeParticularFollowingStep(newMessageStep);
+                    addNextStep(specifyConditionsStep);
+                    specifyConditionsStep.addNextStep(newMessageStep);
+                }
+                else {
+                    addNextStep(specifyConditionsStep);
+                }
+                if (!inputField.getValue().equals("")) setCanAdvance(true);
             }
             else {
                 removeParticularFollowingStep(specifyConditionsStep);
@@ -95,10 +118,13 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         });
 
         newMessage.addValueChangeListener(e -> {
+            LogHelper.logInfo("---");
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) {
                 newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
-                addNextStep(newMessageStep);
+                if (specifyConditionsStep != null) specifyConditionsStep.addNextStep(newMessageStep);
+                else addNextStep(newMessageStep);
+                if (!inputField.getValue().equals("") && specifyConditionsStep != null) setCanAdvance(true);
             }
             else {
                 removeParticularFollowingStep(newMessageStep);

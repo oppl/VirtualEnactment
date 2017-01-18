@@ -33,6 +33,7 @@ public class SendState extends State {
 
     public void setSentMessage(Message sentMessage) {
         parentSubject.getParentProcess().addMessage(sentMessage);
-        this.sentMessageID = sentMessage.getUUID();
+        if (sentMessage == null) this.sentMessageID = null;
+        else this.sentMessageID = sentMessage.getUUID();
     }
 }
