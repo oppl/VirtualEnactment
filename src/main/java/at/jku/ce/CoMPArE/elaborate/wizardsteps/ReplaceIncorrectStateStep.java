@@ -36,8 +36,8 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
         caption = new String("I want to replace \"" + state + "\" with something else.");
 
         questionPrompt = new Label("I want to replace \"" + state + "\" with something else.");
-        inputField = new TextField("What is the new activity?");
-        newMessage = new CheckBox("This activity leads to results I can provide to others.");
+        inputField = new TextField("What is the new step?");
+        newMessage = new CheckBox("This step leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);
@@ -95,7 +95,7 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
     }
 
     @Override
-    public void clickedState(State state) { // TODO: check whether state duplication is an issue here
+    public void clickedState(State state) {
         CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
         ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
         elaborationUI.setVisible(true);

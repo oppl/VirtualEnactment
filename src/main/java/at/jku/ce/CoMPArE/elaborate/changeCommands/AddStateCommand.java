@@ -44,7 +44,7 @@ public class AddStateCommand extends ProcessChangeCommand {
             if (state.getName().equals(delayedTarget)) target = state;
         }
         if (target == null) return false;
-        newActiveState = newState;
+        if (before) newActiveState = newState;
         s.addState(newState);
         if (newState instanceof RecvState) {
             s.getParentProcess().addMessages(((RecvState) newState).getRecvdMessages());

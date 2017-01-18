@@ -31,8 +31,8 @@ public class TooVagueStep extends ElaborationStep {
         caption = new String("\"" + state + "\" is too vague.");
 
         questionPrompt = new Label("\"" + state + "\" is too vague.");
-        inputField = new TextField("What would be the first activity you need to do when refining \"" + state + "\"?");
-        newMessage = new CheckBox("This activity leads to results I can provide to others.");
+        inputField = new TextField("What would be the first step you need to do when refining \"" + state + "\"?");
+        newMessage = new CheckBox("This step leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);

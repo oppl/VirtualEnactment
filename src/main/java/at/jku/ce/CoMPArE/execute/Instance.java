@@ -230,6 +230,10 @@ public class Instance {
         else return history.getWholeHistory().getFirst();
     }
 
+    public void removeLatestHistoryStepForSubject(Subject s) {
+        history.removeLatestStepForSubject(s);
+    }
+
     public boolean isProcessHasBeenChanged() {
         return processHasBeenChanged;
     }

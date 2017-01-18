@@ -625,6 +625,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             @Override
             public void windowClose(Window.CloseEvent e) {
                 elaborationActive = false;
+                currentInstance.removeLatestHistoryStepForSubject(s);
                 if (!processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(true);
                 createBasicLayout();
                 scaffoldingManager.updateScaffolds(currentInstance,currentInstance.getAvailableStateForSubject(s));

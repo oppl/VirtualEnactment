@@ -33,7 +33,7 @@ public class SomeThingElseFirstStep extends ElaborationStep {
 
         questionPrompt = new Label("I need to do something else before I do \"" + state + "\".");
         inputField = new TextField("What do you need to do?");
-        newMessage = new CheckBox("This activity leads to results I can provide to others.");
+        newMessage = new CheckBox("This step leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);

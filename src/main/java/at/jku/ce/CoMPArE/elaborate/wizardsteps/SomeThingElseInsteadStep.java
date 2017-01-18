@@ -40,7 +40,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
 
         questionPrompt = new Label("I need to do something else instead of \"" + state + "\".");
         inputField = new TextField("What do you need to do?");
-        newMessage = new CheckBox("This newMessageStep leads to results I can provide to others.");
+        newMessage = new CheckBox("This step leads to results I can provide to others.");
         relationship = new OptionGroup("How does this relate to \"" + state + "\"?");
         optionConditionalReplace = new String("It replaces \"" + state + "\" under certain conditions.");
         optionAdditionalActivity = new String("It is complementary to \"" + state + "\", I still need to do \"" + state + "\", too.");

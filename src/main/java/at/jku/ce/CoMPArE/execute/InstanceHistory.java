@@ -48,5 +48,12 @@ public class InstanceHistory {
         }
         history.removeFirst();
     }
+    public void removeLatestStepForSubject(Subject s) {
+        InstanceHistoryStep toBeRemoved = null;
+        for (InstanceHistoryStep step:history) {
+            if (step.getAffectedSubject().equals(s)) toBeRemoved = step;
+        }
+        if (toBeRemoved != null) history.remove(toBeRemoved);
+    }
 
 }
