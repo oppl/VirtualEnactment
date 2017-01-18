@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate;
 
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
+import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
 import at.jku.ce.CoMPArE.process.State;
 
 import java.util.*;
@@ -11,7 +12,7 @@ import java.util.*;
 public class ProcessChangeTransaction {
     Vector<ProcessChangeCommand> commands;
     State newActiveState;
-    State oldActiveState;
+    InstanceHistoryStep affectedInstanceHistoryState;
 
     public ProcessChangeTransaction() {
         commands = new Vector<>();
@@ -86,6 +87,14 @@ public class ProcessChangeTransaction {
 
     public State getNewActiveState() {
         return newActiveState;
+    }
+
+    public InstanceHistoryStep getAffectedInstanceHistoryState() {
+        return affectedInstanceHistoryState;
+    }
+
+    public void setAffectedInstanceHistoryState(InstanceHistoryStep affectedInstanceHistoryState) {
+        this.affectedInstanceHistoryState = affectedInstanceHistoryState;
     }
 
     @Override

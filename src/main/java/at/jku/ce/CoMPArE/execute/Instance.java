@@ -186,6 +186,17 @@ public class Instance {
         return availableStates.get(s);
     }
 
+    public void updateAvailableStateForSubject(Subject s, State state) {
+        if (s.getStateByUUID(state.getUUID()) == null) return;
+        State currentState = availableStates.get(s);
+        Map<Subject,State> currentAvailableStates = new HashMap<>(availableStates);
+        Map<Subject, Set<Message>> currentInputBuffer = new HashMap<>(inputBuffer);
+        Map<Subject, Set<Message>> currentReceivedMessage = new HashMap<>(receivedMessages);
+        Map<Subject, Message> currentLatestProcessedMessages = new HashMap<>(latestProcessedMessages);
+        availableStates.put(s, state);
+        history.addHistoryStep(new InstanceHistoryStep(s,currentState,currentAvailableStates,currentReceivedMessage,currentInputBuffer,currentLatestProcessedMessages));
+    }
+
     private Message inputBufferContainsAcceptableMessage(Subject s) {
         State currentState = availableStates.get(s);
         if (currentState instanceof RecvState) {
@@ -212,6 +223,10 @@ public class Instance {
         return history.getHistoryForSubject(s);
     }
 
+    public InstanceHistoryStep getLatestInstanceHistoryStep() {
+        return history.getWholeHistory().getFirst();
+    }
+
     public boolean isProcessHasBeenChanged() {
         return processHasBeenChanged;
     }
@@ -225,5 +240,6 @@ public class Instance {
         this.receivedMessages = state.getReceivedMessages();
         this.availableStates = state.getAvailableStates();
         this.latestProcessedMessages = state.getLatestProcessedMessages();
+        this.history.removeAllStepsUntil(state);
     }
 }

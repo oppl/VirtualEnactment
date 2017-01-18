@@ -40,4 +40,10 @@ public class InstanceHistory {
         return null;
     }
 
+    public void removeAllStepsUntil(InstanceHistoryStep step) {
+        if (!history.contains(step)) return;
+        while (!history.getFirst().equals(step)) history.removeFirst();
+        history.removeFirst();
+    }
+
 }

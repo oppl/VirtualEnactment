@@ -5,6 +5,7 @@ import javax.servlet.annotation.WebServlet;
 
 import at.jku.ce.CoMPArE.elaborate.*;
 import at.jku.ce.CoMPArE.execute.Instance;
+import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
@@ -315,9 +316,10 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 transaction.undo();
                 if (transaction == rollbackTo) break;
             }
+            InstanceHistoryStep instanceState = rollbackTo.getAffectedInstanceHistoryState();
+            currentInstance.reconstructInstanceState(instanceState);
             updateUI();
         }
-
     }
 
     public void notifyAboutClickedState(StateClickListener listener) {
