@@ -34,7 +34,6 @@ public class AddSubjectCommand extends ProcessChangeCommand {
         }
         if (subject.toString().equals(Subject.ANONYMOUS)) intialAnonymousAdd = true;
         process.addSubject(subject);
-        instance.addInputBufferAndHistoryForSubject(subject);
         return true;
     }
 

@@ -5,6 +5,7 @@ package at.jku.ce.CoMPArE.visualize;
  */
 import at.jku.ce.CoMPArE.CoMPArEUI;
 import at.jku.ce.CoMPArE.LogHelper;
+import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 
@@ -114,13 +115,13 @@ public class VizualizeModel extends VerticalLayout {
                 if (nextState != null) addState(node, state, nextState,alreadyVisitedStates);
     }
 
-    public void greyOutCompletedStates(LinkedList<State> history, State currentState) {
+    public void greyOutCompletedStates(LinkedList<InstanceHistoryStep> history, State currentState) {
         Graph.Node currentNode = null;
         Graph.Node previousNode = null;
-        LinkedList<State> reverseHistory = new LinkedList<>(history);
+        LinkedList<InstanceHistoryStep> reverseHistory = new LinkedList<>(history);
         Collections.reverse(reverseHistory);
-        for (State s : reverseHistory) {
-            currentNode = graph.getNode(s.getUUID().toString());
+        for (InstanceHistoryStep s : reverseHistory) {
+            currentNode = graph.getNode(s.getState().getUUID().toString());
             if (currentNode != null) {
                 component.addCss(currentNode, "stroke", "darkgreen");
                 component.addCss(currentNode, "fill", "lightgrey");

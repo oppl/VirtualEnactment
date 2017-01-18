@@ -11,6 +11,7 @@ import java.util.*;
 public class ProcessChangeTransaction {
     Vector<ProcessChangeCommand> commands;
     State newActiveState;
+    State oldActiveState;
 
     public ProcessChangeTransaction() {
         commands = new Vector<>();
@@ -56,8 +57,7 @@ public class ProcessChangeTransaction {
     }
 
     public boolean undo() {
-        Vector<ProcessChangeCommand> reverseCommands = new Vector<>();
-        Collections.copy(reverseCommands,commands);
+        Vector<ProcessChangeCommand> reverseCommands = new Vector<>(commands);
         Collections.reverse(reverseCommands);
 
         boolean successful = true;

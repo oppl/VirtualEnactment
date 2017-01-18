@@ -91,12 +91,12 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
             Message m = (Message) availableProvidedMessages.getValue();
             newRecvState = new RecvState("Wait for " + m);
             newRecvState.addRecvdMessage(m);
-            processChanges.add(new AddStateCommand(subject,instance.getHistoryForSubject(subject).getFirst(),newRecvState,false));
+            processChanges.add(new AddStateCommand(subject,instance.getHistoryForSubject(subject).getFirst().getState(),newRecvState,false));
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
         State newActionState = new ActionState(inputField.getValue());
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
-        else processChanges.add(new AddStateCommand(subject, instance.getHistoryForSubject(subject).getFirst(), newActionState,false));
+        else processChanges.add(new AddStateCommand(subject, instance.getHistoryForSubject(subject).getFirst().getState(), newActionState,false));
         return processChanges;
     }
 

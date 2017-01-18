@@ -16,7 +16,7 @@ public class Instance {
     private Map<Subject, Set<Message>> inputBuffer;
     private Map<Subject, Set<Message>> receivedMessages;
     private Map<Subject, Message> latestProcessedMessages;
-    private Map<Subject, LinkedList<State>> history;
+    private InstanceHistory history;
     private boolean processHasBeenChanged;
 
     public Instance(Process p) {
@@ -28,17 +28,15 @@ public class Instance {
         receivedMessages = new HashMap<>();
         latestProcessedMessages = new HashMap<>();
         processHasBeenChanged = false;
-        history = new HashMap<>();
+        history = new InstanceHistory();
         for (Subject s: p.getSubjects()) {
             if (s.getFirstState() instanceof RecvState)
                 availableStates.put(s,null);
             else {
                 availableStates.put(s, s.getFirstState());
-//                LogHelper.logInfo("instanceConstructor: "+s+" instantiated in "+p);
             }
             inputBuffer.put(s,new HashSet<Message>());
             receivedMessages.put(s,new HashSet<Message>());
-            history.put(s,new LinkedList<>());
             latestProcessedMessages.put(s,null);
         }
     }
@@ -85,7 +83,7 @@ public class Instance {
     }
 
     public boolean subjectFinished(Subject s) {
-        if (!history.get(s).isEmpty() && getAvailableStateForSubject(s) == null) return true;
+        if (!history.getHistoryForSubject(s).isEmpty() && getAvailableStateForSubject(s) == null) return true;
         return false;
     }
 
@@ -111,6 +109,11 @@ public class Instance {
 
     public State advanceStateForSubject(Subject s, Condition c) {
         State currentState = availableStates.get(s);
+        Map<Subject,State> currentAvailableStates = new HashMap<>(availableStates);
+        Map<Subject, Set<Message>> currentInputBuffer = new HashMap<>(inputBuffer);
+        Map<Subject, Set<Message>> currentReceivedMessage = new HashMap<>(receivedMessages);
+        Map<Subject, Message> currentLatestProcessedMessages = new HashMap<>(latestProcessedMessages);
+
         latestProcessedMessages.replace(s,null);
         LogHelper.logInfo("advanceStateForSubject "+s+": now checking advancement options ...");
         if (currentState == null) {
@@ -179,7 +182,7 @@ public class Instance {
             LogHelper.logInfo("advanceStateForSubject "+s+": instance finished");
             availableStates.replace(s, null);
         }
-        history.get(s).addFirst(currentState);
+        history.addHistoryStep(new InstanceHistoryStep(s,currentState,currentAvailableStates,currentReceivedMessage,currentInputBuffer,currentLatestProcessedMessages));
         return availableStates.get(s);
     }
 
@@ -196,6 +199,7 @@ public class Instance {
     }
 
     public void putMessageInInputbuffer(Subject s, Message m) {
+        if (inputBuffer.get(s) == null) inputBuffer.put(s, new HashSet<Message>());
         inputBuffer.get(s).add(m);
         advanceStateForSubject(s, null);
     }
@@ -204,13 +208,8 @@ public class Instance {
         return p;
     }
 
-    public LinkedList<State> getHistoryForSubject(Subject s) {
-        return history.get(s);
-    }
-
-    public void addInputBufferAndHistoryForSubject(Subject s) {
-        inputBuffer.put(s, new HashSet<Message>());
-        history.put(s,new LinkedList<State>());
+    public LinkedList<InstanceHistoryStep> getHistoryForSubject(Subject s) {
+        return history.getHistoryForSubject(s);
     }
 
     public boolean isProcessHasBeenChanged() {
@@ -219,5 +218,12 @@ public class Instance {
 
     public void setProcessHasBeenChanged(boolean processHasBeenChanged) {
         this.processHasBeenChanged = processHasBeenChanged;
+    }
+
+    public void reconstructInstanceState(InstanceHistoryStep state) {
+        this.inputBuffer = state.getInputBuffer();
+        this.receivedMessages = state.getReceivedMessages();
+        this.availableStates = state.getAvailableStates();
+        this.latestProcessedMessages = state.getLatestProcessedMessages();
     }
 }

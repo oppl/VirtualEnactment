@@ -3,10 +3,7 @@ package at.jku.ce.CoMPArE;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
-import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
-import at.jku.ce.CoMPArE.elaborate.HistoryUI;
-import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
-import at.jku.ce.CoMPArE.elaborate.StateClickListener;
+import at.jku.ce.CoMPArE.elaborate.*;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
@@ -297,7 +294,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             HistoryUI historyUI = new HistoryUI(processChangeHistory);
             this.getUI().addWindow(historyUI);
             historyUI.addCloseListener( e1 -> {
-                // TODO rollback until selected change
+                rollbackChangesTo(historyUI.getSelectedTransaction());
             });
         });
         if (processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(false);
@@ -309,6 +306,17 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         toolBar.addComponent(elaborationHistory);
         toolBar.setSpacing(true);
         return toolBar;
+
+    }
+
+    private void rollbackChangesTo(ProcessChangeTransaction rollbackTo) {
+        if (rollbackTo != null) {
+            for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
+                transaction.undo();
+                if (transaction == rollbackTo) break;
+            }
+            updateUI();
+        }
 
     }
 
