@@ -26,9 +26,9 @@ public class AskForSystemStep extends ElaborationStep{
         super(owner, s, i);
         newMessage = input;
         state = instance.getAvailableStateForSubject(subject);
-        caption = new String("I can retrieve this input from a system I have access to.");
+        caption = new String("I can retrieve \"" + input + "\" from a system I have access to.");
 
-        questionPrompt = new Label("I can retrieve this input from a system I have access to.");
+        questionPrompt = new Label("I can retrieve \"" + input + "\" from a system I have access to.");
         inputField = new TextField("Which system is this?");
 
         inputField.addValueChangeListener(e -> {

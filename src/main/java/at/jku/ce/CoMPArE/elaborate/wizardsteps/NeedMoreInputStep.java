@@ -30,15 +30,27 @@ public class NeedMoreInputStep extends ElaborationStep {
     final String optionSystem;
     final String optionDontKnow;
 
+    ElaborationStep step;
 
     public NeedMoreInputStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
+        step = null;
         state = instance.getAvailableStateForSubject(subject);
 
         caption = new String("I need more input to do \"" + state + "\".");
 
         questionPrompt = new Label("I need more input to do \"" + state + "\".");
         infoSource = new OptionGroup("Where could you get it from?");
+
+        for (Subject sub : instance.getProcess().getSubjects()) {
+            if (sub != subject) infoSource.addItem(sub);
+        }
+        optionSomebodyElse = new String("I can get this input from somebody else.");
+        optionSystem = new String("I can retrieve this input from a system I have access to.");
+        optionDontKnow = new String("I do not know, where I can get this input from");
+        infoSource.addItem(optionSomebodyElse);
+        infoSource.addItem(optionSystem);
+        infoSource.addItem(optionDontKnow);
 
         inputField = new TextField("Which input would you need?");
         if (subject.getProvidedMessages().size() != 0) {
@@ -50,6 +62,13 @@ public class NeedMoreInputStep extends ElaborationStep {
             if (infoSource.getValue() != null) {
                 if (inputField.getValue().equals("")) setCanAdvance(false);
                 else setCanAdvance(true);
+            }
+            if (step != null ) {
+                removeParticularFollowingStep(step);
+                Object selectedItem = infoSource.getValue();
+                if (selectedItem.equals(optionSystem)) step = new AskForSystemStep(owner, inputField.getValue(), subject, instance);
+                if (selectedItem.equals(optionSomebodyElse)) step = new AskForNewSenderSubjectStep(owner, inputField.getValue(), subject, instance);
+                addNextStep(step);
             }
         });
 
@@ -72,24 +91,14 @@ public class NeedMoreInputStep extends ElaborationStep {
             }
         });
 
-        for (Subject sub : instance.getProcess().getSubjects()) {
-            if (sub != subject) infoSource.addItem(sub);
-        }
-        optionSomebodyElse = new String("I can get this input from somebody else.");
-        optionSystem = new String("I can retrieve this input from a system I have access to.");
-        optionDontKnow = new String("I do not know, where I can get this input from");
-        infoSource.addItem(optionSomebodyElse);
-        infoSource.addItem(optionSystem);
-        infoSource.addItem(optionDontKnow);
-
         infoSource.addValueChangeListener(e -> {
             if ((!subject.getProvidedMessages().isEmpty() && availableProvidedMessages.getValue() != optionSpecifyMyself) || !inputField.getValue().equals(""))
                 setCanAdvance(true);
             Object selectedItem = e.getProperty().getValue();
             removeNextSteps();
-            ElaborationStep step = null;
+
             if (selectedItem.equals(optionSystem)) step = new AskForSystemStep(owner, inputField.getValue(), subject, instance);
-            if (selectedItem.equals(optionSomebodyElse)) step = new AskForNewRecvSubjectStep(owner, inputField.getValue(), subject, instance);
+            if (selectedItem.equals(optionSomebodyElse)) step = new AskForNewSenderSubjectStep(owner, inputField.getValue(), subject, instance);
             addNextStep(step);
         });
 

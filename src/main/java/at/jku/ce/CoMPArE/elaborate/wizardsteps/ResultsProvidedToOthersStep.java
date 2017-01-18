@@ -25,11 +25,13 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
     final String optionSpecifyMyself;
     final String optionSomebodyElse;
     final String optionDontKnow;
+    AskForNewRecipientSubjectStep step;
 
 
     public ResultsProvidedToOthersStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
         this.newState = newState;
+        step = null;
         caption = new String("\"" + newState + "\" leads to results I can provide to others.");
         questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
         inputField = new TextField("What can you provide to others?");
@@ -39,6 +41,11 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             if (infoTarget.getValue() != null) {
                 if (inputField.getValue().equals("")) setCanAdvance(false);
                 else setCanAdvance(true);
+            }
+            if (step != null) {
+                removeParticularFollowingStep(step);
+                step = new AskForNewRecipientSubjectStep(owner, newState, inputField.getValue(), subject, instance);
+                addNextStep(step);
             }
         });
 
@@ -81,8 +88,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             Object selectedItem = e.getProperty().getValue();
             removeNextSteps();
             if (selectedItem.equals(optionSomebodyElse)) {
-                ElaborationStep step = null;
-                step = new AskForNewSendSubjectStep(owner, newState, inputField.getValue(), subject, instance);
+                step = new AskForNewRecipientSubjectStep(owner, newState, inputField.getValue(), subject, instance);
                 addNextStep(step);
             }
         });

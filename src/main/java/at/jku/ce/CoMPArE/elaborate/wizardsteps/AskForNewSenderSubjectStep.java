@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AskForNewRecvSubjectStep extends ElaborationStep {
+public class AskForNewSenderSubjectStep extends ElaborationStep {
 
     State state;
 
@@ -23,13 +23,13 @@ public class AskForNewRecvSubjectStep extends ElaborationStep {
     final TextField inputField;
     final String messageName;
 
-    public AskForNewRecvSubjectStep(Wizard owner, String input, Subject s, Instance i) {
+    public AskForNewSenderSubjectStep(Wizard owner, String input, Subject s, Instance i) {
         super(owner, s, i);
 
         state = instance.getAvailableStateForSubject(subject);
-        caption = new String("I can get this input from somebody else.");
-        questionPrompt = new Label("I can get this input from somebody else.");
-        inputField = new TextField("Whom do you get this input from?");
+        caption = new String("I can get \"" + input + "\" from somebody else.");
+        questionPrompt = new Label("I can get \"" + input + "\" from somebody else.");
+        inputField = new TextField("Whom do you get \"" + input + "\" from?");
         messageName = input;
 
         inputField.addValueChangeListener(e -> {

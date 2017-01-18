@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AskForNewSendSubjectStep extends ElaborationStep {
+public class AskForNewRecipientSubjectStep extends ElaborationStep {
 
     State state;
 
@@ -22,15 +22,15 @@ public class AskForNewSendSubjectStep extends ElaborationStep {
 
     String newState;
 
-    public AskForNewSendSubjectStep(Wizard owner, String newState, String input, Subject s, Instance i) {
+    public AskForNewRecipientSubjectStep(Wizard owner, String newState, String input, Subject s, Instance i) {
         super(owner, s, i);
 
         this.newState = newState;
         state = instance.getAvailableStateForSubject(subject);
 
-        caption = new String("I can provide this input to somebody else.");
-        questionPrompt = new Label("I can provide this input to somebody else.");
-        inputField = new TextField("Whom can you provide this input with?");
+        caption = new String("I can provide \""+input+"\" to somebody else.");
+        questionPrompt = new Label("I can provide \"" + input + "\" to somebody else.");
+        inputField = new TextField("Whom can you provide \"" + input + "\" with?");
         messageName = input;
 
         inputField.addValueChangeListener(e -> {
