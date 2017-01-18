@@ -42,6 +42,9 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         setContent(fLayout);
         fLayout.addComponent(wizard);
         wizard.addListener(this);
+        ElaborationWizardProgressBar progressBar = new ElaborationWizardProgressBar(wizard);
+        wizard.setHeader(progressBar);
+        wizard.addListener(progressBar);
         subject = null;
         instance = null;
     }
