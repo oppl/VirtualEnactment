@@ -12,12 +12,14 @@ public class AddSubjectCommand extends ProcessChangeCommand {
     Subject subject;
     Process process;
     Instance instance;
+    boolean intialAnonymousAdd;
 
     public AddSubjectCommand(Process p, Subject s, Instance i) {
         super();
         subject = s;
         process = p;
         instance = i;
+        intialAnonymousAdd = false;
     }
 
     @Override
@@ -30,13 +32,21 @@ public class AddSubjectCommand extends ProcessChangeCommand {
                 return false;
             }
         }
+        if (subject.toString().equals(Subject.ANONYMOUS)) intialAnonymousAdd = true;
         process.addSubject(subject);
-        instance.addInputBufferAndHistoryForSubject(subject);
         return true;
     }
 
     @Override
     public boolean undo() {
-        return false;
+        if (subject.toString().equals(Subject.ANONYMOUS) && intialAnonymousAdd == false) return true;
+        process.removeSubject(subject);
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "Added actor \""+subject+"\"";
+    }
+
 }

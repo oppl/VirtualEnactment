@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.*;
 
 import java.util.Map;
@@ -14,8 +15,6 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     private State state;
     private State newState;
     private Subject subject;
-    private boolean before;
-
 
     public ReplaceStateCommand(Subject s, State state, State newState) {
         super();
@@ -28,27 +27,27 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     public boolean perform() {
         Set<State> predecessorStates = subject.getPredecessorStates(state);
         Map<State, Condition> nextStates = state.getNextStates();
+        subject.addState(newState);
         if (state instanceof SendState) subject.addExpectedMessage(((SendState) state).getSentMessage());
         if (state instanceof RecvState) {
             for (Message m : ((RecvState) state).getRecvdMessages())
                 subject.addProvidedMessage(m);
         }
-        for (State s : nextStates.keySet()) {
-            newState.addNextState(s, nextStates.get(s));
+        for (State nextState : nextStates.keySet()) {
+            newState.addNextState(nextState, nextStates.get(nextState));
         }
 
         if (predecessorStates.isEmpty()) {
             subject.setFirstState(newState);
 
         } else {
-            for (State pre : predecessorStates) {
-                subject.addState(newState);
-                subject.removeState(state);
-                pre.addNextState(newState, nextStates.get(pre.getNextStates().get(state)));
-                pre.removeNextState(state);
+            for (State predecessor : predecessorStates) {
+                Condition c = predecessor.getNextStates().get(state);
+                predecessor.removeNextState(state);
+                predecessor.addNextState(newState, c);
             }
         }
-
+        subject.removeState(state);
         newActiveState = newState;
 
         return true;
@@ -56,7 +55,32 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        return false;
+        Set<State> predecessorStates = subject.getPredecessorStates(state);
+        subject.addState(state);
+        if (state instanceof SendState) subject.removeExpectedMessage(((SendState) state).getSentMessage());
+        if (state instanceof RecvState) {
+            for (Message m : ((RecvState) state).getRecvdMessages())
+                subject.removeProvidedMessage(m);
+        }
+
+        if (predecessorStates.isEmpty()) {
+            subject.setFirstState(state);
+
+        } else {
+            for (State pre : predecessorStates) {
+                Condition c = pre.getNextStates().get(newState);
+                pre.removeNextState(newState);
+                pre.addNextState(state, c);
+            }
+        }
+        subject.removeState(newState);
+        newActiveState = state;
+
+        return true;
     }
 
+    @Override
+    public String toString() {
+        return "Replaced \""+state+"\" with \""+newState+"\" in \""+subject+"\"";
+    }
 }

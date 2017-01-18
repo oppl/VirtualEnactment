@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by oppl on 17/12/2016.
  */
-public class AskForNewSendSubjectStep extends ElaborationStep {
+public class AskForNewRecipientSubjectStep extends ElaborationStep {
 
     State state;
 
@@ -20,14 +20,17 @@ public class AskForNewSendSubjectStep extends ElaborationStep {
     final TextField inputField;
     final String messageName;
 
-    public AskForNewSendSubjectStep(Wizard owner, String input, Subject s, Instance i) {
+    String newState;
+
+    public AskForNewRecipientSubjectStep(Wizard owner, String newState, String input, Subject s, Instance i) {
         super(owner, s, i);
 
+        this.newState = newState;
         state = instance.getAvailableStateForSubject(subject);
 
-        caption = new String("I can provide this input to somebody else.");
-        questionPrompt = new Label("I can provide this input to somebody else.");
-        inputField = new TextField("Whom can you provide this input with?");
+        caption = new String("I can provide \""+input+"\" to somebody else.");
+        questionPrompt = new Label("I can provide \"" + input + "\" to somebody else.");
+        inputField = new TextField("Whom can you provide \"" + input + "\" with?");
         messageName = input;
 
         inputField.addValueChangeListener(e -> {
@@ -40,16 +43,16 @@ public class AskForNewSendSubjectStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
         Subject newSubject = new Subject(inputField.getValue());
         processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
         SendState newState = new SendState("Send " + messageName);
         Message newMessage = new Message(messageName);
-        newState.setSentMessage(newMessage);
-        processChanges.add(new AddStateCommand(subject,state,newState,false));
+        processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
+        processChanges.add(new AddMessageToSendStateCommand(newState,newMessage));
         processChanges.add(new AddProvidedMessageCommand(newSubject,newMessage));
 
-        return super.getProcessChanges();
+        return processChanges;
     }
 }

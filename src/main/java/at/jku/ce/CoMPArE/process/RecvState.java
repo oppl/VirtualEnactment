@@ -49,4 +49,10 @@ public class RecvState extends State {
         this.recvdMessageIDs.add(recvdMessage.getUUID());
     }
 
+    public void removeRecvdMessage(Message recvdMessage) {
+        parentSubject.getParentProcess().removeMessage(recvdMessage);
+        this.recvdMessageIDs.remove(recvdMessage.getUUID());
+    }
+
+
 }

@@ -1,7 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
-import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.ElaborationUI;
 import at.jku.ce.CoMPArE.elaborate.StateClickListener;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
@@ -37,8 +36,8 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
         caption = new String("I want to replace \"" + state + "\" with something else.");
 
         questionPrompt = new Label("I want to replace \"" + state + "\" with something else.");
-        inputField = new TextField("What is the new activity?");
-        newMessage = new CheckBox("This activity leads to results I can provide to others.");
+        inputField = new TextField("What is the new step?");
+        newMessage = new CheckBox("This step leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);
@@ -49,7 +48,7 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
         selectFromExisting.addClickListener(e -> {
             CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
             parent.notifyAboutClickedState(this);
-            parent.expandVisualizationSlider();
+            parent.expandVisualizationSlider(s);
             ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
             elaborationUI.setVisible(false);
         });
@@ -61,7 +60,11 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
             }
             if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
                 inputField.setData(null);
-            if (step != null) step.updateNameOfState(inputField.getValue());
+            if (step != null) {
+                removeParticularFollowingStep(step);
+                step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                addNextStep(step);
+            }
         });
 
         newMessage.addValueChangeListener(e -> {
@@ -80,11 +83,12 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
 
         if (state != null) {
             State newState = new ActionState(inputField.getValue());
+            if (inputField.getData() instanceof UUID) newState = subject.getStateByUUID((UUID) inputField.getData());
             processChanges.add(new ReplaceStateCommand(subject, state, newState));
         }
         return processChanges;
@@ -99,8 +103,8 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
             inputField.setValue(state.getName());
             inputField.setData(state.getUUID());
             newMessage.setVisible(false);
-            newMessage.setDescription("You cannot alter the selected existing step here.");
-            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+            newMessage.setDescription("You cannot alter the selected existing newMessageStep here.");
+            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current newMessageStep.");
         }
     }
 

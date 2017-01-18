@@ -10,6 +10,7 @@ import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by oppl on 17/12/2016.
@@ -32,12 +33,16 @@ public class SomeThingElseFirstStep extends ElaborationStep {
 
         questionPrompt = new Label("I need to do something else before I do \"" + state + "\".");
         inputField = new TextField("What do you need to do?");
-        newMessage = new CheckBox("This activity leads to results I can provide to others.");
+        newMessage = new CheckBox("This step leads to results I can provide to others.");
 
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);
             else setCanAdvance(true);
-            if (step != null) step.updateNameOfState(inputField.getValue());
+            if (step != null) {
+                removeParticularFollowingStep(step);
+                step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                addNextStep(step);
+            }
         });
 
         newMessage.addValueChangeListener(e -> {
@@ -48,7 +53,7 @@ public class SomeThingElseFirstStep extends ElaborationStep {
             addNextStep(step);
         });
 
-        availableProvidedMessages = new OptionGroup("Do you want to react on any of the following available inputs in this step?");
+        availableProvidedMessages = new OptionGroup("Do you want to react on any of the following available inputs in this newMessageStep?");
         for (Message m : subject.getProvidedMessages()) {
             availableProvidedMessages.addItem(m);
         }
@@ -63,7 +68,7 @@ public class SomeThingElseFirstStep extends ElaborationStep {
     }
 
     @Override
-    public List<ProcessChangeCommand> getProcessChanges() {
+    public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
         LogHelper.logInfo("Elaboration: inserting " + inputField.getValue() + " into " + subject);
         Object selectedItem = availableProvidedMessages.getValue();
@@ -77,6 +82,7 @@ public class SomeThingElseFirstStep extends ElaborationStep {
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
         State newActionState = new ActionState(inputField.getValue());
+        if (inputField.getData() instanceof UUID) newActionState = subject.getStateByUUID((UUID) inputField.getData());
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
         else processChanges.add(new AddStateCommand(subject, state, newActionState,true));
 

@@ -61,6 +61,7 @@ public class State extends ProcessElement {
     public void removeNextState(State stateToBeRemoved) {
         nextStates.remove(stateToBeRemoved.getUUID());
     }
+
     public void removeAllNextStates() {nextStates.clear();}
 
     public String getName() {
