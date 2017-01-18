@@ -8,6 +8,7 @@ import at.jku.ce.CoMPArE.process.*;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.Window;
 import org.vaadin.teemu.wizards.Wizard;
 
 import java.util.HashMap;
@@ -21,6 +22,8 @@ import java.util.Set;
 public class AskForConditionsStep extends ElaborationStep {
 
     State state;
+
+    State alreadyExistingState;
 
     final Label questionPrompt;
     TextField inputFieldNew;
@@ -36,8 +39,15 @@ public class AskForConditionsStep extends ElaborationStep {
 
     String newState;
 
+    public AskForConditionsStep(Wizard owner, State newState, Subject s, Instance i) {
+        this(owner,newState.getName(),s,i);
+        LogHelper.logInfo("Instantiate step with already known state");
+        alreadyExistingState = newState;
+    }
+
     public AskForConditionsStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
+        alreadyExistingState = null;
         state = instance.getAvailableStateForSubject(subject);
         this.newState = newState;
 
@@ -105,6 +115,7 @@ public class AskForConditionsStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChangeList() {
         State newInsertedState = new ActionState(newState);
+        if (alreadyExistingState != null) newInsertedState = alreadyExistingState;
         state = instance.getAvailableStateForSubject(subject);
 
         for (State predecessor : predecessorStates) {

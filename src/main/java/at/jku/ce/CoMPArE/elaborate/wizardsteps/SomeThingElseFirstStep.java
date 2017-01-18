@@ -37,7 +37,11 @@ public class SomeThingElseFirstStep extends ElaborationStep {
         inputField.addValueChangeListener(e -> {
             if (inputField.getValue().equals("")) setCanAdvance(false);
             else setCanAdvance(true);
-            if (step != null) step.updateNameOfState(inputField.getValue());
+            if (step != null) {
+                removeParticularFollowingStep(step);
+                step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                addNextStep(step);
+            }
         });
 
         newMessage.addValueChangeListener(e -> {

@@ -27,7 +27,6 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
     final String optionDontKnow;
     AskForNewRecipientSubjectStep step;
 
-
     public ResultsProvidedToOthersStep(Wizard owner, String newState, Subject s, Instance i) {
         super(owner, s, i);
         this.newState = newState;
@@ -102,7 +101,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
 
     @Override
     public List<ProcessChangeCommand> getProcessChangeList() {
-        state = instance.getAvailableStateForSubject(subject);
+//        state = instance.getAvailableStateForSubject(subject);
 
         if (inputField.isEnabled() && infoTarget.getValue() != null) {
             String selection = infoTarget.getValue().toString();
@@ -135,10 +134,10 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
         return processChanges;
     }
 
-    public void updateNameOfState(String newState) {
+/*    public void updateNameOfState(String newState) {
         this.newState = newState;
         caption = new String("\"" + newState + "\" leads to results I can provide to others.");
         questionPrompt = new Label("\"" + newState + "\" leads to results I can provide to others.");
 
-    }
+    }*/
 }

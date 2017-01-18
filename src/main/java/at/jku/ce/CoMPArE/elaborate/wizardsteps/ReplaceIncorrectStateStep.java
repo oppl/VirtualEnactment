@@ -60,7 +60,11 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
             }
             if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
                 inputField.setData(null);
-            if (step != null) step.updateNameOfState(inputField.getValue());
+            if (step != null) {
+                removeParticularFollowingStep(step);
+                step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                addNextStep(step);
+            }
         });
 
         newMessage.addValueChangeListener(e -> {

@@ -45,14 +45,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         optionConditionalReplace = new String("It replaces \"" + state + "\" under certain conditions.");
         optionAdditionalActivity = new String("It is complementary to \"" + state + "\", I still need to do \"" + state + "\", too.");
 
-        inputField.addValueChangeListener(e -> {
-            if (relationship.getValue() != null) {
-                if (inputField.getValue().equals("")) setCanAdvance(false);
-                else setCanAdvance(true);
-            }
-        });
-
-        final Button selectFromExisting = new Button("Let me choose from existing steps");
+        final Button selectFromExisting = new Button("Let me choose from existing steps"); // needs to remove
         selectFromExisting.addClickListener(e -> {
             CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
             parent.notifyAboutClickedState(this);
@@ -62,6 +55,9 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         });
 
         inputField.addValueChangeListener(e -> {
+            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
+                inputField.setData(null);
+
             if (!(inputField.getData() instanceof UUID)) {
                 newMessage.setVisible(true);
                 newMessage.setDescription("");
@@ -69,7 +65,8 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
                 relationship.setDescription("");
                 if (specifyConditionsStep != null) {
                     removeParticularFollowingStep(specifyConditionsStep);
-                    specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
+                    if (inputField.getData() instanceof UUID) specifyConditionsStep = new AskForConditionsStep(owner, subject.getStateByUUID((UUID) inputField.getData()), subject, instance);
+                    else specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
                     if (newMessageStep != null) {
                         removeParticularFollowingStep(newMessageStep);
                         specifyConditionsStep.addNextStep(newMessageStep);
@@ -86,10 +83,19 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
 
                 }
             }
-            if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
-                inputField.setData(null);
+            if ((inputField.getData() instanceof UUID) && (newMessageStep != null)) {
+                removeParticularFollowingStep(newMessageStep);
+                newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                if (specifyConditionsStep != null) {
+                    specifyConditionsStep.addNextStep(newMessageStep);
+                }
+                else addNextStep(newMessageStep);
+            }
+            if (specifyConditionsStep != null) {
+                if (inputField.getValue().equals("")) setCanAdvance(false);
+                else setCanAdvance(true);
+            }
 
-            if (newMessageStep != null) newMessageStep.updateNameOfState(inputField.getValue());
         });
 
         relationship.addItem(optionConditionalReplace);
@@ -100,7 +106,8 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
             Object selectedItem = e.getProperty().getValue();
 
             if (selectedItem == optionConditionalReplace) {
-                specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
+                if (inputField.getData() instanceof UUID) specifyConditionsStep = new AskForConditionsStep(owner, subject.getStateByUUID((UUID) inputField.getData()), subject, instance);
+                else specifyConditionsStep = new AskForConditionsStep(owner, inputField.getValue(), subject, instance);
                 if (newMessageStep != null) {
                     removeParticularFollowingStep(newMessageStep);
                     addNextStep(specifyConditionsStep);
@@ -156,17 +163,27 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
     }
 
     @Override
-    public void clickedState(State state) {
+    public void clickedState(State state) { // TODO: duplication of states needs to be fixed in other steps, too
         CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
         ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
         elaborationUI.setVisible(true);
         if (state != null) {
             inputField.setValue(state.getName());
             inputField.setData(state.getUUID());
+            newMessage.setValue(false);
             newMessage.setVisible(false);
             newMessage.setDescription("You cannot alter the selected existing step here.");
             newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+            if (newMessageStep != null) {
+                removeParticularFollowingStep(newMessageStep);
+                newMessageStep = null;
+            }
         }
-    }
+        if (specifyConditionsStep != null) {
+            removeParticularFollowingStep(specifyConditionsStep);
+            specifyConditionsStep = new AskForConditionsStep(owner, subject.getStateByUUID((UUID) inputField.getData()), subject, instance);
+            addNextStep(specifyConditionsStep);
+        }
+     }
 
 }
