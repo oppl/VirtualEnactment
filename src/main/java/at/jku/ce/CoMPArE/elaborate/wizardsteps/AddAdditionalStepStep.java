@@ -25,11 +25,13 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
     final Label questionPrompt;
     final TextField inputField;
     final CheckBox newMessage;
+    ResultsProvidedToOthersStep newMessageStep;
 
     public AddAdditionalStepStep(Wizard owner, Subject s, Instance i) {
         super(owner, s, i);
-        caption = new String("I want to set an additional step for  " + subject + ".");
-        questionPrompt = new Label("I want to set an additional step for  " + subject + ".");
+        newMessageStep = null;
+        caption = new String("I want to add an additional newMessageStep for  " + subject + ".");
+        questionPrompt = new Label("I want to add an additional newMessageStep for  " + subject + ".");
         inputField = new TextField("What do you want to do?");
         newMessage = new CheckBox("This activity leads to results I can provide to others.");
 
@@ -54,15 +56,19 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
             }
             if (inputField.getData() instanceof UUID && !subject.getStateByUUID((UUID) inputField.getData()).toString().equals(inputField.getValue()))
                 inputField.setData(null);
+            if (newMessageStep != null) {
+                removeParticularFollowingStep(newMessageStep);
+                newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+                addNextStep(newMessageStep);
+            }
         });
 
         newMessage.addValueChangeListener(e -> {
             Boolean value = (Boolean) e.getProperty().getValue();
             removeNextSteps();
-            ElaborationStep step;
-            if (value == Boolean.TRUE) step = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
-            else step = null;
-            addNextStep(step);
+            if (value == Boolean.TRUE) newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
+            else newMessageStep = null;
+            addNextStep(newMessageStep);
         });
 
         availableProvidedMessages = new OptionGroup("There is input available, on which you might want to react:");
@@ -84,7 +90,7 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
 
     @Override
     public List<ProcessChangeCommand> getProcessChangeList() {
-        LogHelper.logInfo("Elaboration: inserting new additional step " + inputField.getValue() + " into " + subject);
+        LogHelper.logInfo("Elaboration: inserting new additional newMessageStep " + inputField.getValue() + " into " + subject);
 
         RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {
@@ -95,6 +101,7 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
         State newActionState = new ActionState(inputField.getValue());
+        if (inputField.getData() instanceof UUID) newActionState = subject.getStateByUUID((UUID) inputField.getData());
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
         else processChanges.add(new AddStateCommand(subject, instance.getHistoryForSubject(subject).getFirst().getState(), newActionState,false));
         return processChanges;
@@ -109,8 +116,8 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
             inputField.setValue(state.getName());
             inputField.setData(state.getUUID());
             newMessage.setVisible(false);
-            newMessage.setDescription("You cannot alter the selected existing step here.");
-            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+            newMessage.setDescription("You cannot alter the selected existing newMessageStep here.");
+            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current newMessageStep.");
         }
     }
 }

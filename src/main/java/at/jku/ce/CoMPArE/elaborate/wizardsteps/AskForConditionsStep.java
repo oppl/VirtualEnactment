@@ -41,7 +41,7 @@ public class AskForConditionsStep extends ElaborationStep {
 
     public AskForConditionsStep(Wizard owner, State newState, Subject s, Instance i) {
         this(owner,newState.getName(),s,i);
-        LogHelper.logInfo("Instantiate step with already known state");
+        LogHelper.logInfo("Instantiate newMessageStep with already known state");
         alreadyExistingState = newState;
     }
 

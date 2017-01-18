@@ -159,7 +159,7 @@ public class Instance {
             for (State nextState: nextStates.keySet()) {
                 Condition conditionToBeChecked = nextStates.get(nextState);
 //                LogHelper.logInfo("advanceStateForSubject "+s+": checking condition "+ conditionToBeChecked + ", which is a "+conditionToBeChecked.getClass());
-                if (conditionToBeChecked.equals(c)) {
+                if ((conditionToBeChecked == null && c == null) || conditionToBeChecked.equals(c)) {
                     availableStates.replace(s, nextState);
 //                    LogHelper.logInfo("advanceStateForSubject "+s+": progressing to next state under condition "+ conditionToBeChecked);
                     break;

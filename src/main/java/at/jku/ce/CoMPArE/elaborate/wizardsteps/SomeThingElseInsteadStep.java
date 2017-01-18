@@ -40,7 +40,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
 
         questionPrompt = new Label("I need to do something else instead of \"" + state + "\".");
         inputField = new TextField("What do you need to do?");
-        newMessage = new CheckBox("This step leads to results I can provide to others.");
+        newMessage = new CheckBox("This newMessageStep leads to results I can provide to others.");
         relationship = new OptionGroup("How does this relate to \"" + state + "\"?");
         optionConditionalReplace = new String("It replaces \"" + state + "\" under certain conditions.");
         optionAdditionalActivity = new String("It is complementary to \"" + state + "\", I still need to do \"" + state + "\", too.");
@@ -125,7 +125,6 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         });
 
         newMessage.addValueChangeListener(e -> {
-            LogHelper.logInfo("---");
             Boolean value = (Boolean) e.getProperty().getValue();
             if (value == Boolean.TRUE) {
                 newMessageStep = new ResultsProvidedToOthersStep(owner, inputField.getValue(), subject, instance);
@@ -163,7 +162,7 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
     }
 
     @Override
-    public void clickedState(State state) { // TODO: duplication of states needs to be fixed in other steps, too
+    public void clickedState(State state) {
         CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
         ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
         elaborationUI.setVisible(true);
@@ -172,8 +171,8 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
             inputField.setData(state.getUUID());
             newMessage.setValue(false);
             newMessage.setVisible(false);
-            newMessage.setDescription("You cannot alter the selected existing step here.");
-            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+            newMessage.setDescription("You cannot alter the selected existing newMessageStep here.");
+            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current newMessageStep.");
             if (newMessageStep != null) {
                 removeParticularFollowingStep(newMessageStep);
                 newMessageStep = null;

@@ -10,6 +10,7 @@ import com.vaadin.ui.*;
 import org.vaadin.teemu.wizards.Wizard;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by oppl on 17/12/2016.
@@ -52,7 +53,7 @@ public class SomeThingElseFirstStep extends ElaborationStep {
             addNextStep(step);
         });
 
-        availableProvidedMessages = new OptionGroup("Do you want to react on any of the following available inputs in this step?");
+        availableProvidedMessages = new OptionGroup("Do you want to react on any of the following available inputs in this newMessageStep?");
         for (Message m : subject.getProvidedMessages()) {
             availableProvidedMessages.addItem(m);
         }
@@ -81,6 +82,7 @@ public class SomeThingElseFirstStep extends ElaborationStep {
             processChanges.add(new RemoveProvidedMessageCommand(subject, m));
         }
         State newActionState = new ActionState(inputField.getValue());
+        if (inputField.getData() instanceof UUID) newActionState = subject.getStateByUUID((UUID) inputField.getData());
         if (newRecvState != null) processChanges.add(new AddStateCommand(subject, newRecvState, newActionState,false));
         else processChanges.add(new AddStateCommand(subject, state, newActionState,true));
 

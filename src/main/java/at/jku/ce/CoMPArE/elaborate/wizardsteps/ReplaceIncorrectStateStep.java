@@ -88,13 +88,14 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
 
         if (state != null) {
             State newState = new ActionState(inputField.getValue());
+            if (inputField.getData() instanceof UUID) newState = subject.getStateByUUID((UUID) inputField.getData());
             processChanges.add(new ReplaceStateCommand(subject, state, newState));
         }
         return processChanges;
     }
 
     @Override
-    public void clickedState(State state) {
+    public void clickedState(State state) { // TODO: check whether state duplication is an issue here
         CoMPArEUI parent = ((CoMPArEUI) owner.getUI());
         ElaborationUI elaborationUI = (ElaborationUI) parent.getWindows().iterator().next();
         elaborationUI.setVisible(true);
@@ -102,8 +103,8 @@ public class ReplaceIncorrectStateStep extends ElaborationStep implements StateC
             inputField.setValue(state.getName());
             inputField.setData(state.getUUID());
             newMessage.setVisible(false);
-            newMessage.setDescription("You cannot alter the selected existing step here.");
-            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current step.");
+            newMessage.setDescription("You cannot alter the selected existing newMessageStep here.");
+            newMessage.setDescription("Existing steps can only be inserted as alternatives to the current newMessageStep.");
         }
     }
 
