@@ -6,6 +6,7 @@ import at.jku.ce.CoMPArE.scaffolding.agents.ScaffoldingAgent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.BaseTheme;
 
 /**
  * Created by oppl on 30/11/2016.
@@ -24,7 +25,6 @@ public class SimulatingScaffold extends ExpandingScaffold {
         ((Button)interactiveComponent).addClickListener( e -> {
             generator.getManager().openScaffoldingDetails(new TriggerSimulationUI(description,target));
         });
-
     }
 
     private class TriggerSimulationUI extends Window {

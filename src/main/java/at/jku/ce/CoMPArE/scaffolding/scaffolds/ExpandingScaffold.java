@@ -3,6 +3,7 @@ package at.jku.ce.CoMPArE.scaffolding.scaffolds;
 import at.jku.ce.CoMPArE.scaffolding.agents.ScaffoldingAgent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.BaseTheme;
 
 /**
  * Created by oppl on 25/11/2016.
