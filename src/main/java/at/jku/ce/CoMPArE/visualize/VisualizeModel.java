@@ -20,7 +20,7 @@ import sun.rmi.runtime.Log;
 
 import java.util.*;
 
-public class VizualizeModel extends VerticalLayout {
+public class VisualizeModel extends VerticalLayout {
 
     String name;
 
@@ -29,13 +29,13 @@ public class VizualizeModel extends VerticalLayout {
     VizComponent component;
     private Graph.Node selectedNode;
 
-    public VizualizeModel(String name, CoMPArEUI parent) {
+    public VisualizeModel(String name, CoMPArEUI parent, int width, int height) {
 
         this.name = name;
 
         panel = new Panel("");
-        panel.setWidth("800");
-        panel.setHeight("450");
+        panel.setWidth(""+width);
+        panel.setHeight(""+height);
 
         component = new VizComponent();
         graph = new Graph(name, Graph.DIGRAPH);
@@ -65,7 +65,7 @@ public class VizualizeModel extends VerticalLayout {
             public void nodeClicked(NodeClickEvent e) {
                 selectedNode = e.getNode();
                 LogHelper.logInfo("VizUI: selected node "+selectedNode.getId());
-                parent.informAboutSelectedNode(name,selectedNode.getId());
+                if (parent != null) parent.informAboutSelectedNode(name,selectedNode.getId());
             }
 
         });
@@ -156,8 +156,10 @@ public class VizualizeModel extends VerticalLayout {
     }
 
     public void showSubjectInteraction(Process p) {
+//        LogHelper.logInfo("creating subject interaction");
         graph = new Graph("", Graph.DIGRAPH);
         for (Message m: p.getMessages()) {
+//            LogHelper.logInfo("adding information for Message "+m.toString());
             Graph.Node sender = new Graph.Node(p.getSenderOfMessage(m).getUUID().toString());
             Graph.Node recipient = new Graph.Node(p.getRecipientOfMessage(m).getUUID().toString());
             sender.setParam("label", "\""+p.getSenderOfMessage(m).toString()+"\"");
