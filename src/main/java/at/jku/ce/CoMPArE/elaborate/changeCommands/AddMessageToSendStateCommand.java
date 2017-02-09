@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.SendState;
 

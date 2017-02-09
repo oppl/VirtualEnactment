@@ -36,6 +36,7 @@ public class Process extends ProcessElement {
 
         for (Message m: p.getMessages()) {
             messages.add(new Message (m));
+//            LogHelper.logInfo("added message "+m.getUUID()+" "+m);
         }
 
         for (Subject s: p.getSubjects()) {
@@ -49,7 +50,12 @@ public class Process extends ProcessElement {
     }
     public void removeSubject(Subject s) { if (s!=null) subjects.remove(s); }
 
-    public void addMessage(Message m) { if (m!=null) messages.add(m); }
+    public void addMessage(Message m) {
+        if (m!=null) {
+            LogHelper.logInfo("adding to process "+m.getUUID()+" "+m);
+            messages.add(m);
+        }
+    }
 
     public void addMessages(Set<Message> messages) { this.messages.addAll(messages); }
 

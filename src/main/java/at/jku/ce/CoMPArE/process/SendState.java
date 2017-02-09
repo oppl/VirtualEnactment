@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.process;
 
 import at.jku.ce.CoMPArE.LogHelper;
+import sun.rmi.log.LogInputStream;
 
 import java.util.UUID;
 
@@ -23,7 +24,13 @@ public class SendState extends State {
 
     public SendState(SendState s, Subject container) {
         super(s,container);
-        sentMessageID = container.getParentProcess().getMessageByUUID(s.sentMessageID).getUUID();
+/*        LogHelper.logInfo(container+" "+container.getParentProcess()+" "+s.sentMessageID+" "+container.getParentProcess().getMessageByUUID(s.sentMessageID));
+        for (Message m: container.getParentProcess().getMessages()) {
+            LogHelper.logInfo(m.getUUID()+" "+m);
+        }
+        LogHelper.logInfo(""+container.getParentProcess().getMessages().size());*/
+        if (s.sentMessageID == null) sentMessageID = null;
+        else sentMessageID = container.getParentProcess().getMessageByUUID(s.sentMessageID).getUUID();
     }
 
     public Message getSentMessage() {

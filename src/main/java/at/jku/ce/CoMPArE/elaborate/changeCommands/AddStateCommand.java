@@ -43,7 +43,7 @@ public class AddStateCommand extends ProcessChangeCommand {
             State state = i.next();
             if (state.getName().equals(delayedTarget)) target = state;
         }
-        if (target == null) return false;
+//        if (target == null) return false; // todo: fix problem here
         if (before) newActiveState = newState;
         s.addState(newState);
         if (newState instanceof RecvState) {
