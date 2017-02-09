@@ -69,13 +69,13 @@ public class VisualizeModelEvolution extends VerticalLayout {
         int count = 1;
         for (Process p: history) {
             Panel panel = new Panel(createTabForProcess(p));
-            panel.setHeight((this.getUI().getPage().getBrowserWindowHeight()-100)+"px");
+            panel.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-100)+"px");
             tabSheet.addTab(panel,""+count);
             count++;
         }
         this.addComponent(tabSheet);
-        this.setWidth((this.getUI().getPage().getBrowserWindowWidth()-200)+"px");
-        this.setHeight((this.getUI().getPage().getBrowserWindowHeight()-20)+"px");
+        this.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-200)+"px");
+        this.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-20)+"px");
         this.setMargin(true);
         this.setSpacing(true);
 
@@ -84,8 +84,7 @@ public class VisualizeModelEvolution extends VerticalLayout {
     private GridLayout createTabForProcess(Process p) {
         GridLayout gl = null;
 
-        int availableWidth = this.getUI().getPage().getBrowserWindowWidth()-200;
-
+        int availableWidth = UI.getCurrent().getPage().getBrowserWindowWidth()-200;
         int numberOfSubjects = p.getSubjects().size()+1;
         int widthOfColumns = (availableWidth-170) / 3;
         int numberOfRows = numberOfSubjects / 4;
