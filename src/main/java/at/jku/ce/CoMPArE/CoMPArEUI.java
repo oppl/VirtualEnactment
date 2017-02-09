@@ -12,8 +12,8 @@ import at.jku.ce.CoMPArE.scaffolding.ScaffoldingManager;
 import at.jku.ce.CoMPArE.simulate.Simulator;
 import at.jku.ce.CoMPArE.storage.FileStorageHandler;
 import at.jku.ce.CoMPArE.storage.GroupIDEntryWindow;
-import at.jku.ce.CoMPArE.visualize.VizualizeModel;
-import com.google.gwt.user.client.History;
+import at.jku.ce.CoMPArE.visualize.VisualizeModel;
+import at.jku.ce.CoMPArE.visualize.VisualizeModelEvolution;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
@@ -52,6 +52,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private GridLayout subjectLayout;
     private TabSheet visualizationTabs;
     private SliderPanel visualizationSlider;
+    private SliderPanel historySlider;
 
     private Process currentProcess;
     private Instance currentInstance;
@@ -132,12 +133,17 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
 //        SliderPanel scaffoldingSlider = createScaffoldingSlider(process, instance);
         visualizationSlider = createVisualizationSlider();
+        historySlider = createHistorySlider();
 
         mainInteractionArea = new VerticalLayout();
 
         HorizontalLayout toolBar = createToolbar();
         Component subjects = createSubjectLayout(Page.getCurrent().getBrowserWindowWidth());
 
+        HorizontalLayout hPadding = new HorizontalLayout();
+        hPadding.setHeight("1px");
+        hPadding.setWidth((this.getPage().getBrowserWindowWidth()-150)+"px");
+        mainInteractionArea.addComponent(hPadding);
         mainInteractionArea.addComponent(subjects);
         mainInteractionArea.addComponent(toolBar);
         mainInteractionArea.addComponent(scaffoldingPanel);
@@ -146,15 +152,16 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         mainInteractionArea.setSpacing(true);
 
 
-        VerticalLayout padding = new VerticalLayout();
-        padding.setWidth("50px");
-        padding.setHeight("100%");
+        VerticalLayout vPadding = new VerticalLayout();
+        vPadding.setWidth("50px");
+        vPadding.setHeight(this.getPage().getBrowserWindowHeight()+"px");
 
 
 //        mainLayoutFrame.addComponent(scaffoldingSlider);
         mainLayoutFrame.addComponent(visualizationSlider);
+        mainLayoutFrame.addComponent(historySlider);
         if (onboardingActive) visualizationSlider.setVisible(false);
-        mainLayoutFrame.addComponent(padding);
+        mainLayoutFrame.addComponent(vPadding);
         mainLayoutFrame.addComponent(mainInteractionArea);
 
         this.setContent(mainLayoutFrame);
@@ -170,8 +177,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private SliderPanel createVisualizationSlider() {
         VerticalLayout visualizationSliderContent = new VerticalLayout();
         visualizationSliderContent.removeAllComponents();
-        visualizationSliderContent.setWidth("950px");
-        visualizationSliderContent.setHeight("600px");
+        visualizationSliderContent.setWidth((this.getPage().getBrowserWindowWidth()-150)+"px");
+        visualizationSliderContent.setHeight((this.getPage().getBrowserWindowHeight()-150)+"px");
         visualizationSliderContent.setMargin(true);
         visualizationSliderContent.setSpacing(true);
 
@@ -191,17 +198,19 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             if (selected != null) {
                 VerticalLayout vl = (VerticalLayout) e.getTabSheet().getSelectedTab();
                 vl.removeAllComponents();
-                VizualizeModel vizualizeModel = new VizualizeModel(selected, this);
-                vizualizeModel.setCaption(selected);
+                VisualizeModel visualizeModel = new VisualizeModel(selected, this,
+                        this.getPage().getBrowserWindowWidth()-200,
+                        this.getPage().getBrowserWindowHeight()-200);
+                visualizeModel.setCaption(selected);
                 if (selected.equals("Interaction")) {
-                    vizualizeModel.showSubjectInteraction(currentProcess);
+                    visualizeModel.showSubjectInteraction(currentProcess);
                 }
                 else {
                     Subject s = currentProcess.getSubjectWithName(selected);
-                    vizualizeModel.showSubject(s);
-                    vizualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
+                    visualizeModel.showSubject(s);
+                    visualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
                 }
-                vl.addComponent(vizualizeModel);
+                vl.addComponent(visualizeModel);
                 if (onboardingActive && !doNotNotifyScaffoldingManager) {
                     scaffoldingManager.updateScaffolds(currentInstance,null);
                 }
@@ -214,6 +223,30 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         visualizationSlider.addListener(this);
         return visualizationSlider;
+    }
+
+    private SliderPanel createHistorySlider() {
+        VisualizeModelEvolution historySliderContent = new VisualizeModelEvolution(currentProcess,processChangeHistory);
+        final SliderPanel historySlider =
+                new SliderPanelBuilder(historySliderContent, "Show history").mode(SliderMode.LEFT)
+                        .tabPosition(SliderTabPosition.MIDDLE).style(SliderPanelStyles.COLOR_WHITE).flowInContent(true).animationDuration(500).build();
+        historySlider.addListener(new HistoryListener(historySliderContent));
+        return historySlider;
+
+    }
+
+    public class HistoryListener implements SliderPanelListener {
+
+        VisualizeModelEvolution historySliderContent;
+
+        public HistoryListener(VisualizeModelEvolution historySliderContent) {
+            this.historySliderContent = historySliderContent;
+        }
+
+        @Override
+        public void onToggle(boolean b) {
+            if (b) historySliderContent.createLayout();
+        }
     }
 
     @Override
