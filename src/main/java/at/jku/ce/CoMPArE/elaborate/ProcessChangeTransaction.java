@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
 import at.jku.ce.CoMPArE.process.State;
@@ -65,6 +66,7 @@ public class ProcessChangeTransaction {
         Vector<ProcessChangeCommand> rollbackBuffer = new Vector<>();
         for (ProcessChangeCommand processChangeCommand: reverseCommands) {
             successful = processChangeCommand.undo();
+//            LogHelper.logInfo(processChangeCommand.getClass().getSimpleName());
             if (!successful) break;
             else {
                 rollbackBuffer.add(processChangeCommand);

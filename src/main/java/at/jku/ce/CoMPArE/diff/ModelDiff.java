@@ -1,62 +1,68 @@
 package at.jku.ce.CoMPArE.diff;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.ProcessChangeTransaction;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
+import sun.rmi.runtime.Log;
 
-import java.util.Vector;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by oppl on 10/02/2017.
  */
 public class ModelDiff {
 
-    Vector<InsertState> addedStates;
-    Vector<State> removedStates;
+    Set<State> addedStates;
+    Set<State> removedStates;
 
-    Vector<Message> addedMessages;
-    Vector<Message> removedMessages;
+    Set<Message> addedMessages;
+    Set<Message> removedMessages;
 
-    Vector<Subject> addedSubjects;
-    Vector<Subject> removedSubjects;
+    Set<Subject> addedSubjects;
+    Set<Subject> removedSubjects;
 
-    Vector<Transition> addedTransitions;
-    Vector<Transition> removedTransitions;
+    Set<Transition> addedTransitions;
+    Set<Transition> removedTransitions;
 
-    Vector<MessageBuffer> addedExpectedMessages;
-    Vector<MessageBuffer> removedExpectedMessages;
+    Set<MessageBuffer> addedExpectedMessages;
+    Set<MessageBuffer> removedExpectedMessages;
 
-    Vector<MessageBuffer> addedProvidedMessages;
-    Vector<MessageBuffer> removedProvidedMessages;
+    Set<MessageBuffer> addedProvidedMessages;
+    Set<MessageBuffer> removedProvidedMessages;
 
 
     public ModelDiff(Process source, Process dest) {
+        LogHelper.logInfo("Diff process started");
 
-        addedStates = new Vector<>();
-        removedStates = new Vector<>();
+        addedStates = new HashSet<>();
+        removedStates = new HashSet<>();
 
-        addedMessages = new Vector<>();
-        removedMessages = new Vector<>();
+        addedMessages = new HashSet<>();
+        removedMessages = new HashSet<>();
 
-        addedSubjects = new Vector<>();
-        removedSubjects = new Vector<>();
+        addedSubjects = new HashSet<>();
+        removedSubjects = new HashSet<>();
 
-        addedTransitions = new Vector<>();
-        removedTransitions = new Vector<>();
+        addedTransitions = new HashSet<>();
+        removedTransitions = new HashSet<>();
 
-        addedExpectedMessages = new Vector<>();
-        removedExpectedMessages = new Vector<>();
+        addedExpectedMessages = new HashSet<>();
+        removedExpectedMessages = new HashSet<>();
 
-        addedProvidedMessages = new Vector<>();
-        removedProvidedMessages = new Vector<>();
+        addedProvidedMessages = new HashSet<>();
+        removedProvidedMessages = new HashSet<>();
 
         for (Subject s: source.getSubjects()) {
+            LogHelper.logInfo("now examining subject "+s);
             if (!dest.getSubjects().contains(s)) {
                 removedSubjects.add(s); // subject has been removed
                 removedStates.addAll(s.getStates());
-
+                removedTransitions.addAll(s.getTransitions());
             }
             else { // subject has remained in process
+//                LogHelper.logInfo("subject has remained in process");
                 Subject destSubject = dest.getSubjectByUUID(s.getUUID());
                 for (Message m: s.getExpectedMessages()) {
                     if (!destSubject.getExpectedMessages().contains(m)) removedExpectedMessages.add(new MessageBuffer(s,m));
@@ -70,12 +76,34 @@ public class ModelDiff {
                 for (Message m: destSubject.getProvidedMessages()) {
                     if (!s.getProvidedMessages().contains(m)) addedProvidedMessages.add(new MessageBuffer(s,m));
                 }
+                for (State state: s.getStates()) {
+                    if (!destSubject.getStates().contains(state)) removedStates.add(state);
+                }
+                for (State state: destSubject.getStates()) {
+//                    LogHelper.logInfo("checking if "+state+" has already been in process");
+                    if (!s.getStates().contains(state)) {
+                        addedStates.add(state);
+                        LogHelper.logInfo("found added state "+state);
+                    }
+//                    else LogHelper.logInfo(state+" already contained (subject contains "+s.getStates().size()+" states)");
+                }
+                for (Transition transition: s.getTransitions()) {
+                    if (!destSubject.getTransitions().contains(transition)) removedTransitions.add(transition);
+                }
+                for (Transition transition: destSubject.getTransitions()) {
+                    if (!s.getTransitions().contains(transition)) {
+                        LogHelper.logInfo("found added transition "+transition);
+                        addedTransitions.add(transition);
+                    }
+                }
             }
         }
 
         for (Subject s: dest.getSubjects()) {
             if (!source.getSubjects().contains(s)) { // subject has been added
                 addedSubjects.add(s);
+                addedStates.addAll(s.getStates());
+                addedTransitions.addAll(s.getTransitions());
                 for (Message m: s.getExpectedMessages()) {
                     addedExpectedMessages.add(new MessageBuffer(s,m));
                 }
@@ -93,7 +121,6 @@ public class ModelDiff {
             if (!source.getMessages().contains(m)) addedMessages.add(m); // messages have been added
         }
 
-
     }
 
     public ProcessChangeTransaction getProcessChangeTransaction() {
@@ -102,35 +129,35 @@ public class ModelDiff {
         return transaction;
     }
 
-    public Vector<InsertState> getAddedStates() {
+    public Set<State> getAddedStates() {
         return addedStates;
     }
 
-    public Vector<State> getRemovedStates() {
+    public Set<State> getRemovedStates() {
         return removedStates;
     }
 
-    public Vector<Message> getAddedMessages() {
+    public Set<Message> getAddedMessages() {
         return addedMessages;
     }
 
-    public Vector<Message> getRemovedMessages() {
+    public Set<Message> getRemovedMessages() {
         return removedMessages;
     }
 
-    public Vector<Subject> getAddedSubjects() {
+    public Set<Subject> getAddedSubjects() {
         return addedSubjects;
     }
 
-    public Vector<Subject> getRemovedSubjects() {
+    public Set<Subject> getRemovedSubjects() {
         return removedSubjects;
     }
 
-    public Vector<Transition> getAddedTransitions() {
+    public Set<Transition> getAddedTransitions() {
         return addedTransitions;
     }
 
-    public Vector<Transition> getRemovedTransitions() {
+    public Set<Transition> getRemovedTransitions() {
         return removedTransitions;
     }
 
@@ -153,21 +180,4 @@ public class ModelDiff {
         }
     }
 
-    private  class InsertState {
-        private State newState;
-        private State beforeTarget;
-
-        public InsertState(State newState, State beforeTarget) {
-            this.newState = newState;
-            this.beforeTarget = beforeTarget;
-        }
-
-        public State getNewState() {
-            return newState;
-        }
-
-        public State getBeforeTarget() {
-            return beforeTarget;
-        }
-    }
 }

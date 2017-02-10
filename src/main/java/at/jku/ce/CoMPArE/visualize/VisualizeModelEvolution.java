@@ -1,14 +1,18 @@
 package at.jku.ce.CoMPArE.visualize;
 
+import at.jku.ce.CoMPArE.LogHelper;
+import at.jku.ce.CoMPArE.diff.ModelDiff;
 import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
 import at.jku.ce.CoMPArE.elaborate.ProcessChangeTransaction;
 import at.jku.ce.CoMPArE.process.Process;
+import at.jku.ce.CoMPArE.process.ProcessElement;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.BaseTheme;
-import org.vaadin.sliderpanel.SliderPanelStyles;
+import org.apache.commons.logging.impl.Log4JLogger;
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -67,8 +71,10 @@ public class VisualizeModelEvolution extends VerticalLayout {
         if (history == null) return;
         tabSheet = new TabSheet();
         int count = 1;
+        Process previous = null;
         for (Process p: history) {
-            Panel panel = new Panel(createTabForProcess(p));
+            Panel panel = new Panel(createTabForProcess(p,previous));
+            previous = p;
             panel.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-100)+"px");
             tabSheet.addTab(panel,""+count);
             count++;
@@ -81,9 +87,11 @@ public class VisualizeModelEvolution extends VerticalLayout {
 
     }
 
-    private GridLayout createTabForProcess(Process p) {
+    private GridLayout createTabForProcess(Process p, Process previous) {
         GridLayout gl = null;
 
+        ModelDiff diff = null;
+        if (previous != null) diff = new ModelDiff(previous,p);
         int availableWidth = UI.getCurrent().getPage().getBrowserWindowWidth()-200;
         int numberOfSubjects = p.getSubjects().size()+1;
         int widthOfColumns = (availableWidth-170) / 3;
@@ -104,11 +112,20 @@ public class VisualizeModelEvolution extends VerticalLayout {
             panel.setWidth(widthOfColumns+"px");
             panel.setHeight("350px");
             model = new VisualizeModel(s.toString(),null, widthOfColumns, 300);
-            model.showSubject(s);
-            panel.setContent(model);
+            Set toBeMarked = new HashSet();
+            if (diff != null) {
+                toBeMarked.addAll(diff.getAddedStates());
+                toBeMarked.addAll(diff.getAddedTransitions());
+            }
+
+            model.showSubject(s,toBeMarked);
+/*            if (diff != null) {
+                model.markProcessElements(diff.getAddedStates(),true);
+                model.markProcessElements(diff.getAddedTransitions(),true);
+            }
+*/            panel.setContent(model);
             gl.addComponent(panel);
         }
-
         gl.setMargin(true);
         gl.setSpacing(true);
         return gl;

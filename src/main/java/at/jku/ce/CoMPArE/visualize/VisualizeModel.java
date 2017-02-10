@@ -75,47 +75,52 @@ public class VisualizeModel extends VerticalLayout {
 
     public void showSubject(Subject subject) {
         graph = new Graph(name, Graph.DIGRAPH);
-        if (subject.getFirstState() != null) addState(null,null,subject.getFirstState(), new HashSet<>());
+        addStates(subject.getStates(), new HashSet());
+        addTransitions(subject.getTransitions(),subject, new HashSet());
         component.drawGraph(graph);
         component.fitGraph();
     }
 
-    public void addState(Graph.Node parentNode, State parentState, State state, Collection<State> alreadyVisitedStates) {
-        Boolean loopFound = alreadyVisitedStates.contains(state);
-        Graph.Node node = new Graph.Node(state.getUUID().toString());
-        if (!loopFound) {
-//            LogHelper.logInfo("modelViz: adding node " + state);
-//            if (state instanceof SendState) node.setParam("color", "red");
-//            if (state instanceof RecvState) node.setParam("color", "green");
-            node.setParam("shape", "box");
-            node.setParam("label", "\""+state.toString()+"\"");
-            graph.addNode(node);
-            alreadyVisitedStates.add(state);
-/*            if (state instanceof SendState) {
-                Message m = ((SendState) state).getSentMessage();
-                Graph.Node message = new Graph.Node(m.getUUID().toString());
-                message.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
-                message.setParam("fontsize","10");
-                message.setParam("shape","note");
+    public void showSubject(Subject subject, Set toBeMarked) {
+        graph = new Graph(name, Graph.DIGRAPH);
+        addStates(subject.getStates(),toBeMarked);
+        addTransitions(subject.getTransitions(),subject, toBeMarked);
+        component.drawGraph(graph);
+        component.fitGraph();
+    }
 
-                graph.addNode(message);
-                graph.addEdge(node,message);
-            }*/
+
+    public void addStates(Collection<State> states, Set toBeMarked) {
+        for (State s: states) {
+            Graph.Node node = new Graph.Node(s.getUUID().toString());
+            node.setParam("shape", "box");
+            node.setParam("label", "\""+s.toString()+"\"");
+            if (toBeMarked.contains(s)) {
+                node.setParam("style", "filled");
+                node.setParam("fillcolor", "lightgreen");
+                node.setParam("color", "darkgreen");
+                node.setParam("penwidth", "3.0");
+            }
+            graph.addNode(node);
         }
-        if (parentNode != null) {
-//            LogHelper.logInfo("modelViz: adding edge from " + parentNode.getId() + " to " + node.getId());
-            graph.addEdge(parentNode, node);
-            Graph.Edge edge = graph.getEdge(parentNode, node);
-            Condition c = parentState.getNextStates().get(state);
+    }
+
+    public void addTransitions(Set<Transition> transitions, Subject subject, Set toBeMarked) {
+        for (Transition t: transitions) {
+            graph.addEdge(graph.getNode(t.getSource().toString()), graph.getNode(t.getDest().toString()));
+            Graph.Edge edge = graph.getEdge(graph.getNode(t.getSource().toString()), graph.getNode(t.getDest().toString()));
+            Condition c = t.getCondition();
+            if (toBeMarked.contains(t)) {
+                edge.setParam("color","darkgreen");
+                edge.setParam("penwidth","3.0");
+                edge.setParam("fontcolor","darkgreen");
+            }
             if (c != null) {
-                if (c instanceof MessageCondition) edge.setParam("label","\""+parentState.getParentSubject().getParentProcess().getMessageByUUID(((MessageCondition) c).getMessage()).toString()+"\"");
+                if (c instanceof MessageCondition) edge.setParam("label","\""+subject.getParentProcess().getMessageByUUID(((MessageCondition) c).getMessage()).toString()+"\"");
                 else edge.setParam("label", "\""+c.toString()+"\"");
             }
 
         }
-        if (!loopFound)
-            for (State nextState : state.getNextStates().keySet())
-                if (nextState != null) addState(node, state, nextState,alreadyVisitedStates);
     }
 
     public void greyOutCompletedStates(LinkedList<InstanceHistoryStep> history, State currentState) {
@@ -126,36 +131,40 @@ public class VisualizeModel extends VerticalLayout {
         for (InstanceHistoryStep s : reverseHistory) {
             currentNode = graph.getNode(s.getState().getUUID().toString());
             if (currentNode != null) {
-                component.addCss(currentNode, "stroke", "darkgreen");
-                component.addCss(currentNode, "fill", "lightgrey");
-                component.addCss(currentNode, "stroke-width", "3");
-                component.addTextCss(currentNode, "fill", "darkgreen");
+                currentNode.setParam("style", "filled");
+                currentNode.setParam("fillcolor", "lightgrey");
+                currentNode.setParam("color", "darkgreen");
+                currentNode.setParam("penwidth", "3.0");
+                currentNode.setParam("fontcolor","darkgreen");
+
             }
             if (previousNode!=null && currentNode != null) {
                 Graph.Edge edge = graph.getEdge(previousNode, currentNode);
                 if (edge != null) {
-                    component.addCss(edge,"stroke","darkgreen");
-                    component.addCss(edge,"fill","darkgreen");
-                    component.addTextCss(edge, "fill", "darkgreen");
+                    edge.setParam("color", "darkgreen");
+                    edge.setParam("fontcolor","darkgreen");
+
                 }
             }
             previousNode = currentNode;
         }
         if (currentState != null) currentNode = graph.getNode(currentState.getUUID().toString());
         if (currentNode != null) {
-            component.addCss(currentNode, "stroke-width", "3");
-            component.addCss(currentNode, "fill", "lightgreen");
+            currentNode.setParam("style", "filled");
+            currentNode.setParam("fillcolor", "lightgreen");
+
             component.addTextCss(currentNode, "font-weight", "bold");
             if (previousNode!=null) {
                 Graph.Edge edge = graph.getEdge(previousNode, currentNode);
                 if (edge != null) {
-                    component.addCss(edge, "stroke", "darkgreen");
-                    component.addCss(edge,"fill","darkgreen");
+                    edge.setParam("color", "darkgreen");
+                    edge.setParam("fontcolor","darkgreen");
                     component.addTextCss(edge, "fill", "darkgreen");
                 }
             }
         }
-
+        component.drawGraph(graph);
+        component.fitGraph();
     }
 
     public void showSubjectInteraction(Process p) {

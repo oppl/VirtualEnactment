@@ -99,7 +99,9 @@ public class Subject extends ProcessElement {
     }
 
     public void removeState(State state) {
-        states.remove(state.getUUID());
+        removeAllOutgoingTransitionsFrom(state);
+        removeAllIncomingTransitionsTo(state);
+        states.remove(state);
     }
 
     public State setFirstState(State firstState) {
@@ -217,6 +219,14 @@ public class Subject extends ProcessElement {
 
     public Set<Transition> getTransitions() {
         return transitions;
+    }
+
+    public void removeAllIncomingTransitionsTo(State s) {
+        Set<Transition> toBeRemoved = new HashSet<>();
+        for (Transition t: transitions) {
+            if (t.getDest().equals(s.getUUID())) toBeRemoved.add(t);
+        }
+        transitions.removeAll(toBeRemoved);
     }
 
     public void removeAllOutgoingTransitionsFrom(State s) {

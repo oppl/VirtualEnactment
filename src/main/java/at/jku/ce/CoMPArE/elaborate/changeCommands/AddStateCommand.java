@@ -87,7 +87,6 @@ public class AddStateCommand extends ProcessChangeCommand {
     public boolean undo() {
 //        if (target == null) return false;
         newActiveState = target;
-        s.removeState(newState);
         if (newState instanceof RecvState) {
             for (Message m:((RecvState) newState).getRecvdMessages()) {
                 s.getParentProcess().removeMessage(m);
@@ -98,8 +97,10 @@ public class AddStateCommand extends ProcessChangeCommand {
         }
         if (before) {
             if (newState == s.getFirstState()) {
+//                LogHelper.logInfo("setting "+target+" to new first state instead of "+newState);
                 s.setFirstState(target);
                 newActiveState = target;
+                s.removeState(newState);
                 return true;
             }
 
@@ -112,6 +113,7 @@ public class AddStateCommand extends ProcessChangeCommand {
                     predecessorState.addNextState(target, c);
                 }
                 newActiveState = target;
+                s.removeState(newState);
                 return true;
             } else return false;
         } else {
@@ -120,6 +122,7 @@ public class AddStateCommand extends ProcessChangeCommand {
                 target.addNextState(nextState, newState.getNextStates().get(nextState));
             }
             newActiveState = target;
+            s.removeState(newState);
             return true;
         }
     }

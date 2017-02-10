@@ -14,18 +14,21 @@ public class Transition extends ProcessElement {
     private Condition condition;
 
     public Transition(State source, State dest) {
+        super();
         this.source = source.getUUID();
         this.dest = dest.getUUID();
         this.condition = null;
     }
 
     public Transition(State source, State dest, Condition condition) {
+        super();
         this.source = source.getUUID();
         this.dest = dest.getUUID();
         this.condition = condition;
     }
 
     public Transition(Transition transition) {
+        super(transition);
         this.source = transition.getSource();
         this.dest = transition.getDest();
         if (transition.getCondition() instanceof MessageCondition)
