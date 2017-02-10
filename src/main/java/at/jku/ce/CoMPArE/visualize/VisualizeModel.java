@@ -167,7 +167,12 @@ public class VisualizeModel extends VerticalLayout {
         component.fitGraph();
     }
 
+
     public void showSubjectInteraction(Process p) {
+        showSubjectInteraction(p, new HashSet());
+    }
+
+    public void showSubjectInteraction(Process p, Set toBeMarked) {
 //        LogHelper.logInfo("creating subject interaction");
         graph = new Graph("", Graph.DIGRAPH);
         for (Message m: p.getMessages()) {
@@ -177,10 +182,31 @@ public class VisualizeModel extends VerticalLayout {
             sender.setParam("label", "\""+p.getSenderOfMessage(m).toString()+"\"");
             recipient.setParam("label", "\""+p.getRecipientOfMessage(m).toString()+"\"");
 
+            if (toBeMarked.contains(p.getSenderOfMessage(m))) {
+                sender.setParam("style", "filled");
+                sender.setParam("fillcolor", "lightgreen");
+                sender.setParam("color", "darkgreen");
+                sender.setParam("penwidth", "3.0");
+            }
+
+            if (toBeMarked.contains(p.getRecipientOfMessage(m))) {
+                recipient.setParam("style", "filled");
+                recipient.setParam("fillcolor", "lightgreen");
+                recipient.setParam("color", "darkgreen");
+                recipient.setParam("penwidth", "3.0");
+            }
+
             Graph.Node message = new Graph.Node((m.getUUID().toString()));
             message.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
             message.setParam("fontsize","10");
             message.setParam("shape", "note");
+            if (toBeMarked.contains(m)) {
+                message.setParam("style", "filled");
+                message.setParam("fillcolor", "lightgreen");
+                message.setParam("color", "darkgreen");
+                message.setParam("penwidth", "3.0");
+            }
+
 
             graph.addEdge(sender, message);
             graph.addEdge(message,recipient);

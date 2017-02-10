@@ -103,7 +103,12 @@ public class VisualizeModelEvolution extends VerticalLayout {
         panel.setWidth(widthOfColumns+"px");
         panel.setHeight("350px");
         VisualizeModel model = new VisualizeModel("Interaction",null, widthOfColumns,300);
-        model.showSubjectInteraction(p);
+        Set toBeMarked = new HashSet();
+        if (diff!=null) {
+            toBeMarked.addAll(diff.getAddedSubjects());
+            toBeMarked.addAll(diff.getAddedMessages());
+        }
+        model.showSubjectInteraction(p,toBeMarked);
         panel.setContent(model);
         gl.addComponent(panel);
 
@@ -112,7 +117,7 @@ public class VisualizeModelEvolution extends VerticalLayout {
             panel.setWidth(widthOfColumns+"px");
             panel.setHeight("350px");
             model = new VisualizeModel(s.toString(),null, widthOfColumns, 300);
-            Set toBeMarked = new HashSet();
+            toBeMarked = new HashSet();
             if (diff != null) {
                 toBeMarked.addAll(diff.getAddedStates());
                 toBeMarked.addAll(diff.getAddedTransitions());
