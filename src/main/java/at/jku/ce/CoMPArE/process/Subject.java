@@ -89,6 +89,10 @@ public class Subject extends ProcessElement {
     }
 
     public State setFirstState(State firstState) {
+        if (firstState == null) {
+            this.firstState = null;
+            return null;
+        }
         if (!states.contains(firstState)) {
             states.add(firstState);
             firstState.setParentSubject(this);
