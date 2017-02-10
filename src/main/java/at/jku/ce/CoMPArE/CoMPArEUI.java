@@ -227,6 +227,8 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
     private SliderPanel createHistorySlider() {
         VisualizeModelEvolution historySliderContent = new VisualizeModelEvolution(currentProcess,processChangeHistory);
+        historySliderContent.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-150)+"px");
+        historySliderContent.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
         final SliderPanel historySlider =
                 new SliderPanelBuilder(historySliderContent, "Show history").mode(SliderMode.LEFT)
                         .tabPosition(SliderTabPosition.MIDDLE).style(SliderPanelStyles.COLOR_WHITE).flowInContent(true).animationDuration(500).build();
@@ -240,18 +242,23 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         VisualizeModelEvolution historySliderContent;
 
         public HistoryListener(VisualizeModelEvolution historySliderContent) {
+
             this.historySliderContent = historySliderContent;
         }
 
         @Override
         public void onToggle(boolean b) {
-            if (b) historySliderContent.createLayout();
+
+            if (b) {
+                historySliderContent.createLayout();
+            }
         }
     }
 
     @Override
     public void onToggle(boolean b) {
         if (b && !selectionMode) {
+
             String toBeActivated = null;
             Set<Subject> candidates = new HashSet<>();
             for (Subject s: subjectPanels.keySet()) {

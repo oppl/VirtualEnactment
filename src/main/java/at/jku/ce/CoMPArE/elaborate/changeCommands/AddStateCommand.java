@@ -43,7 +43,7 @@ public class AddStateCommand extends ProcessChangeCommand {
             State state = i.next();
             if (state.getName().equals(delayedTarget)) target = state;
         }
-//        if (target == null) return false; // todo: fix problem here
+//        if (target == null) return false;
         if (before) newActiveState = newState;
         s.addState(newState);
         if (newState instanceof RecvState) {
@@ -85,7 +85,7 @@ public class AddStateCommand extends ProcessChangeCommand {
 
     @Override
     public boolean undo() {
-        if (target == null) return false;
+//        if (target == null) return false;
         newActiveState = target;
         s.removeState(newState);
         if (newState instanceof RecvState) {
@@ -99,6 +99,7 @@ public class AddStateCommand extends ProcessChangeCommand {
         if (before) {
             if (newState == s.getFirstState()) {
                 s.setFirstState(target);
+                newActiveState = target;
                 return true;
             }
 
@@ -110,12 +111,15 @@ public class AddStateCommand extends ProcessChangeCommand {
                     predecessorState.removeNextState(newState);
                     predecessorState.addNextState(target, c);
                 }
+                newActiveState = target;
                 return true;
             } else return false;
         } else {
+            target.removeNextState(newState);
             for (State nextState : newState.getNextStates().keySet()) {
                 target.addNextState(nextState, newState.getNextStates().get(nextState));
             }
+            newActiveState = target;
             return true;
         }
     }
