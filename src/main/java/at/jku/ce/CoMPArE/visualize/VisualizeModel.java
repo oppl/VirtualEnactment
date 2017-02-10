@@ -107,7 +107,10 @@ public class VisualizeModel extends VerticalLayout {
             graph.addEdge(parentNode, node);
             Graph.Edge edge = graph.getEdge(parentNode, node);
             Condition c = parentState.getNextStates().get(state);
-            if (c != null) edge.setParam("label", "\""+c.toString()+"\"");
+            if (c != null) {
+                if (c instanceof MessageCondition) edge.setParam("label","\""+parentState.getParentSubject().getParentProcess().getMessageByUUID(((MessageCondition) c).getMessage()).toString()+"\"");
+                else edge.setParam("label", "\""+c.toString()+"\"");
+            }
 
         }
         if (!loopFound)

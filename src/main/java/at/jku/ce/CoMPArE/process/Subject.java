@@ -20,6 +20,7 @@ public class Subject extends ProcessElement {
     private Process parentProcess;
 
     private Set<State> states;
+    private Set<Transition> transitions;
     private Set<UUID> expectedMessages;
     private Set<UUID> providedMessages;
 
@@ -29,6 +30,7 @@ public class Subject extends ProcessElement {
         this.parentProcess = null;
         this.firstState = null;
         this.states = new HashSet<>();
+        this.transitions = new HashSet<>();
         this.expectedMessages = new HashSet<>();
         this.providedMessages = new HashSet<>();
     }
@@ -38,6 +40,7 @@ public class Subject extends ProcessElement {
         this.name = s.toString();
         this.parentProcess = newProcess;
         this.states = new HashSet<>();
+        this.transitions = new HashSet<>();
 
         for (State state: s.getStates()) {
             State newState = null;
@@ -46,7 +49,10 @@ public class Subject extends ProcessElement {
             if (state instanceof RecvState) newState = new RecvState((RecvState) state, this);
             this.addState(newState);
         }
-        for (State state: s.getStates()) {
+        for (Transition transition: s.getTransitions()) {
+            this.addTransition(new Transition(transition));
+        }
+        /*for (State state: s.getStates()) {
             State newState = this.getStateByUUID(state.getUUID());
             for (State nextState: state.getNextStates().keySet()) {
                 if (nextState == null) continue;
@@ -61,7 +67,7 @@ public class Subject extends ProcessElement {
                 }
                 newState.addNextState(nextNewState,clonedCondition);
             }
-        }
+        }*/
 
         this.firstState = s.firstState;
         this.expectedMessages = new HashSet<>();
@@ -73,6 +79,14 @@ public class Subject extends ProcessElement {
             providedMessages.add(m.getUUID());
         }
 
+    }
+
+    public Map<State,Condition> getNextStatesForState(State s) {
+        Map<State,Condition> nextStates = new HashMap<State, Condition>();
+        for (Transition t: transitions) {
+            if (t.getSource().equals(s.getUUID())) nextStates.put(getStateByUUID(t.getDest()),t.getCondition());
+        }
+        return nextStates;
     }
 
     public Process getParentProcess() {
@@ -182,13 +196,44 @@ public class Subject extends ProcessElement {
     public void removeProvidedMessage(Message providedMessage) { this.providedMessages.remove(providedMessage.getUUID()); }
 
     public Set<State> getPredecessorStates(State target) {
-        Set<State> predecessorStates = new HashSet<>();
+        Set<State> predecessorStates = new HashSet<State>();
+        for (Transition t: transitions) {
+            if (t.getDest().equals(target.getUUID())) predecessorStates.add(getStateByUUID(t.getSource()));
+        }
+        return predecessorStates;
+
+/*        Set<State> predecessorStates = new HashSet<>();
         for (State s: states) {
             for (State nextState: s.getNextStates().keySet()) {
                 if (nextState.equals(target)) predecessorStates.add(s);
             }
         }
-        return predecessorStates;
+        return predecessorStates;*/
+    }
+
+    public void addTransition(Transition t) {
+        transitions.add(t);
+    }
+
+    public Set<Transition> getTransitions() {
+        return transitions;
+    }
+
+    public void removeAllOutgoingTransitionsFrom(State s) {
+        Set<Transition> toBeRemoved = new HashSet<>();
+        for (Transition t: transitions) {
+            if (t.getSource().equals(s.getUUID())) toBeRemoved.add(t);
+        }
+        transitions.removeAll(toBeRemoved);
+    }
+
+    public void removeAllTransitionsBetween(State source, State dest) {
+        Set<Transition> toBeRemoved = new HashSet<>();
+        for (Transition t: transitions) {
+            if (t.getSource().equals(source.getUUID()) && t.getDest().equals(dest.getUUID())) toBeRemoved.add(t);
+        }
+        transitions.removeAll(toBeRemoved);
+
     }
 
     public void setParentProcess(Process parentProcess) {

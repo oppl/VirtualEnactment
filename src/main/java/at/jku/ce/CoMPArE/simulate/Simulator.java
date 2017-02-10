@@ -157,7 +157,7 @@ public class Simulator {
                     Set<Message> messages = ((RecvState) s.state).getRecvdMessages();
                     Set<Message> requiredMessages = new HashSet<>();
                     for (SimulatorStep ss: steps) {
-                        if (ss.condition instanceof MessageCondition) requiredMessages.add(((MessageCondition) ss.condition).getMessage());
+                        if (ss.condition instanceof MessageCondition) requiredMessages.add(instance.getProcess().getMessageByUUID(((MessageCondition) ss.condition).getMessage()));
                     }
                     if (messages.isEmpty()) return false;
                     boolean requiredMessageIsContained = false;
