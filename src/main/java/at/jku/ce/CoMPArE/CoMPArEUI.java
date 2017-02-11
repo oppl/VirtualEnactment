@@ -369,7 +369,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         if (rollbackTo != null) {
             for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
                 LogHelper.logInfo("undoing "+transaction);
-                transaction.undo();
+                transaction.undo(currentProcess);
                 if (transaction == rollbackTo) break;
             }
             InstanceHistoryStep instanceState = rollbackTo.getAffectedInstanceHistoryState();
@@ -724,9 +724,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             public void windowClose(Window.CloseEvent e) {
                 Process newProcess = processSelectorUI.getSelectedProcess();
                 if (newProcess != null) {
-                    for (Message m: newProcess.getMessages()) {
-                        LogHelper.logInfo("Message in new process: "+m+" "+m.getUUID());
-                    }
                     currentProcess = newProcess;
                     initialStartup = true;
                     processChangeHistory = processSelectorUI.getProcessChangeHistory();

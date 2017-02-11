@@ -2,6 +2,7 @@ package at.jku.ce.CoMPArE.process;
 
 import at.jku.ce.CoMPArE.LogHelper;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import sun.rmi.runtime.Log;
 
 import java.util.*;
 
@@ -52,27 +53,11 @@ public class Subject extends ProcessElement {
         for (Transition transition: s.getTransitions()) {
             this.addTransition(new Transition(transition));
         }
-        /*for (State state: s.getStates()) {
-            State newState = this.getStateByUUID(state.getUUID());
-            for (State nextState: state.getNextStates().keySet()) {
-                if (nextState == null) continue;
-                State nextNewState = this.getStateByUUID(nextState.getUUID());
-                Condition clonedCondition = null;
-                Condition originalCondition = state.getNextStates().get(nextState);
-                if (originalCondition instanceof MessageCondition) {
-                    clonedCondition = new MessageCondition((MessageCondition) originalCondition, state);
-                }
-                else {
-                    if (originalCondition != null) clonedCondition = new Condition(originalCondition, state);
-                }
-                newState.addNextState(nextNewState,clonedCondition);
-            }
-        }*/
-
         this.firstState = s.firstState;
         this.expectedMessages = new HashSet<>();
         this.providedMessages = new HashSet<>();
         for (Message m:s.getExpectedMessages()) {
+            LogHelper.logInfo("cloning: adding "+m+" to expected messages in "+this);
             expectedMessages.add(m.getUUID());
         }
         for (Message m:s.getProvidedMessages()) {
@@ -177,13 +162,16 @@ public class Subject extends ProcessElement {
     public Set<Message> getExpectedMessages() {
         Set<Message> messages = new HashSet<>();
         if (parentProcess == null) return messages;
+        LogHelper.logInfo("looking for expected messages in "+ this.toString() +"...");
         for (UUID mID: expectedMessages) {
+            LogHelper.logInfo("message with uuid "+mID+" -> "+parentProcess.getMessageByUUID(mID));
             messages.add(parentProcess.getMessageByUUID(mID));
         }
         return messages;
     }
 
     public void addExpectedMessage(Message expectedMessage) {
+        LogHelper.logInfo("adding expected message "+expectedMessage+" to subject "+this);
         this.expectedMessages.add(expectedMessage.getUUID());
     }
 

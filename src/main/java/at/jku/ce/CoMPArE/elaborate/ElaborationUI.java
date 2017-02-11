@@ -93,7 +93,7 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         for (WizardStep ws: steps) {
             transaction.add(((ElaborationStep) ws).getProcessChangeList());
         }
-        transaction.perform();
+        transaction.perform(instance.getProcess());
 
         for (Message m: subject.getParentProcess().getMessages()) {
             LogHelper.logInfo(m.getUUID()+" "+m);

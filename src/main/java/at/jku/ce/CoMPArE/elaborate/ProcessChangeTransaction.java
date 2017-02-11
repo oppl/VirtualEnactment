@@ -3,6 +3,7 @@ package at.jku.ce.CoMPArE.elaborate;
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.InstanceHistoryStep;
+import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
 
 import java.util.*;
@@ -35,11 +36,11 @@ public class ProcessChangeTransaction {
         }
     }
 
-    public boolean perform() {
+    public boolean perform(Process p) {
         boolean successful = true;
         Vector<ProcessChangeCommand> rollbackBuffer = new Vector<>();
         for (ProcessChangeCommand processChangeCommand: commands) {
-           successful = processChangeCommand.perform();
+           successful = processChangeCommand.perform(p);
            if (!successful) break;
            else {
                rollbackBuffer.add(processChangeCommand);
@@ -50,7 +51,7 @@ public class ProcessChangeTransaction {
         if (!successful) {
             Collections.reverse(rollbackBuffer);
             for (ProcessChangeCommand rollbackCommand:rollbackBuffer) {
-                rollbackCommand.undo();
+                rollbackCommand.undo(p);
                 State s = rollbackCommand.getNewActiveState();
                 if (s != null && !s.getParentSubject().getPredecessorStates(s).contains(newActiveState)) newActiveState = s;
             }
@@ -58,14 +59,14 @@ public class ProcessChangeTransaction {
         return successful;
     }
 
-    public boolean undo() {
+    public boolean undo(Process p) {
         Vector<ProcessChangeCommand> reverseCommands = new Vector<>(commands);
         Collections.reverse(reverseCommands);
 
         boolean successful = true;
         Vector<ProcessChangeCommand> rollbackBuffer = new Vector<>();
         for (ProcessChangeCommand processChangeCommand: reverseCommands) {
-            successful = processChangeCommand.undo();
+            successful = processChangeCommand.undo(p);
 //            LogHelper.logInfo(processChangeCommand.getClass().getSimpleName());
             if (!successful) break;
             else {
@@ -78,7 +79,7 @@ public class ProcessChangeTransaction {
         if (!successful) {
             Collections.reverse(rollbackBuffer);
             for (ProcessChangeCommand rollbackCommand:rollbackBuffer) {
-                rollbackCommand.perform();
+                rollbackCommand.perform(p);
                 State s = rollbackCommand.getNewActiveState();
                 if (s != null && !s.getParentSubject().getPredecessorStates(s).contains(newActiveState)) newActiveState = s;
 

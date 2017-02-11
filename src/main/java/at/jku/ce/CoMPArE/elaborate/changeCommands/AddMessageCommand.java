@@ -20,7 +20,8 @@ public class AddMessageCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        process = p;
         for (Message m : process.getMessages()) {
             if (m.toString().equals(message.toString())) {
                 return false;
@@ -31,7 +32,8 @@ public class AddMessageCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        process = p;
         process.removeMessage(message);
         return true;
     }

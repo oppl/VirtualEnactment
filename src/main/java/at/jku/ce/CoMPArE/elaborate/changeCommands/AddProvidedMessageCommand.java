@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.process.Message;
+import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.Subject;
 
 /**
@@ -18,7 +19,8 @@ public class AddProvidedMessageCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         if (subject == null || message == null) return false;
         subject.addProvidedMessage(message);
         subject.getParentProcess().addMessage(message);
@@ -26,9 +28,10 @@ public class AddProvidedMessageCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         if (!subject.getProvidedMessages().contains(message)) return false;
-        subject.getParentProcess().removeMessage(message);
+//        subject.getParentProcess().removeMessage(message);
         subject.removeProvidedMessage(message);
         return true;
     }

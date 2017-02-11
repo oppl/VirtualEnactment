@@ -133,14 +133,21 @@ public class ModelDiff {
     public ProcessChangeTransaction getProcessChangeTransaction() {
         ProcessChangeTransaction transaction = new ProcessChangeTransaction();
 
-        // todo: added and removed expected and provided messages still missing from reconstruction
-
         for (Transition transition: getRemovedTransitions()) {
             transaction.add(new RemoveTransitionCommand(transition.getParentSubject(),transition));
         }
 
         for (State state: getRemovedStates()) {
             transaction.add(new RemoveStateCommand(state.getParentSubject(),state));
+        }
+
+        for (MessageBuffer messageBuffer: this.removedExpectedMessages) {
+            LogHelper.logInfo("create transaction for removing expected message "+ messageBuffer.getMessage()+" from "+messageBuffer.getSubject());
+            transaction.add(new RemoveExpectedMessageCommand(messageBuffer.getSubject(),messageBuffer.getMessage()));
+        }
+
+        for (MessageBuffer messageBuffer: this.removedProvidedMessages) {
+            transaction.add(new RemoveProvidedMessageCommand(messageBuffer.getSubject(),messageBuffer.getMessage()));
         }
 
         for (Subject subject: getRemovedSubjects()) {
@@ -159,6 +166,15 @@ public class ModelDiff {
 
         for (Subject subject: getAddedSubjects()) {
             transaction.add(new AddSubjectCommand(source,subject));
+        }
+
+        for (MessageBuffer messageBuffer: this.addedExpectedMessages) {
+            LogHelper.logInfo("added expected message "+ messageBuffer.getMessage()+" to "+messageBuffer.getSubject());
+            transaction.add(new AddExpectedMessageCommand(messageBuffer.getSubject(),messageBuffer.getMessage()));
+        }
+
+        for (MessageBuffer messageBuffer: this.addedProvidedMessages) {
+            transaction.add(new AddProvidedMessageCommand(messageBuffer.getSubject(),messageBuffer.getMessage()));
         }
 
         for (State state: getAddedStates()) {

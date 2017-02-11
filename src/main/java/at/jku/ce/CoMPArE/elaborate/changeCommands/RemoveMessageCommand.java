@@ -19,13 +19,15 @@ public class RemoveMessageCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        process = p;
         process.removeMessage(message);
         return true;
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        process = p;
         process.addMessage(message);
         return true;
     }

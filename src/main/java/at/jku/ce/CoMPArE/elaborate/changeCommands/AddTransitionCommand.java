@@ -21,7 +21,8 @@ public class AddTransitionCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         for (Transition t : subject.getTransitions()) {
             if (t.equals(transition)) {
                 return false;
@@ -32,7 +33,8 @@ public class AddTransitionCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         subject.removeTransition(transition);
         return true;
     }

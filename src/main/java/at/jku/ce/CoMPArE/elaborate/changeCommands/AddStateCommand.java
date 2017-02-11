@@ -2,6 +2,7 @@ package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.*;
+import at.jku.ce.CoMPArE.process.Process;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -44,7 +45,8 @@ public class AddStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        s = p.getSubjectByUUID(s.getUUID());
         Iterator<State> i = s.getStates().iterator();
         while (i.hasNext()) {
             State state = i.next();
@@ -96,8 +98,9 @@ public class AddStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
 //        if (target == null) return false;
+        s = p.getSubjectByUUID(s.getUUID());
         newActiveState = target;
 
         if (newState instanceof RecvState) {
@@ -107,6 +110,7 @@ public class AddStateCommand extends ProcessChangeCommand {
         }
         if (newState instanceof SendState) {
 //            s.getParentProcess().removeMessage(((SendState) newState).getSentMessage());
+            //todo: this bugfix might leave messages as artifacts - we should check if a message is still needed and then remove it
         }
         if (before) {
             if (target == null) {

@@ -203,7 +203,7 @@ public class VisualizeModel extends VerticalLayout {
 //        LogHelper.logInfo("creating subject interaction");
         graph = new Graph("", Graph.DIGRAPH);
         for (Message m: p.getMessages()) {
-//            LogHelper.logInfo("adding information for Message "+m.toString());
+            LogHelper.logInfo("adding information for Message "+m.toString());
             Graph.Node sender = new Graph.Node(p.getSenderOfMessage(m).getUUID().toString());
             Graph.Node recipient = new Graph.Node(p.getRecipientOfMessage(m).getUUID().toString());
             sender.setParam("label", "\""+p.getSenderOfMessage(m).toString()+"\"");

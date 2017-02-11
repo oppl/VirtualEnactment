@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
+import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.Subject;
 import at.jku.ce.CoMPArE.process.Transition;
 
@@ -19,13 +20,15 @@ public class RemoveTransitionCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         subject.removeTransition(transition);
         return true;
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         subject.addTransition(transition);
         return true;
     }

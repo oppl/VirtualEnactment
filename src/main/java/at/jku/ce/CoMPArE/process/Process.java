@@ -69,8 +69,13 @@ public class Process extends ProcessElement {
 
     public Subject getSenderOfMessage(Message message) {
         for (Subject s: subjects) {
-            if (s.getSentMessages().contains(message)) return s;
-            if (s.getExpectedMessages().contains(message)) return s;
+            LogHelper.logInfo("examining "+ s.getSentMessages().size()+" sent and "+s.getExpectedMessages().size()+" expected messages in subject "+s);
+            if (s.getSentMessages().contains(message)) {
+                return s;
+            }
+            if (s.getExpectedMessages().contains(message)) {
+                return s;
+            }
         }
         return null;
     }
@@ -107,14 +112,14 @@ public class Process extends ProcessElement {
     }
 
     public Message getMessageByUUID(UUID messageID) {
-        LogHelper.logInfo("looking for message with UUID "+messageID);
+//        LogHelper.logInfo("looking for message with UUID "+messageID);
         for (Message m: messages) {
             if (m.getUUID().equals(messageID)) {
-                LogHelper.logInfo("found it");
+//                LogHelper.logInfo("found it");
                 return m;
             }
         }
-        LogHelper.logInfo("message not found");
+//        LogHelper.logInfo("message not found");
         return null;
     }
 
