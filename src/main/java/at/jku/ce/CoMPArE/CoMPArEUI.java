@@ -203,7 +203,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                         this.getPage().getBrowserWindowHeight()-200);
                 visualizeModel.setCaption(selected);
                 if (selected.equals("Interaction")) {
-                    visualizeModel.showSubjectInteraction(currentProcess);
+                    visualizeModel.showWholeProcess(currentProcess, new HashSet());
                 }
                 else {
                     Subject s = currentProcess.getSubjectWithName(selected);

@@ -170,7 +170,7 @@ public class Simulator {
                     for (Message m: messages) {
                         if (messages.size()>1 && requiredMessageIsContained && !requiredMessages.contains(m)) continue;
                         Subject sendingSubject = instance.getProcess().getSenderOfMessage(m);
-                        State sendingState = sendingSubject.getSendState(m);
+                        State sendingState = sendingSubject.getSendStates(m).iterator().next();
                         boolean stateAlreadyContained = false;
                         for (SimulatorStep ss : overallList)
                             if (ss.state == sendingState) stateAlreadyContained = true;

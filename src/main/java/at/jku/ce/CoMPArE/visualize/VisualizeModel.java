@@ -15,6 +15,7 @@ import com.vaadin.pontus.vizcomponent.VizComponent.NodeClickEvent;
 import com.vaadin.pontus.vizcomponent.VizComponent.NodeClickListener;
 import com.vaadin.pontus.vizcomponent.client.ZoomSettings;
 import com.vaadin.pontus.vizcomponent.model.Graph;
+import com.vaadin.pontus.vizcomponent.model.Subgraph;
 import com.vaadin.ui.*;
 import sun.rmi.runtime.Log;
 
@@ -210,6 +211,119 @@ public class VisualizeModel extends VerticalLayout {
 
             graph.addEdge(sender, message);
             graph.addEdge(message,recipient);
+
+        }
+        component.drawGraph(graph);
+    }
+
+    public void showWholeProcess(Process p, Set toBeMarked) {
+        graph = new Graph("", Graph.DIGRAPH);
+        int cnt = 0;
+        HashMap<UUID, Subgraph.GraphNode> uuid2Cluster = new HashMap<>();
+        for (Subject subject: p.getSubjects()) {
+            Subgraph sub = new Subgraph();
+            Collection<State> states = subject.getStates();
+            Set<Transition> transitions = subject.getTransitions();
+
+            if (states.size() == 0) {
+                Graph.Node node = new Graph.Node(subject.toString()+"_stateProxy");
+                node.setParam("shape", "box");
+                node.setParam("label", "\"no activity yet\"");
+                node.setParam("style", "dashed");
+                sub.addNode(node);
+            }
+            if (subject.getExpectedMessages().size() > 0) {
+                Graph.Node node = new Graph.Node(subject.getUUID()+"_sendProxy");
+                node.setParam("shape", "rarrow");
+                node.setParam("label", "\"not yet provided\"");
+                sub.addNode(node);
+            }
+            if (subject.getProvidedMessages().size() > 0) {
+                Graph.Node node = new Graph.Node(subject.getUUID()+"_recvProxy");
+                node.setParam("label", "\"not yet used\"");
+                node.setParam("shape", "larrow");
+                sub.addNode(node);
+            }
+            for (State s: states) {
+                Graph.Node node = new Graph.Node(s.getUUID().toString());
+                node.setParam("shape", "box");
+                node.setParam("label", "\"" + s.toString() + "\"");
+                if (toBeMarked.contains(s)) {
+                    node.setParam("style", "filled");
+                    node.setParam("fillcolor", "lightgreen");
+                    node.setParam("color", "darkgreen");
+                    node.setParam("penwidth", "3.0");
+                }
+                sub.addNode(node);
+            }
+            for (Transition t: transitions) {
+                sub.addEdge(sub.getNode(t.getSource().toString()), sub.getNode(t.getDest().toString()));
+                Graph.Edge edge = sub.getEdge(sub.getNode(t.getSource().toString()), sub.getNode(t.getDest().toString()));
+                Condition c = t.getCondition();
+                if (toBeMarked.contains(t)) {
+                    edge.setParam("color", "darkgreen");
+                    edge.setParam("penwidth", "3.0");
+                    edge.setParam("fontcolor", "darkgreen");
+                }
+                if (c != null) {
+                    if (c instanceof MessageCondition)
+                        edge.setParam("label", "\"" + subject.getParentProcess().getMessageByUUID(((MessageCondition) c).getMessage()).toString() + "\"");
+                    else edge.setParam("label", "\"" + c.toString() + "\"");
+                }
+            }
+            Subgraph.GraphNode subNode = new Subgraph.GraphNode("cluster_"+cnt, sub);
+            uuid2Cluster.put(subject.getUUID(),subNode);
+            cnt++;
+            subNode.setParam("label", "\""+subject.toString()+"\"");
+            if (toBeMarked.contains(subject)) {
+                subNode.setParam("style", "filled");
+                subNode.setParam("fillcolor", "lightgreen");
+                subNode.setParam("color", "darkgreen");
+                subNode.setParam("penwidth", "3.0");
+            }
+
+            graph.addNode(subNode);
+        }
+        for (Message m: p.getMessages()) {
+//            LogHelper.logInfo("adding information for Message "+m.toString());
+            Subgraph senderNode = uuid2Cluster.get(p.getSenderOfMessage(m).getUUID()).getGraph();
+            Subgraph recipientNode = uuid2Cluster.get(p.getRecipientOfMessage(m).getUUID()).getGraph();
+            Set<Graph.Node> senders = new HashSet<>();
+            if (p.getSenderOfMessage(m).getExpectedMessages().contains(m))
+                senders.add(senderNode.getNode(p.getSenderOfMessage(m).getUUID()+"_sendProxy"));
+            else {
+                for (State sendState: p.getSenderOfMessage(m).getSendStates(m)) senders.add(senderNode.getNode(sendState.getUUID().toString()));
+            }
+            Set<Graph.Node> recipients = new HashSet<>();
+            if (p.getRecipientOfMessage(m).getProvidedMessages().contains(m))
+                recipients.add(recipientNode.getNode(p.getRecipientOfMessage(m).getUUID()+"_recvProxy"));
+            else {
+                for (State recvState: p.getRecipientOfMessage(m).getRecvStates(m)) recipients.add(recipientNode.getNode(recvState.getUUID().toString()));
+            }
+
+            Graph.Node message = new Graph.Node((m.getUUID().toString()));
+            message.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
+            message.setParam("fontsize","10");
+            message.setParam("shape", "note");
+            if (toBeMarked.contains(m)) {
+                message.setParam("style", "filled");
+                message.setParam("fillcolor", "lightgreen");
+                message.setParam("color", "darkgreen");
+                message.setParam("penwidth", "3.0");
+            }
+
+            graph.addNode(message);
+            for (Graph.Node sender: senders) {
+                senderNode.addEdge(sender, message);
+                Graph.Edge edge = senderNode.getEdge(sender,message);
+                edge.setParam("style","dashed");
+            }
+            for (Graph.Node recipient: recipients) {
+                graph.addEdge(message,recipient);
+                Graph.Edge edge = graph.getEdge(message,recipient);
+                edge.setParam("style","dashed");
+
+            }
 
         }
         component.drawGraph(graph);

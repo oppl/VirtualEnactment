@@ -136,11 +136,20 @@ public class Subject extends ProcessElement {
         return null;
     }
 
-    public State getSendState(Message m) {
+    public Set<State> getSendStates(Message m) {
+        Set<State> sendState = new HashSet<>();
         for (State s: getStates()) {
-            if (s instanceof SendState && ((SendState) s).getSentMessage().equals(m)) return s;
+            if (s instanceof SendState && ((SendState) s).getSentMessage().equals(m)) sendState.add(s);
         }
-        return null;
+        return sendState;
+    }
+
+    public Set<State> getRecvStates(Message m) {
+        Set<State> recvState = new HashSet<>();
+        for (State s: getStates()) {
+            if (s instanceof RecvState && ((RecvState) s).getRecvdMessages().contains(m)) recvState.add(s);
+        }
+        return recvState;
     }
 
     public Set<Message> getSentMessages() {
