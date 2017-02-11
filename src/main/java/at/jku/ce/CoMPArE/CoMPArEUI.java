@@ -102,7 +102,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         scaffoldingPanel = new Panel("What to consider:");
         scaffoldingPanel.setWidth("950px");
         scaffoldingPanel.setHeight("200px");
-        scaffoldingPanel.setContent(new HorizontalLayout());
+        scaffoldingPanel.setContent(new GridLayout(3,1));
 
         differentProcess = new Button("Select different Process");
         differentProcess.addClickListener( e -> {
