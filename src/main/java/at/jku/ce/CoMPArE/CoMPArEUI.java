@@ -206,7 +206,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 VerticalLayout vl = (VerticalLayout) e.getTabSheet().getSelectedTab();
                 vl.removeAllComponents();
                 VisualizeModel visualizeModel = new VisualizeModel(selected, this,
-                        this.getPage().getBrowserWindowWidth()-200,
+                        this.getPage().getBrowserWindowWidth()-280,
                         this.getPage().getBrowserWindowHeight()-200);
                 visualizeModel.setCaption(selected);
                 if (selected.equals("Interaction")) {
@@ -353,7 +353,10 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 rollbackChangesTo(historyUI.getSelectedTransaction());
             });
         });
-        if (processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(false);
+        if (processChangeHistory.getHistory().isEmpty()) {
+            elaborationHistory.setVisible(false);
+            historySlider.setVisible(false);
+        }
 
         if (!currentProcess.getSubjects().isEmpty()) toolBar.addComponent(simulate);
         if (onboardingActive) simulate.setVisible(false);
@@ -699,7 +702,10 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             public void windowClose(Window.CloseEvent e) {
                 elaborationActive = false;
                 currentInstance.removeLatestHistoryStepForSubject(s);
-                if (!processChangeHistory.getHistory().isEmpty()) elaborationHistory.setVisible(true);
+                if (!processChangeHistory.getHistory().isEmpty()) {
+                    elaborationHistory.setVisible(true);
+                    historySlider.setVisible(true);
+                }
                 createBasicLayout();
                 scaffoldingManager.updateScaffolds(currentInstance,currentInstance.getAvailableStateForSubject(s));
                 updateUI();
