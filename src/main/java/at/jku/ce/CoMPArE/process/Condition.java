@@ -9,19 +9,19 @@ public class Condition extends ProcessElement {
 
     private String condition;
 
-    @XStreamOmitField
-    State parentState;
+//    @XStreamOmitField
+//    State parentState;
 
     public Condition(String condition) {
         super();
         this.condition = condition;
-        this.parentState = null;
+//        this.parentState = null;
     }
 
-    public Condition(Condition condition, State newContainer) {
+    public Condition(Condition condition) { //, State newContainer) {
         super(condition);
         this.condition = condition.getCondition();
-        this.parentState = newContainer;
+//        this.parentState = newContainer;
     }
 
     public String getCondition() {
@@ -32,17 +32,17 @@ public class Condition extends ProcessElement {
         this.condition = condition;
     }
 
-    public void setParentState(State parentState) {
-        this.parentState = parentState;
-    }
+//    public void setParentState(State parentState) {
+//        this.parentState = parentState;
+//    }
 
     @Override
     public String toString() {
         return condition;
     }
 
-    public void reconstructParentRelations(State state) {
-        this.parentState = state;
-    }
+//    public void reconstructParentRelations(State state) {
+//        this.parentState = state;
+//    }
 
 }

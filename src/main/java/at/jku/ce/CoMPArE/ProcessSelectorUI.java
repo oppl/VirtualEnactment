@@ -1,5 +1,7 @@
 package at.jku.ce.CoMPArE;
 
+import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.process.Message;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
@@ -27,6 +29,7 @@ public class ProcessSelectorUI extends Window {
     File file;
 
     private Process selectedProcess;
+    private ProcessChangeHistory processChangeHistory;
 
     public ProcessSelectorUI() {
         super("Select a new Process");
@@ -37,6 +40,7 @@ public class ProcessSelectorUI extends Window {
         fLayout.setSpacing(true);
         setContent(fLayout);
         selectedProcess = null;
+        processChangeHistory = new ProcessChangeHistory();
     }
 
     public void showProcessSelector() {
@@ -98,6 +102,14 @@ public class ProcessSelectorUI extends Window {
 
     public Process getSelectedProcess() {
         return selectedProcess;
+    }
+
+    public ProcessChangeHistory getProcessChangeHistory() {
+        return processChangeHistory;
+    }
+
+    public void setProcessChangeHistory(ProcessChangeHistory processChangeHistory) {
+        this.processChangeHistory = processChangeHistory;
     }
 
     public void setSelectedProcess(Process selectedProcess) {

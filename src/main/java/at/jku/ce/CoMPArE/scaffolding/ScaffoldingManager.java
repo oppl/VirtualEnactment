@@ -6,8 +6,12 @@ import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.scaffolding.agents.*;
 import at.jku.ce.CoMPArE.scaffolding.scaffolds.Scaffold;
+import com.google.gwt.user.client.ui.*;
 import com.vaadin.shared.ui.slider.SliderOrientation;
 import com.vaadin.ui.*;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
+import sun.rmi.runtime.Log;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,10 +33,11 @@ public class ScaffoldingManager {
     private Set<ScaffoldingAgent> scaffoldingAgents;
     private int globalScaffoldingMode;
     private Table table;
+    private TabSheet tabSheet;
     private Slider slider;
 
     public ScaffoldingManager(Process p, Panel scaffoldingPanel) {
-        HorizontalLayout hLayout = (HorizontalLayout) scaffoldingPanel.getContent();
+        GridLayout gridLayout = (GridLayout) scaffoldingPanel.getContent();
 
         this.process = p;
         this.scaffoldingPanel = scaffoldingPanel;
@@ -43,7 +48,8 @@ public class ScaffoldingManager {
         addScaffoldingAgent(new UnhandledCommunicationAgent(p, this));
         addScaffoldingAgent(new OnboardingAgent(p, this, scaffoldingPanel));
 
-        table = new Table("");
+        tabSheet = new TabSheet();
+/*        table = new Table("");
         table.addContainerProperty("Advice", String.class, null);
         table.addContainerProperty("Button",  Component.class, null);
         table.setWidth("100%");
@@ -51,7 +57,7 @@ public class ScaffoldingManager {
         table.setColumnWidth("Button",150);
 //        table.setColumnWidth("Advice",700);
         table.setColumnHeaderMode(Table.ColumnHeaderMode.HIDDEN);
-        table.setColumnAlignment("Button", Table.Align.CENTER);
+        table.setColumnAlignment("Button", Table.Align.CENTER);*/
 
         slider = new Slider(0.0,4.0,0);
         slider.setOrientation(SliderOrientation.VERTICAL);
@@ -62,7 +68,6 @@ public class ScaffoldingManager {
         slider.setDescription("Adjust suggestions here - higher means more specific tips");
 
         slider.addValueChangeListener( e -> {
-                LogHelper.logInfo("Slider value changed to "+slider.getValue());
                 double value = (Double) slider.getValue();
                 if (value == 0.0) {
                     globalScaffoldingMode = ScaffoldingManager.MODE_NONE;
@@ -82,8 +87,13 @@ public class ScaffoldingManager {
                 updateScaffoldingPanel();
         });
 
-        hLayout.addComponent(slider);
-        hLayout.addComponent(table);
+        gridLayout.addComponent(new Label(" "),0,0);
+        gridLayout.addComponent(slider,2,0);
+//        hLayout.addComponent(table);
+        gridLayout.addComponent(tabSheet,1,0);
+        tabSheet.setWidth("850px");
+        gridLayout.setSpacing(true);
+        gridLayout.setColumnExpandRatio(1,1);
 
         updateScaffolds(new Instance(p), new State(""));
     }
@@ -118,7 +128,8 @@ public class ScaffoldingManager {
     }
 
     private void updateScaffoldingPanel() {
-        table.removeAllItems();
+        tabSheet.removeAllComponents();
+//        table.removeAllItems();
         Set<Scaffold> scaffolds = new HashSet<>();
         for (ScaffoldingAgent agent: scaffoldingAgents) {
 //            LogHelper.logInfo("updScaf: Retrieving "+agent.getScaffolds(globalScaffoldingMode).size()+" scaffolds from "+agent.getClass().getName()+" on level "+globalScaffoldingMode);
@@ -128,14 +139,22 @@ public class ScaffoldingManager {
 
         for (Scaffold scaffold: scaffolds) {
 //            LogHelper.logInfo("updScaf: Adding scaffold "+scaffold.getScaffoldingPrompt());
-            table.addItem(new Object[]{scaffold.getScaffoldingPrompt(),scaffold.getInteractiveComponent()}, itemID);
+//            table.addItem(new Object[]{scaffold.getScaffoldingPrompt(),scaffold.getInteractiveComponent()}, itemID);
+            VerticalLayout gl = new VerticalLayout();
+            gl.addComponent(new Label(scaffold.getScaffoldingPrompt()));
+            gl.addComponent(scaffold.getInteractiveComponent());
+            gl.setSpacing(true);
+            gl.setMargin(true);
             itemID++;
+            tabSheet.addTab(gl,""+itemID);
         }
+        LogHelper.logInfo("updScaf: now displaying "+itemID+" scaffolds");
 //        LogHelper.logInfo("updScaf: Now displaying table with "+table.size()+" scaffolds");
-        table.setPageLength(table.size());
+//        table.setPageLength(table.size());
 //        table.setSelectable(true);
-        if (table.size() == 0) table.setVisible(false);
-        else table.setVisible(true);
+        tabSheet.setVisible(true);
+//        if (table.size() == 0) table.setVisible(false);
+//        else table.setVisible(true);
     }
 
     public void immediatelyUpdateScaffoldingPanel(ScaffoldingAgent trigger) {

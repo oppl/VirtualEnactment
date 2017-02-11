@@ -1,14 +1,15 @@
 package at.jku.ce.CoMPArE.storage;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.ProcessSelectorUI;
+import at.jku.ce.CoMPArE.diff.ModelDiff;
+import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
 import at.jku.ce.CoMPArE.process.Process;
+import at.jku.ce.CoMPArE.visualize.VisualizeModelEvolution;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -45,78 +46,98 @@ public class LoadFromArchiveWindow extends Window {
         layout.setSpacing(true);
         this.manager = manager;
         buildTable();
-        layout.addComponent(table);
-        Button close = new Button("Close");
-        close.addClickListener( e-> {
-            this.close();
-        });
-        layout.addComponent(close);
         setContent(layout);
     }
 
     private void buildTable() {
-        if (!fileStorageHandler.isIDCookieAvailable()) return;
-
-        List<File> resultFiles = loadResults(new File(CoMPArEUI.CoMPArEServlet.getResultFolderName()),fileStorageHandler.getGroupID());
-        if (table != null) layout.removeComponent(table);
-
-        table = new Table("Available Results");
-        table.addContainerProperty("ResultName", String.class, null);
-        table.addContainerProperty("ResultDate", String.class, null);
-        table.addContainerProperty("ButtonShow",  Button.class, null);
-        table.addContainerProperty("ButtonDownload",  Button.class, null);
-        table.addContainerProperty("SortDate",Long.class,null);
-        table.setSortContainerPropertyId("SortDate");
-        table.setSortAscending(false);
-        table.setWidth("90%");
-
-        table.setColumnWidth("ResultDate",200);
-        table.setColumnWidth("ButtonShow",150);
-        table.setColumnWidth("ButtonDownload",150);
-        table.setColumnHeaderMode(Table.ColumnHeaderMode.HIDDEN);
-        table.setColumnAlignment("ButtonShow", Table.Align.CENTER);
-        table.setColumnAlignment("ButtonDownload", Table.Align.CENTER);
-
-        int itemID = 0;
-        //          LogHelper.logInfo("ResultView: "+resultFiles.size()+" results available.");
-
-        for (File result: resultFiles) {
-
-            Button showButton = new Button("show content");
-            showButton.addClickListener( e-> {
-                this.getUI().addWindow(new ShowFolderContentWindow(result));
+        if (!fileStorageHandler.isIDCookieAvailable()) {
+            Window w = new GroupIDEntryWindow(fileStorageHandler);
+            w.addCloseListener(e-> {
+                buildTable();
             });
-
-
-            Button loadButton = new Button ("load");
-            loadButton.addClickListener( e-> {
-                this.close();
-                loadProcessesFromFolder(result);
-            });
-
-
-            BasicFileAttributes attr = null;
-            try {
-                attr = Files.readAttributes(result.toPath(), BasicFileAttributes.class);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if (attr == null) continue;
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-            LocalDateTime creationTime = LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("GMT+1"));
-            table.addItem(new Object[]{
-                    result.getName(),
-                    dtf.format(creationTime),
-                    showButton,
-                    loadButton,
-                    new Long(attr.lastModifiedTime().toMillis())
-            }, itemID);
-//                LogHelper.logInfo("ResultView: added "+result.getName());
-            itemID++;
+            manager.getUI().addWindow(w);
         }
-        table.sort();
-        table.setVisibleColumns(new String[] { "ResultName", "ResultDate", "ButtonShow", "ButtonDownload"});
-        table.setPageLength(table.size());
+        else {
+            List<File> resultFiles = loadResults(new File(CoMPArEUI.CoMPArEServlet.getResultFolderName()), fileStorageHandler.getGroupID());
+            if (table != null) layout.removeComponent(table);
+
+            table = new Table("Available Results");
+            table.addContainerProperty("ResultName", String.class, null);
+            table.addContainerProperty("ResultDate", String.class, null);
+            table.addContainerProperty("ButtonShow", Button.class, null);
+            table.addContainerProperty("ButtonDownload", Button.class, null);
+            table.addContainerProperty("SortDate", Long.class, null);
+            table.setSortContainerPropertyId("SortDate");
+            table.setSortAscending(false);
+            table.setWidth("90%");
+
+            table.setColumnWidth("ResultDate", 200);
+            table.setColumnWidth("ButtonShow", 150);
+            table.setColumnWidth("ButtonDownload", 150);
+            table.setColumnHeaderMode(Table.ColumnHeaderMode.HIDDEN);
+            table.setColumnAlignment("ButtonShow", Table.Align.CENTER);
+            table.setColumnAlignment("ButtonDownload", Table.Align.CENTER);
+
+            int itemID = 0;
+            //          LogHelper.logInfo("ResultView: "+resultFiles.size()+" results available.");
+
+            for (File result : resultFiles) {
+
+                Button showButton = new Button("show content");
+                showButton.addClickListener(e -> {
+                    this.getUI().addWindow(new ShowFolderContentWindow(result));
+                });
+
+
+                Button loadButton = new Button("load");
+                loadButton.addClickListener(e -> {
+                    this.close();
+                    Vector<Process> processes = loadProcessesFromFolder(result);
+                    Vector<Process> sortedProcesses = sortProcesses(processes);
+                    ProcessChangeHistory processChangeHistory = new ProcessChangeHistory();
+                    Process previous = null;
+                    for (Process current: sortedProcesses) {
+                        if (previous != null) {
+                            ModelDiff diff = new ModelDiff(previous,current);
+                            processChangeHistory.add(diff.getProcessChangeTransaction());
+                        }
+                        previous = current;
+                    }
+                    manager.setProcessChangeHistory(processChangeHistory);
+                    manager.setSelectedProcess(sortedProcesses.lastElement());
+                });
+
+
+                BasicFileAttributes attr = null;
+                try {
+                    attr = Files.readAttributes(result.toPath(), BasicFileAttributes.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (attr == null) continue;
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+                LocalDateTime creationTime = LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("GMT+1"));
+                table.addItem(new Object[]{
+                        result.getName(),
+                        dtf.format(creationTime),
+                        showButton,
+                        loadButton,
+                        new Long(attr.lastModifiedTime().toMillis())
+                }, itemID);
+//                LogHelper.logInfo("ResultView: added "+result.getName());
+                itemID++;
+            }
+            table.sort();
+            table.setVisibleColumns(new String[]{"ResultName", "ResultDate", "ButtonShow", "ButtonDownload"});
+            table.setPageLength(table.size());
+            layout.addComponent(table);
+            Button close = new Button("Close");
+            close.addClickListener( e-> {
+                this.close();
+            });
+            layout.addComponent(close);
+
+        }
     }
 
     private List<File> loadResults(File containingFolder, String groupID) {
@@ -130,7 +151,7 @@ public class LoadFromArchiveWindow extends Window {
         return Arrays.asList(files);
     }
 
-    private void loadProcessesFromFolder(File folder) {
+    private Vector<Process> loadProcessesFromFolder(File folder) {
         assert folder.exists() && folder.isDirectory();
 
         File[] files = folder.listFiles(f -> f.isFile()
@@ -145,16 +166,26 @@ public class LoadFromArchiveWindow extends Window {
             Process p = xmlStore.readXML(processFile);
             if (p != null) processes.add(p);
         }
-        manager.setSelectedProcess(getLatestProcess(processes));
+        return processes;
     }
 
-    private Process getLatestProcess(Vector<Process> processes) {
-        Process latest = null;
+    private Vector<Process> sortProcesses(Vector<Process> processes) {
+        LinkedList<Process> sorted = new LinkedList<>();
         for (Process p:processes) {
-            if (latest == null) latest = p;
-            if (!latest.getTimestamp().after(p.getTimestamp())) latest = p;
+            if (sorted.size()==0) sorted.addFirst(p);
+            else {
+                int index = 0;
+                for (Process a:sorted) {
+                    if (!p.getTimestamp().after(a.getTimestamp())) {
+                        sorted.add(index, p);
+                        break;
+                    }
+                    index++;
+                }
+                if (index == sorted.size()) sorted.addLast(p);
+            }
         }
-        return latest;
+        return new Vector<>(sorted);
     }
 
     private class ShowFolderContentWindow extends Window {
@@ -169,11 +200,23 @@ public class LoadFromArchiveWindow extends Window {
             vLayout.setMargin(true);
             vLayout.setSpacing(true);
             vLayout.addComponent(createTable(folder));
+            HorizontalLayout hLayout = new HorizontalLayout();
+            hLayout.setSpacing(true);
+            vLayout.addComponent(hLayout);
+            Button visualize = new Button("Show Details");
+            visualize.addClickListener( e -> {
+                Vector<Process> processes = loadProcessesFromFolder(folder);
+                Window w = new Window();
+                w.setContent(new VisualizeModelEvolution(processes));
+                w.center();
+                this.getUI().addWindow(w);
+            });
             Button close = new Button("Close");
             close.addClickListener( e-> {
                 this.close();
             });
-            vLayout.addComponent(close);
+            hLayout.addComponent(visualize);
+            hLayout.addComponent(close);
             setContent(vLayout);
 
         }

@@ -1,9 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
-import at.jku.ce.CoMPArE.process.ActionState;
-import at.jku.ce.CoMPArE.process.Condition;
-import at.jku.ce.CoMPArE.process.State;
-import at.jku.ce.CoMPArE.process.Subject;
+import at.jku.ce.CoMPArE.process.*;
+import at.jku.ce.CoMPArE.process.Process;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +29,8 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         subject.addState(newState);
         if (target == subject.getFirstState()) {
             decisionState = new ActionState("Make decision");
@@ -57,7 +56,8 @@ public class AddConditionalStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         subject.removeState(newState);
         Set<State> predecessorStates = subject.getPredecessorStates(target);
 

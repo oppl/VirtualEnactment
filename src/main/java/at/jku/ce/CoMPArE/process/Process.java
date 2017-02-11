@@ -28,7 +28,6 @@ public class Process extends ProcessElement {
 
     public Process(Process p) {
         super(p);
-        LogHelper.logInfo("cloning process "+p);
         name = p.toString();
         timestamp = p.getTimestamp();
         subjects = new HashSet<>();
@@ -36,6 +35,7 @@ public class Process extends ProcessElement {
 
         for (Message m: p.getMessages()) {
             messages.add(new Message (m));
+//            LogHelper.logInfo("added message "+m.getUUID()+" "+m);
         }
 
         for (Subject s: p.getSubjects()) {
@@ -49,7 +49,11 @@ public class Process extends ProcessElement {
     }
     public void removeSubject(Subject s) { if (s!=null) subjects.remove(s); }
 
-    public void addMessage(Message m) { if (m!=null) messages.add(m); }
+    public void addMessage(Message m) {
+        if (m!=null) {
+            messages.add(m);
+        }
+    }
 
     public void addMessages(Set<Message> messages) { this.messages.addAll(messages); }
 
@@ -63,8 +67,12 @@ public class Process extends ProcessElement {
 
     public Subject getSenderOfMessage(Message message) {
         for (Subject s: subjects) {
-            if (s.getSentMessages().contains(message)) return s;
-            if (s.getExpectedMessages().contains(message)) return s;
+            if (s.getSentMessages().contains(message)) {
+                return s;
+            }
+            if (s.getExpectedMessages().contains(message)) {
+                return s;
+            }
         }
         return null;
     }
@@ -101,15 +109,19 @@ public class Process extends ProcessElement {
     }
 
     public Message getMessageByUUID(UUID messageID) {
+//        LogHelper.logInfo("looking for message with UUID "+messageID);
         for (Message m: messages) {
-            if (m.getUUID().equals(messageID)) return m;
+            if (m.getUUID().equals(messageID)) {
+//                LogHelper.logInfo("found it");
+                return m;
+            }
         }
+//        LogHelper.logInfo("message not found");
         return null;
     }
 
     public Subject getSubjectWithState(State state) {
         for (Subject s: subjects) {
-            LogHelper.logInfo("Checking "+s.getStates().size()+" states of subject "+s);
             if (s.getStates().contains(state)) return s;
         }
         return null;

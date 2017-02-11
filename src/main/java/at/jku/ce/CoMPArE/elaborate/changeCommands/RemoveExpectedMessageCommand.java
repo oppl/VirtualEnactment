@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.process.Message;
+import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.Subject;
 
 /**
@@ -18,15 +19,17 @@ public class RemoveExpectedMessageCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         if (!subject.getExpectedMessages().contains(message)) return false;
         subject.removeExpectedMessage(message);
-        subject.getParentProcess().removeMessage(message);
+//        subject.getParentProcess().removeMessage(message);
         return true;
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         if (subject == null || message == null) return false;
         subject.addExpectedMessage(message);
         subject.getParentProcess().addMessage(message);

@@ -70,7 +70,6 @@ public class SomeThingElseFirstStep extends ElaborationStep {
     @Override
     public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
-        LogHelper.logInfo("Elaboration: inserting " + inputField.getValue() + " into " + subject);
         Object selectedItem = availableProvidedMessages.getValue();
 
         RecvState newRecvState = null;

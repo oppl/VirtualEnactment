@@ -2,6 +2,7 @@ package at.jku.ce.CoMPArE.process;
 
 import at.jku.ce.CoMPArE.LogHelper;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import sun.rmi.runtime.Log;
 
 import java.util.*;
 
@@ -20,6 +21,7 @@ public class Subject extends ProcessElement {
     private Process parentProcess;
 
     private Set<State> states;
+    private Set<Transition> transitions;
     private Set<UUID> expectedMessages;
     private Set<UUID> providedMessages;
 
@@ -29,6 +31,7 @@ public class Subject extends ProcessElement {
         this.parentProcess = null;
         this.firstState = null;
         this.states = new HashSet<>();
+        this.transitions = new HashSet<>();
         this.expectedMessages = new HashSet<>();
         this.providedMessages = new HashSet<>();
     }
@@ -38,6 +41,7 @@ public class Subject extends ProcessElement {
         this.name = s.toString();
         this.parentProcess = newProcess;
         this.states = new HashSet<>();
+        this.transitions = new HashSet<>();
 
         for (State state: s.getStates()) {
             State newState = null;
@@ -46,23 +50,9 @@ public class Subject extends ProcessElement {
             if (state instanceof RecvState) newState = new RecvState((RecvState) state, this);
             this.addState(newState);
         }
-        for (State state: s.getStates()) {
-            State newState = this.getStateByUUID(state.getUUID());
-            for (State nextState: state.getNextStates().keySet()) {
-                if (nextState == null) continue;
-                State nextNewState = this.getStateByUUID(nextState.getUUID());
-                Condition clonedCondition = null;
-                Condition originalCondition = state.getNextStates().get(nextState);
-                if (originalCondition instanceof MessageCondition) {
-                    clonedCondition = new MessageCondition((MessageCondition) originalCondition, state);
-                }
-                else {
-                    if (originalCondition != null) clonedCondition = new Condition(originalCondition, state);
-                }
-                newState.addNextState(nextNewState,clonedCondition);
-            }
+        for (Transition transition: s.getTransitions()) {
+            this.addTransition(new Transition(transition));
         }
-
         this.firstState = s.firstState;
         this.expectedMessages = new HashSet<>();
         this.providedMessages = new HashSet<>();
@@ -75,6 +65,14 @@ public class Subject extends ProcessElement {
 
     }
 
+    public Map<State,Condition> getNextStatesForState(State s) {
+        Map<State,Condition> nextStates = new HashMap<State, Condition>();
+        for (Transition t: transitions) {
+            if (t.getSource().equals(s.getUUID())) nextStates.put(getStateByUUID(t.getDest()),t.getCondition());
+        }
+        return nextStates;
+    }
+
     public Process getParentProcess() {
         return parentProcess;
     }
@@ -85,10 +83,16 @@ public class Subject extends ProcessElement {
     }
 
     public void removeState(State state) {
-        states.remove(state.getUUID());
+        removeAllOutgoingTransitionsFrom(state);
+        removeAllIncomingTransitionsTo(state);
+        states.remove(state);
     }
 
     public State setFirstState(State firstState) {
+        if (firstState == null) {
+            this.firstState = null;
+            return null;
+        }
         if (!states.contains(firstState)) {
             states.add(firstState);
             firstState.setParentSubject(this);
@@ -116,11 +120,20 @@ public class Subject extends ProcessElement {
         return null;
     }
 
-    public State getSendState(Message m) {
+    public Set<State> getSendStates(Message m) {
+        Set<State> sendState = new HashSet<>();
         for (State s: getStates()) {
-            if (s instanceof SendState && ((SendState) s).getSentMessage().equals(m)) return s;
+            if (s instanceof SendState && ((SendState) s).getSentMessage().equals(m)) sendState.add(s);
         }
-        return null;
+        return sendState;
+    }
+
+    public Set<State> getRecvStates(Message m) {
+        Set<State> recvState = new HashSet<>();
+        for (State s: getStates()) {
+            if (s instanceof RecvState && ((RecvState) s).getRecvdMessages().contains(m)) recvState.add(s);
+        }
+        return recvState;
     }
 
     public Set<Message> getSentMessages() {
@@ -178,13 +191,56 @@ public class Subject extends ProcessElement {
     public void removeProvidedMessage(Message providedMessage) { this.providedMessages.remove(providedMessage.getUUID()); }
 
     public Set<State> getPredecessorStates(State target) {
-        Set<State> predecessorStates = new HashSet<>();
+        Set<State> predecessorStates = new HashSet<State>();
+        for (Transition t: transitions) {
+            if (t.getDest().equals(target.getUUID())) predecessorStates.add(getStateByUUID(t.getSource()));
+        }
+        return predecessorStates;
+
+/*        Set<State> predecessorStates = new HashSet<>();
         for (State s: states) {
             for (State nextState: s.getNextStates().keySet()) {
                 if (nextState.equals(target)) predecessorStates.add(s);
             }
         }
-        return predecessorStates;
+        return predecessorStates;*/
+    }
+
+    public void addTransition(Transition t) {
+        transitions.add(t);
+    }
+
+    public Set<Transition> getTransitions() {
+        return transitions;
+    }
+
+    public void removeAllIncomingTransitionsTo(State s) {
+        Set<Transition> toBeRemoved = new HashSet<>();
+        for (Transition t: transitions) {
+            if (t.getDest().equals(s.getUUID())) toBeRemoved.add(t);
+        }
+        transitions.removeAll(toBeRemoved);
+    }
+
+    public void removeAllOutgoingTransitionsFrom(State s) {
+        Set<Transition> toBeRemoved = new HashSet<>();
+        for (Transition t: transitions) {
+            if (t.getSource().equals(s.getUUID())) toBeRemoved.add(t);
+        }
+        transitions.removeAll(toBeRemoved);
+    }
+
+    public void removeAllTransitionsBetween(State source, State dest) {
+        Set<Transition> toBeRemoved = new HashSet<>();
+        for (Transition t: transitions) {
+            if (t.getSource().equals(source.getUUID()) && t.getDest().equals(dest.getUUID())) toBeRemoved.add(t);
+        }
+        transitions.removeAll(toBeRemoved);
+
+    }
+
+    public void removeTransition(Transition t) {
+        transitions.remove(t);
     }
 
     public void setParentProcess(Process parentProcess) {
@@ -195,6 +251,9 @@ public class Subject extends ProcessElement {
         this.parentProcess = p;
         for (State s: states) {
             s.reconstructParentRelations(this);
+        }
+        for (Transition t: transitions) {
+            t.reconstructParentRelations(this);
         }
     }
 

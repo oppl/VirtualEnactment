@@ -1,6 +1,9 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.Message;
+import at.jku.ce.CoMPArE.process.Process;
+import at.jku.ce.CoMPArE.process.RecvState;
 import at.jku.ce.CoMPArE.process.SendState;
 
 /**
@@ -19,14 +22,16 @@ public class AddMessageToSendStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        state = (SendState) p.getStateByUUID(state.getUUID());
         oldMessage = state.getSentMessage();
         state.setSentMessage(message);
         return true;
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        state = (SendState) p.getStateByUUID(state.getUUID());
         state.setSentMessage(oldMessage);
         return true;
     }

@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.process.Message;
+import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.RecvState;
 import at.jku.ce.CoMPArE.process.SendState;
 
@@ -18,13 +19,15 @@ public class AddMessageToRecvStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        state = (RecvState) p.getStateByUUID(state.getUUID());
         state.addRecvdMessage(message);
         return true;
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        state = (RecvState) p.getStateByUUID(state.getUUID());
         state.removeRecvdMessage(message);
         return true;
     }

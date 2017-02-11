@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.*;
@@ -107,7 +108,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             String selection = infoTarget.getValue().toString();
             if (selection.equals(optionDontKnow)) {
                 Subject anonymous = new Subject(Subject.ANONYMOUS);
-                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
+                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous));
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
@@ -125,10 +126,11 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             }
         } else {
             Message m = (Message) availableExpectedMessages.getValue();
+            LogHelper.logInfo("retrieving "+m);
             SendState newState = new SendState("Send " + m);
             processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
-            processChanges.add(new AddMessageToSendStateCommand(newState,m));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));
+            processChanges.add(new AddMessageToSendStateCommand(newState,m));
             return processChanges;
         }
         return processChanges;

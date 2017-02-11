@@ -2,6 +2,7 @@ package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.*;
+import at.jku.ce.CoMPArE.process.Process;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +25,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         Set<State> predecessorStates = subject.getPredecessorStates(state);
         Map<State, Condition> nextStates = state.getNextStates();
         subject.addState(newState);
@@ -54,7 +56,8 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         Set<State> predecessorStates = subject.getPredecessorStates(state);
         subject.addState(state);
         if (state instanceof SendState) subject.removeExpectedMessage(((SendState) state).getSentMessage());

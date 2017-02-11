@@ -27,4 +27,8 @@ public class LogHelper {
         logger.info(string);
     }
 
+    public static void logDebug(String string) {
+        logger.info("debug :"+string);
+    }
+
 }
