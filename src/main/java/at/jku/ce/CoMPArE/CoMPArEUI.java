@@ -28,6 +28,7 @@ import org.vaadin.sliderpanel.SliderPanelStyles;
 import org.vaadin.sliderpanel.client.SliderMode;
 import org.vaadin.sliderpanel.client.SliderPanelListener;
 import org.vaadin.sliderpanel.client.SliderTabPosition;
+import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.util.*;
@@ -501,6 +502,26 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             LogHelper.logInfo("Process blocked, offering to restart ...");
 //             scaffoldingPanel.setVisible(false);
             restart.setVisible(true);
+            LogHelper.logInfo("process changed? "+currentInstance.isProcessHasBeenChanged());
+            if (currentInstance.isProcessHasBeenChanged()) {
+                if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
+                if (!fileStorageHandler.isIDCookieAvailable()) {
+                    GroupIDEntryWindow groupIDEntryWindow = new GroupIDEntryWindow(fileStorageHandler);
+                    this.getUI().addWindow(groupIDEntryWindow);
+                    groupIDEntryWindow.addCloseListener(e -> {
+                        fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                        fileStorageHandler.saveToServer();
+                    });
+                } else {
+                    fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                    fileStorageHandler.saveToServer();
+                }
+            }
+            Button download = new Button("Download");
+            download.addClickListener( e-> {
+                fileStorageHandler.openDownloadWindow(this.getUI());
+            });
+            toolBar.addComponent(download);
         }
 
         if (currentInstance.processFinished()) {
@@ -510,6 +531,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingPanel.setVisible(false);
             if (currentInstance.getProcess().getSubjects().size() > 0) {
                 restart.setVisible(true);
+                LogHelper.logInfo("process changed? "+currentInstance.isProcessHasBeenChanged());
                 if (currentInstance.isProcessHasBeenChanged()) {
                     if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
                     if (!fileStorageHandler.isIDCookieAvailable()) {
@@ -702,9 +724,12 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             public void windowClose(Window.CloseEvent e) {
                 Process newProcess = processSelectorUI.getSelectedProcess();
                 if (newProcess != null) {
+                    for (Message m: newProcess.getMessages()) {
+                        LogHelper.logInfo("Message in new process: "+m+" "+m.getUUID());
+                    }
                     currentProcess = newProcess;
                     initialStartup = true;
-                    processChangeHistory = new ProcessChangeHistory();
+                    processChangeHistory = processSelectorUI.getProcessChangeHistory();
                     currentInstance = new Instance(currentProcess);
                     createBasicLayout();
                     simulator = new Simulator(currentInstance, subjectPanels, CoMPArEUI.this);

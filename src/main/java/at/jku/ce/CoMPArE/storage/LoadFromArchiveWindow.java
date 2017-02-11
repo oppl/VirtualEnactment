@@ -1,7 +1,10 @@
 package at.jku.ce.CoMPArE.storage;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.ProcessSelectorUI;
+import at.jku.ce.CoMPArE.diff.ModelDiff;
+import at.jku.ce.CoMPArE.elaborate.ProcessChangeHistory;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.visualize.VisualizeModelEvolution;
 import com.vaadin.server.FileDownloader;
@@ -90,7 +93,18 @@ public class LoadFromArchiveWindow extends Window {
                 loadButton.addClickListener(e -> {
                     this.close();
                     Vector<Process> processes = loadProcessesFromFolder(result);
-                    manager.setSelectedProcess(getLatestProcess(processes));
+                    Vector<Process> sortedProcesses = sortProcesses(processes);
+                    ProcessChangeHistory processChangeHistory = new ProcessChangeHistory();
+                    Process previous = null;
+                    for (Process current: sortedProcesses) {
+                        if (previous != null) {
+                            ModelDiff diff = new ModelDiff(previous,current);
+                            processChangeHistory.add(diff.getProcessChangeTransaction());
+                        }
+                        previous = current;
+                    }
+                    manager.setProcessChangeHistory(processChangeHistory);
+                    manager.setSelectedProcess(sortedProcesses.lastElement());
                 });
 
 
@@ -155,13 +169,23 @@ public class LoadFromArchiveWindow extends Window {
         return processes;
     }
 
-    private Process getLatestProcess(Vector<Process> processes) {
-        Process latest = null;
+    private Vector<Process> sortProcesses(Vector<Process> processes) {
+        LinkedList<Process> sorted = new LinkedList<>();
         for (Process p:processes) {
-            if (latest == null) latest = p;
-            if (!latest.getTimestamp().after(p.getTimestamp())) latest = p;
+            if (sorted.size()==0) sorted.addFirst(p);
+            else {
+                int index = 0;
+                for (Process a:sorted) {
+                    if (!p.getTimestamp().after(a.getTimestamp())) {
+                        sorted.add(index, p);
+                        break;
+                    }
+                    index++;
+                }
+                if (index == sorted.size()) sorted.addLast(p);
+            }
         }
-        return latest;
+        return new Vector<>(sorted);
     }
 
     private class ShowFolderContentWindow extends Window {

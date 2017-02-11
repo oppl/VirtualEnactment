@@ -102,11 +102,11 @@ public class AddStateCommand extends ProcessChangeCommand {
 
         if (newState instanceof RecvState) {
             for (Message m:((RecvState) newState).getRecvdMessages()) {
-                s.getParentProcess().removeMessage(m);
+//                s.getParentProcess().removeMessage(m);
             }
         }
         if (newState instanceof SendState) {
-            s.getParentProcess().removeMessage(((SendState) newState).getSentMessage());
+//            s.getParentProcess().removeMessage(((SendState) newState).getSentMessage());
         }
         if (before) {
             if (target == null) {

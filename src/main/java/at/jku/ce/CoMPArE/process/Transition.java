@@ -13,6 +13,8 @@ public class Transition extends ProcessElement {
     private UUID source;
     private UUID dest;
     private Condition condition;
+
+//    @XStreamOmitField
     private String name;
 
     @XStreamOmitField

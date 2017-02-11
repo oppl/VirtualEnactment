@@ -122,13 +122,18 @@ public class ModelDiff {
         }
 
         for (Message m: dest.getMessages()) {
-            if (!source.getMessages().contains(m)) addedMessages.add(m); // messages have been added
+            if (!source.getMessages().contains(m)) {
+                LogHelper.logInfo("found added message "+m);
+                addedMessages.add(m); // messages have been added
+            }
         }
 
     }
 
     public ProcessChangeTransaction getProcessChangeTransaction() {
         ProcessChangeTransaction transaction = new ProcessChangeTransaction();
+
+        // todo: added and removed expected and provided messages still missing from reconstruction
 
         for (Transition transition: getRemovedTransitions()) {
             transaction.add(new RemoveTransitionCommand(transition.getParentSubject(),transition));
@@ -146,7 +151,9 @@ public class ModelDiff {
             transaction.add(new RemoveMessageCommand(source,message));
         }
 
+
         for (Message message: getAddedMessages()) {
+            LogHelper.logInfo("create transaction step for added message "+message);
             transaction.add(new AddMessageCommand(source,message));
         }
 

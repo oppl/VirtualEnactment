@@ -107,9 +107,14 @@ public class Process extends ProcessElement {
     }
 
     public Message getMessageByUUID(UUID messageID) {
+        LogHelper.logInfo("looking for message with UUID "+messageID);
         for (Message m: messages) {
-            if (m.getUUID().equals(messageID)) return m;
+            if (m.getUUID().equals(messageID)) {
+                LogHelper.logInfo("found it");
+                return m;
+            }
         }
+        LogHelper.logInfo("message not found");
         return null;
     }
 
