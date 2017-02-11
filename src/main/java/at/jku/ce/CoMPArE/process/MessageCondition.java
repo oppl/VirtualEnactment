@@ -22,7 +22,6 @@ public class MessageCondition extends Condition {
     }
 
     public boolean checkCondition(Message messageToBeChecked) {
-        LogHelper.logInfo(messageToBeChecked.getUUID()+" "+receivedMessageID);
         if (messageToBeChecked.getUUID().equals(receivedMessageID)) return true;
         return false;
     }

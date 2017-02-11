@@ -41,7 +41,6 @@ public class AskForConditionsStep extends ElaborationStep {
 
     public AskForConditionsStep(Wizard owner, State newState, Subject s, Instance i) {
         this(owner,newState.getName(),s,i);
-        LogHelper.logInfo("Instantiate newMessageStep with already known state");
         alreadyExistingState = newState;
     }
 
@@ -57,7 +56,6 @@ public class AskForConditionsStep extends ElaborationStep {
         inputFieldOld = new TextField("What is the condition for \"" + state + "\"?");
 
         predecessorStates = subject.getPredecessorStates(state);
-        LogHelper.logInfo("Elaboration: found " + predecessorStates.size() + " predecessors for inserting " + newState);
 
         originalConditionTextFields = new HashMap<>();
         newConditionTextFields = new HashMap<>();
@@ -119,8 +117,7 @@ public class AskForConditionsStep extends ElaborationStep {
         state = instance.getAvailableStateForSubject(subject);
 
         for (State predecessor : predecessorStates) {
-            LogHelper.logInfo(originalConditionTextFields.get(predecessor).getValue()+" "+newConditionTextFields.get(predecessor).getValue());
-            if (!(originalConditions.get(predecessor) instanceof MessageCondition)) // TODO: check whether this really works (entry might be missing when executing the command
+            if (!(originalConditions.get(predecessor) instanceof MessageCondition))
                 originalConditions.put(predecessor, new Condition(originalConditionTextFields.get(predecessor).getValue()));
             newConditions.put(predecessor, new Condition(newConditionTextFields.get(predecessor).getValue()));
         }

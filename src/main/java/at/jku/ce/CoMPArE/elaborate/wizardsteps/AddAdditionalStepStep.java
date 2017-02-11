@@ -90,7 +90,6 @@ public class AddAdditionalStepStep extends ElaborationStep implements StateClick
 
     @Override
     public List<ProcessChangeCommand> getProcessChangeList() {
-        LogHelper.logInfo("Elaboration: inserting new additional newMessageStep " + inputField.getValue() + " into " + subject);
 
         RecvState newRecvState = null;
         if (availableProvidedMessages.getValue() instanceof Message) {

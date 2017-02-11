@@ -172,7 +172,6 @@ public class UploadWindow extends Window {
                 uploadList.append("<li>and "+(processes.size()-5)+" more ...</li>");
                 break;
             }
-            LogHelper.logInfo("adding "+p+" to list");
             uploadList.append("<li>");
             uploadList.append(p.toString());
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");

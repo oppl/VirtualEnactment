@@ -36,8 +36,6 @@ public class ModelDiff {
     Process source;
 
     public ModelDiff(Process source, Process dest) {
-        LogHelper.logInfo("Diff process started");
-
         this.source = source;
 
         addedStates = new HashSet<>();
@@ -59,14 +57,12 @@ public class ModelDiff {
         removedProvidedMessages = new HashSet<>();
 
         for (Subject s: source.getSubjects()) {
-            LogHelper.logInfo("now examining subject "+s);
             if (!dest.getSubjects().contains(s)) {
                 removedSubjects.add(s); // subject has been removed
                 removedStates.addAll(s.getStates());
                 removedTransitions.addAll(s.getTransitions());
             }
             else { // subject has remained in process
-//                LogHelper.logInfo("subject has remained in process");
                 Subject destSubject = dest.getSubjectByUUID(s.getUUID());
                 for (Message m: s.getExpectedMessages()) {
                     if (!destSubject.getExpectedMessages().contains(m)) removedExpectedMessages.add(new MessageBuffer(s,m));
@@ -84,19 +80,15 @@ public class ModelDiff {
                     if (!destSubject.getStates().contains(state)) removedStates.add(state);
                 }
                 for (State state: destSubject.getStates()) {
-//                    LogHelper.logInfo("checking if "+state+" has already been in process");
                     if (!s.getStates().contains(state)) {
                         addedStates.add(state);
-                        LogHelper.logInfo("found added state "+state);
                     }
-//                    else LogHelper.logInfo(state+" already contained (subject contains "+s.getStates().size()+" states)");
                 }
                 for (Transition transition: s.getTransitions()) {
                     if (!destSubject.getTransitions().contains(transition)) removedTransitions.add(transition);
                 }
                 for (Transition transition: destSubject.getTransitions()) {
                     if (!s.getTransitions().contains(transition)) {
-                        LogHelper.logInfo("found added transition "+transition);
                         addedTransitions.add(transition);
                     }
                 }
@@ -123,7 +115,6 @@ public class ModelDiff {
 
         for (Message m: dest.getMessages()) {
             if (!source.getMessages().contains(m)) {
-                LogHelper.logInfo("found added message "+m);
                 addedMessages.add(m); // messages have been added
             }
         }
@@ -142,7 +133,6 @@ public class ModelDiff {
         }
 
         for (MessageBuffer messageBuffer: this.removedExpectedMessages) {
-            LogHelper.logInfo("create transaction for removing expected message "+ messageBuffer.getMessage()+" from "+messageBuffer.getSubject());
             transaction.add(new RemoveExpectedMessageCommand(messageBuffer.getSubject(),messageBuffer.getMessage()));
         }
 
@@ -160,7 +150,6 @@ public class ModelDiff {
 
 
         for (Message message: getAddedMessages()) {
-            LogHelper.logInfo("create transaction step for added message "+message);
             transaction.add(new AddMessageCommand(source,message));
         }
 
@@ -169,7 +158,6 @@ public class ModelDiff {
         }
 
         for (MessageBuffer messageBuffer: this.addedExpectedMessages) {
-            LogHelper.logInfo("added expected message "+ messageBuffer.getMessage()+" to "+messageBuffer.getSubject());
             transaction.add(new AddExpectedMessageCommand(messageBuffer.getSubject(),messageBuffer.getMessage()));
         }
 

@@ -134,7 +134,6 @@ public class Simulator {
     }
 
     public boolean findPathToState(State targetState, LinkedList<SimulatorStep> overallList, int entryIndex) {
-        LogHelper.logInfo("Searching for subject with state "+targetState);
         Subject targetSubject = instance.getProcess().getSubjectWithState(targetState);
         if (instance.subjectFinished(targetSubject)) return false;
         boolean pathFound;

@@ -95,10 +95,6 @@ public class ElaborationUI extends Window implements WizardProgressListener {
         }
         transaction.perform(instance.getProcess());
 
-        for (Message m: subject.getParentProcess().getMessages()) {
-            LogHelper.logInfo(m.getUUID()+" "+m);
-        }
-
         State newActiveState = transaction.getNewActiveState();
         if (subject != null && newActiveState != null) {
             instance.updateAvailableStateForSubject(subject, newActiveState);

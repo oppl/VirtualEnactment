@@ -68,18 +68,15 @@ public class AddStateCommand extends ProcessChangeCommand {
                 return true;
             }
             if (target == s.getFirstState() || s.getFirstState() == null) {
-                LogHelper.logInfo("Elaboration: inserting " + newState + " as new first state in subject " + s);
                 s.setFirstState(newState);
                 if (target != null) newState.addNextState(target);
                 return true;
             }
 
             Set<State> predecessorStates = s.getPredecessorStates(target);
-            LogHelper.logInfo("Elaboration: found " + predecessorStates.size() + " predecessors for inserting " + newState);
 
             if (!predecessorStates.isEmpty()) {
                 for (State predecessorState : predecessorStates) {
-                    LogHelper.logInfo("Elaboration: inserting " + newState + " after " + predecessorState);
                     Condition c = predecessorState.getNextStates().get(target);
                     predecessorState.removeNextState(target);
                     predecessorState.addNextState(newState, c);

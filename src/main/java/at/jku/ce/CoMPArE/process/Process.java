@@ -28,7 +28,6 @@ public class Process extends ProcessElement {
 
     public Process(Process p) {
         super(p);
-        LogHelper.logInfo("cloning process "+p);
         name = p.toString();
         timestamp = p.getTimestamp();
         subjects = new HashSet<>();
@@ -52,7 +51,6 @@ public class Process extends ProcessElement {
 
     public void addMessage(Message m) {
         if (m!=null) {
-            LogHelper.logInfo("adding to process "+m.getUUID()+" "+m);
             messages.add(m);
         }
     }
@@ -69,7 +67,6 @@ public class Process extends ProcessElement {
 
     public Subject getSenderOfMessage(Message message) {
         for (Subject s: subjects) {
-            LogHelper.logInfo("examining "+ s.getSentMessages().size()+" sent and "+s.getExpectedMessages().size()+" expected messages in subject "+s);
             if (s.getSentMessages().contains(message)) {
                 return s;
             }
@@ -125,7 +122,6 @@ public class Process extends ProcessElement {
 
     public Subject getSubjectWithState(State state) {
         for (Subject s: subjects) {
-            LogHelper.logInfo("Checking "+s.getStates().size()+" states of subject "+s);
             if (s.getStates().contains(state)) return s;
         }
         return null;

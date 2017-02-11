@@ -368,7 +368,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private void rollbackChangesTo(ProcessChangeTransaction rollbackTo) {
         if (rollbackTo != null) {
             for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
-                LogHelper.logInfo("undoing "+transaction);
                 transaction.undo(currentProcess);
                 if (transaction == rollbackTo) break;
             }
@@ -502,7 +501,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             LogHelper.logInfo("Process blocked, offering to restart ...");
 //             scaffoldingPanel.setVisible(false);
             restart.setVisible(true);
-            LogHelper.logInfo("process changed? "+currentInstance.isProcessHasBeenChanged());
             if (currentInstance.isProcessHasBeenChanged()) {
                 if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
                 if (!fileStorageHandler.isIDCookieAvailable()) {
@@ -531,7 +529,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingPanel.setVisible(false);
             if (currentInstance.getProcess().getSubjects().size() > 0) {
                 restart.setVisible(true);
-                LogHelper.logInfo("process changed? "+currentInstance.isProcessHasBeenChanged());
                 if (currentInstance.isProcessHasBeenChanged()) {
                     if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
                     if (!fileStorageHandler.isIDCookieAvailable()) {

@@ -29,23 +29,13 @@ public class VisualizeModelEvolution extends GridLayout {
         LinkedList<ProcessChangeTransaction> transactions = processChangeHistory.getHistory();
         LinkedList<ProcessChangeTransaction> reverse = new LinkedList<>();
         historyList.addFirst(new Process(process));
-        LogHelper.logInfo("--- (undo)");
         for (ProcessChangeTransaction transaction: transactions) {
             transaction.undo(process);
             historyList.addFirst(new Process(process));
-            for (Subject s: process.getSubjects()) {
-                LogHelper.logInfo(" original subject "+s+" contains "+s.getExpectedMessages().size()+" expected messages");
-            }
-            for (Subject s: historyList.getFirst().getSubjects()) {
-                LogHelper.logInfo(" cloned subject "+s+" contains "+s.getExpectedMessages().size()+" expected messages");
-            }
-            LogHelper.logInfo("--- (undo)");
             reverse.addFirst(transaction);
         }
-        LogHelper.logInfo("--- (redo)");
         for (ProcessChangeTransaction transaction: reverse) {
             transaction.perform(process);
-            LogHelper.logInfo("--- (redo)");
         }
         history = new Vector<>(historyList);
 
