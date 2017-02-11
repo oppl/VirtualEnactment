@@ -118,7 +118,7 @@ public class NeedMoreInputStep extends ElaborationStep {
             String selection = infoSource.getValue().toString();
             if (selection.equals(optionDontKnow)) {
                 Subject anonymous = new Subject(Subject.ANONYMOUS);
-                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
+                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous));
                 RecvState newState = new RecvState("Wait for " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 processChanges.add(new AddStateCommand(subject,state,newState,true));

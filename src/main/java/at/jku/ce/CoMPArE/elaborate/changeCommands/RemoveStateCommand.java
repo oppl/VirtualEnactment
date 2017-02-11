@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.elaborate.changeCommands;
 
 import at.jku.ce.CoMPArE.process.*;
+import at.jku.ce.CoMPArE.process.Process;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +24,8 @@ public class RemoveStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         Set<State> predecessorStates = subject.getPredecessorStates(state);
         Map<State, Condition> nextStates = state.getNextStates();
         if (state instanceof SendState) {
@@ -63,16 +65,17 @@ public class RemoveStateCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        subject = p.getSubjectByUUID(subject.getUUID());
         Set<State> predecessorStates = subject.getPredecessorStates(replacementState);
         if (state instanceof SendState) {
             subject.removeExpectedMessage(((SendState) state).getSentMessage());
-            subject.getParentProcess().removeMessage(((SendState) state).getSentMessage());
+//            subject.getParentProcess().removeMessage(((SendState) state).getSentMessage());
         }
         if (state instanceof RecvState) {
             for (Message m : ((RecvState) state).getRecvdMessages()) {
                 subject.removeProvidedMessage(m);
-                subject.getParentProcess().removeMessage(m);
+//                subject.getParentProcess().removeMessage(m);
             }
         }
         if (predecessorStates.isEmpty()) {

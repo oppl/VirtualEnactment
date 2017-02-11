@@ -102,7 +102,6 @@ public class SomeThingElseInsteadStep extends ElaborationStep implements StateCl
         relationship.addItem(optionAdditionalActivity);
 
         relationship.addValueChangeListener(e -> {
-            LogHelper.logInfo("---");
             Object selectedItem = e.getProperty().getValue();
 
             if (selectedItem == optionConditionalReplace) {

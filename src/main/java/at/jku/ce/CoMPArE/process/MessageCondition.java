@@ -11,27 +11,30 @@ public class MessageCondition extends Condition {
 
     private UUID receivedMessageID;
 
-    public MessageCondition(Message receivedMessage) {
+    public MessageCondition(UUID receivedMessage) {
         super(receivedMessage.toString());
-        this.receivedMessageID = receivedMessage.getUUID();
+        this.receivedMessageID = receivedMessage;
     }
 
-    public MessageCondition(MessageCondition messageCondition, State container) {
-        super(messageCondition, container);
-        receivedMessageID = messageCondition.receivedMessageID;
+    public MessageCondition(MessageCondition messageCondition, Transition inTransition) {
+        super(messageCondition);
+        receivedMessageID = messageCondition.getMessage();
     }
 
     public boolean checkCondition(Message messageToBeChecked) {
-        LogHelper.logInfo(messageToBeChecked.getUUID()+" "+receivedMessageID);
         if (messageToBeChecked.getUUID().equals(receivedMessageID)) return true;
         return false;
     }
 
-    public Message getMessage() {
+/*    public Message getMessage() {
         if (parentState == null) return null;
         if (parentState.getParentSubject() == null) return null;
         if (parentState.getParentSubject().getParentProcess() == null) return null;
         return parentState.getParentSubject().getParentProcess().getMessageByUUID(receivedMessageID);
+    }*/
+
+    public UUID getMessage() {
+        return receivedMessageID;
     }
 
 }

@@ -88,8 +88,8 @@ public class DemoProcess {
         s = s.addNextState(new SendState("Send Application Form", applicationForm));
         s = s.addNextState(new RecvState("Wait for Decision", confirmation));
         ((RecvState) s).addRecvdMessage(rejection);
-        s.addNextState(new ActionState("Book Holiday"), new MessageCondition(confirmation));
-        s.addNextState(new ActionState("Be angry"), new MessageCondition(rejection));
+        s.addNextState(new ActionState("Book Holiday"), new MessageCondition(confirmation.getUUID()));
+        s.addNextState(new ActionState("Be angry"), new MessageCondition(rejection.getUUID()));
 
         s = s2.setFirstState(new RecvState("Wait for Application Form", applicationForm));
         s = s.addNextState(new ActionState("Check for Conflicts"));
@@ -99,8 +99,8 @@ public class DemoProcess {
         s = s.addNextState(new RecvState("Wait for Decision on Application", confirmedApplication));
         ((RecvState) s).addRecvdMessage(declinedApplication);
         s = s.addNextState(new ActionState("File decided Application"));
-        s.addNextState(new SendState("Send confirmed Application",confirmation),new MessageCondition(confirmedApplication));
-        s.addNextState(new SendState("Send declined Application",rejection), new MessageCondition(declinedApplication));
+        s.addNextState(new SendState("Send confirmed Application",confirmation),new MessageCondition(confirmedApplication.getUUID()));
+        s.addNextState(new SendState("Send declined Application",rejection), new MessageCondition(declinedApplication.getUUID()));
 
         s = s3.setFirstState(new RecvState("Wait for checked Application From", checkedApplicationForm));
         s = s.addNextState(new ActionState("Decide on Application"));

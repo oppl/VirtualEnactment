@@ -95,7 +95,7 @@ public class ExplorationAgent extends ScaffoldingAgent {
                 procDescr.append("<p>You need to make sure that the following things happen (in this order) to reach \"" + nextSuggestedState + "\":<ol>");
                 for (Condition c : getConditionsToState(s, nextSuggestedState)) {
                     if (c instanceof MessageCondition)
-                        procDescr.append("<li>Input \"" + c + "\" needs to be provided by " + process.getSenderOfMessage(((MessageCondition) c).getMessage()) + "</li>");
+                        procDescr.append("<li>Input \"" + c + "\" needs to be provided by " + process.getSenderOfMessage(process.getMessageByUUID(((MessageCondition) c).getMessage())) + "</li>");
                     else procDescr.append("<li>Option \"" + c + "\" needs to be selected.</li>");
                 }
                 procDescr.append("</ol></p>");

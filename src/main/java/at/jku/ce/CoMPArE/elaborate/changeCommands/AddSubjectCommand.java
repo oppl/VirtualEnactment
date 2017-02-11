@@ -11,19 +11,20 @@ public class AddSubjectCommand extends ProcessChangeCommand {
 
     Subject subject;
     Process process;
-    Instance instance;
+//    Instance instance;
     boolean intialAnonymousAdd;
 
-    public AddSubjectCommand(Process p, Subject s, Instance i) {
+    public AddSubjectCommand(Process p, Subject s) { //, Instance i) {
         super();
         subject = s;
         process = p;
-        instance = i;
+//        instance = i;
         intialAnonymousAdd = false;
     }
 
     @Override
-    public boolean perform() {
+    public boolean perform(Process p) {
+        process = p;
         for (Subject s : process.getSubjects()) {
             if (subject.toString().equals(Subject.ANONYMOUS) && s.toString().equals(Subject.ANONYMOUS)) {
                 return true;
@@ -38,7 +39,8 @@ public class AddSubjectCommand extends ProcessChangeCommand {
     }
 
     @Override
-    public boolean undo() {
+    public boolean undo(Process p) {
+        process = p;
         if (subject.toString().equals(Subject.ANONYMOUS) && intialAnonymousAdd == false) return true;
         process.removeSubject(subject);
         return true;

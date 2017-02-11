@@ -102,6 +102,13 @@ public class Instance {
         for (State s : getAvailableStates().values()) {
             if (s instanceof ActionState || s instanceof SendState) isBlocked = false;
         }
+        for (Subject s : getProcess().getSubjects()) {
+            for (Message m: s.getExpectedMessages()) {
+                for (State state : getAvailableStates().values()) {
+                    if (state instanceof RecvState && ((RecvState) state).getRecvdMessages().contains(m)) isBlocked = false;
+                }
+            }
+        }
         return isBlocked;
     }
 
@@ -219,6 +226,10 @@ public class Instance {
 
     public Process getProcess() {
         return p;
+    }
+
+    public LinkedList<InstanceHistoryStep> getWholeHistory() {
+        return history.getWholeHistory();
     }
 
     public LinkedList<InstanceHistoryStep> getHistoryForSubject(Subject s) {

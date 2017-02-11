@@ -28,6 +28,7 @@ import org.vaadin.sliderpanel.SliderPanelStyles;
 import org.vaadin.sliderpanel.client.SliderMode;
 import org.vaadin.sliderpanel.client.SliderPanelListener;
 import org.vaadin.sliderpanel.client.SliderTabPosition;
+import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.util.*;
@@ -191,7 +192,13 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         }
         VerticalLayout interaction = new VerticalLayout();
         interaction.setCaption("Interaction");
+        VerticalLayout overall = new VerticalLayout();
+        overall.setCaption("Overall");
+        VerticalLayout overallFlow = new VerticalLayout();
+        overallFlow.setCaption("Flow of activities");
         visualizationTabs.addTab(interaction, "Interaction");
+        visualizationTabs.addTab(overall,"Overall");
+        visualizationTabs.addTab(overallFlow,"Flow of activities");
         visualizationTabs.addSelectedTabChangeListener( e -> {
             String selected = e.getTabSheet().getSelectedTab().getCaption();
 //            LogHelper.logInfo("Now processing visualizationTab "+selected);
@@ -205,7 +212,15 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 if (selected.equals("Interaction")) {
                     visualizeModel.showSubjectInteraction(currentProcess);
                 }
-                else {
+                if (selected.equals("Overall")) {
+                    visualizeModel.showWholeProcess(currentProcess);
+                    visualizeModel.greyOutCompletedStates(currentInstance.getWholeHistory(),currentInstance.getAvailableStates().values());
+                }
+                if (selected.equals("Flow of activities")) {
+                    visualizeModel.showWholeProcessFlow(currentProcess);
+                    visualizeModel.greyOutCompletedStates(currentInstance.getWholeHistory(),currentInstance.getAvailableStates().values());
+                }
+                if (!selected.equals("Interaction") && !selected.equals("Overall") && !selected.equals("Flow of activities")) {
                     Subject s = currentProcess.getSubjectWithName(selected);
                     visualizeModel.showSubject(s);
                     visualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
@@ -223,36 +238,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         visualizationSlider.addListener(this);
         return visualizationSlider;
-    }
-
-    private SliderPanel createHistorySlider() {
-        VisualizeModelEvolution historySliderContent = new VisualizeModelEvolution(currentProcess,processChangeHistory);
-        historySliderContent.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-150)+"px");
-        historySliderContent.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
-        final SliderPanel historySlider =
-                new SliderPanelBuilder(historySliderContent, "Show history").mode(SliderMode.LEFT)
-                        .tabPosition(SliderTabPosition.MIDDLE).style(SliderPanelStyles.COLOR_WHITE).flowInContent(true).animationDuration(500).build();
-        historySlider.addListener(new HistoryListener(historySliderContent));
-        return historySlider;
-
-    }
-
-    public class HistoryListener implements SliderPanelListener {
-
-        VisualizeModelEvolution historySliderContent;
-
-        public HistoryListener(VisualizeModelEvolution historySliderContent) {
-
-            this.historySliderContent = historySliderContent;
-        }
-
-        @Override
-        public void onToggle(boolean b) {
-
-            if (b) {
-                historySliderContent.createLayout();
-            }
-        }
     }
 
     @Override
@@ -293,6 +278,36 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingManager.updateScaffolds(currentInstance,null);
         }
 
+    }
+
+    private SliderPanel createHistorySlider() {
+        VisualizeModelEvolution historySliderContent = new VisualizeModelEvolution(currentProcess,processChangeHistory);
+        historySliderContent.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-150)+"px");
+        historySliderContent.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
+        final SliderPanel historySlider =
+                new SliderPanelBuilder(historySliderContent, "Show history").mode(SliderMode.LEFT)
+                        .tabPosition(SliderTabPosition.MIDDLE).style(SliderPanelStyles.COLOR_WHITE).flowInContent(true).animationDuration(500).build();
+        historySlider.addListener(new HistoryListener(historySliderContent));
+        return historySlider;
+
+    }
+
+    public class HistoryListener implements SliderPanelListener {
+
+        VisualizeModelEvolution historySliderContent;
+
+        public HistoryListener(VisualizeModelEvolution historySliderContent) {
+
+            this.historySliderContent = historySliderContent;
+        }
+
+        @Override
+        public void onToggle(boolean b) {
+
+            if (b) {
+                historySliderContent.createLayout();
+            }
+        }
     }
 
     private HorizontalLayout createToolbar() {
@@ -353,8 +368,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
     private void rollbackChangesTo(ProcessChangeTransaction rollbackTo) {
         if (rollbackTo != null) {
             for (ProcessChangeTransaction transaction: processChangeHistory.getHistory()) {
-                LogHelper.logInfo("undoing "+transaction);
-                transaction.undo();
+                transaction.undo(currentProcess);
                 if (transaction == rollbackTo) break;
             }
             InstanceHistoryStep instanceState = rollbackTo.getAffectedInstanceHistoryState();
@@ -487,6 +501,25 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             LogHelper.logInfo("Process blocked, offering to restart ...");
 //             scaffoldingPanel.setVisible(false);
             restart.setVisible(true);
+            if (currentInstance.isProcessHasBeenChanged()) {
+                if (fileStorageHandler == null) fileStorageHandler = new FileStorageHandler();
+                if (!fileStorageHandler.isIDCookieAvailable()) {
+                    GroupIDEntryWindow groupIDEntryWindow = new GroupIDEntryWindow(fileStorageHandler);
+                    this.getUI().addWindow(groupIDEntryWindow);
+                    groupIDEntryWindow.addCloseListener(e -> {
+                        fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                        fileStorageHandler.saveToServer();
+                    });
+                } else {
+                    fileStorageHandler.addProcessToStorageBuffer(currentInstance.getProcess());
+                    fileStorageHandler.saveToServer();
+                }
+            }
+            Button download = new Button("Download");
+            download.addClickListener( e-> {
+                fileStorageHandler.openDownloadWindow(this.getUI());
+            });
+            toolBar.addComponent(download);
         }
 
         if (currentInstance.processFinished()) {
@@ -690,7 +723,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 if (newProcess != null) {
                     currentProcess = newProcess;
                     initialStartup = true;
-                    processChangeHistory = new ProcessChangeHistory();
+                    processChangeHistory = processSelectorUI.getProcessChangeHistory();
                     currentInstance = new Instance(currentProcess);
                     createBasicLayout();
                     simulator = new Simulator(currentInstance, subjectPanels, CoMPArEUI.this);

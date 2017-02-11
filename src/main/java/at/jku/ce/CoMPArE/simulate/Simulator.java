@@ -134,7 +134,6 @@ public class Simulator {
     }
 
     public boolean findPathToState(State targetState, LinkedList<SimulatorStep> overallList, int entryIndex) {
-        LogHelper.logInfo("Searching for subject with state "+targetState);
         Subject targetSubject = instance.getProcess().getSubjectWithState(targetState);
         if (instance.subjectFinished(targetSubject)) return false;
         boolean pathFound;
@@ -157,7 +156,7 @@ public class Simulator {
                     Set<Message> messages = ((RecvState) s.state).getRecvdMessages();
                     Set<Message> requiredMessages = new HashSet<>();
                     for (SimulatorStep ss: steps) {
-                        if (ss.condition instanceof MessageCondition) requiredMessages.add(((MessageCondition) ss.condition).getMessage());
+                        if (ss.condition instanceof MessageCondition) requiredMessages.add(instance.getProcess().getMessageByUUID(((MessageCondition) ss.condition).getMessage()));
                     }
                     if (messages.isEmpty()) return false;
                     boolean requiredMessageIsContained = false;
@@ -170,7 +169,7 @@ public class Simulator {
                     for (Message m: messages) {
                         if (messages.size()>1 && requiredMessageIsContained && !requiredMessages.contains(m)) continue;
                         Subject sendingSubject = instance.getProcess().getSenderOfMessage(m);
-                        State sendingState = sendingSubject.getSendState(m);
+                        State sendingState = sendingSubject.getSendStates(m).iterator().next();
                         boolean stateAlreadyContained = false;
                         for (SimulatorStep ss : overallList)
                             if (ss.state == sendingState) stateAlreadyContained = true;

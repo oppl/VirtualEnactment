@@ -62,7 +62,6 @@ public class ScaffoldingManager {
         slider.setDescription("Adjust suggestions here - higher means more specific tips");
 
         slider.addValueChangeListener( e -> {
-                LogHelper.logInfo("Slider value changed to "+slider.getValue());
                 double value = (Double) slider.getValue();
                 if (value == 0.0) {
                     globalScaffoldingMode = ScaffoldingManager.MODE_NONE;
