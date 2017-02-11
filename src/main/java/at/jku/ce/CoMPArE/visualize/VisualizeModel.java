@@ -124,13 +124,28 @@ public class VisualizeModel extends VerticalLayout {
         }
     }
 
+
     public void greyOutCompletedStates(LinkedList<InstanceHistoryStep> history, State currentState) {
+        Set<State> currentStates = new HashSet<>();
+        currentStates.add(currentState);
+        greyOutCompletedStates(history,currentStates);
+    }
+
+    public void greyOutCompletedStates(LinkedList<InstanceHistoryStep> history, Collection<State> currentStates) {
         Graph.Node currentNode = null;
         Graph.Node previousNode = null;
         LinkedList<InstanceHistoryStep> reverseHistory = new LinkedList<>(history);
         Collections.reverse(reverseHistory);
         for (InstanceHistoryStep s : reverseHistory) {
             currentNode = graph.getNode(s.getState().getUUID().toString());
+            if (currentNode == null) {
+                for (Graph.Node node: graph.getNodes()) {
+                    if (node instanceof Subgraph.GraphNode) {
+                        currentNode = ((Subgraph.GraphNode) node).getGraph().getNode(s.getState().getUUID().toString());
+                        if (currentNode != null) break;
+                    }
+                }
+            }
             if (currentNode != null) {
                 currentNode.setParam("style", "filled");
                 currentNode.setParam("fillcolor", "lightgrey");
@@ -149,18 +164,29 @@ public class VisualizeModel extends VerticalLayout {
             }
             previousNode = currentNode;
         }
-        if (currentState != null) currentNode = graph.getNode(currentState.getUUID().toString());
-        if (currentNode != null) {
-            currentNode.setParam("style", "filled");
-            currentNode.setParam("fillcolor", "lightgreen");
+        for (State currentState:currentStates) {
+            if (currentState instanceof RecvState) continue;
+            if (currentState != null) currentNode = graph.getNode(currentState.getUUID().toString());
+            if (currentNode == null) {
+                for (Graph.Node node: graph.getNodes()) {
+                    if (node instanceof Subgraph.GraphNode) {
+                        currentNode = ((Subgraph.GraphNode) node).getGraph().getNode(currentState.getUUID().toString());
+                        if (currentNode != null) break;
+                    }
+                }
+            }
+            if (currentNode != null) {
+                currentNode.setParam("style", "filled");
+                currentNode.setParam("fillcolor", "lightgreen");
 
-            component.addTextCss(currentNode, "font-weight", "bold");
-            if (previousNode!=null) {
-                Graph.Edge edge = graph.getEdge(previousNode, currentNode);
-                if (edge != null) {
-                    edge.setParam("color", "darkgreen");
-                    edge.setParam("fontcolor","darkgreen");
-                    component.addTextCss(edge, "fill", "darkgreen");
+                component.addTextCss(currentNode, "font-weight", "bold");
+                if (previousNode != null) {
+                    Graph.Edge edge = graph.getEdge(previousNode, currentNode);
+                    if (edge != null) {
+                        edge.setParam("color", "darkgreen");
+                        edge.setParam("fontcolor", "darkgreen");
+                        component.addTextCss(edge, "fill", "darkgreen");
+                    }
                 }
             }
         }

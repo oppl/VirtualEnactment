@@ -213,9 +213,11 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 }
                 if (selected.equals("Overall")) {
                     visualizeModel.showWholeProcess(currentProcess);
+                    visualizeModel.greyOutCompletedStates(currentInstance.getWholeHistory(),currentInstance.getAvailableStates().values());
                 }
                 if (selected.equals("Flow of activities")) {
                     visualizeModel.showWholeProcessFlow(currentProcess);
+                    visualizeModel.greyOutCompletedStates(currentInstance.getWholeHistory(),currentInstance.getAvailableStates().values());
                 }
                 if (!selected.equals("Interaction") && !selected.equals("Overall") && !selected.equals("Flow of activities")) {
                     Subject s = currentProcess.getSubjectWithName(selected);

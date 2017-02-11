@@ -221,6 +221,10 @@ public class Instance {
         return p;
     }
 
+    public LinkedList<InstanceHistoryStep> getWholeHistory() {
+        return history.getWholeHistory();
+    }
+
     public LinkedList<InstanceHistoryStep> getHistoryForSubject(Subject s) {
         return history.getHistoryForSubject(s);
     }
