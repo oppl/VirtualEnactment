@@ -216,6 +216,10 @@ public class VisualizeModel extends VerticalLayout {
         component.drawGraph(graph);
     }
 
+    public void showWholeProcess(Process p) {
+        showWholeProcess(p, new HashSet());
+    }
+
     public void showWholeProcess(Process p, Set toBeMarked) {
         graph = new Graph("", Graph.DIGRAPH);
         int cnt = 0;
@@ -316,6 +320,99 @@ public class VisualizeModel extends VerticalLayout {
             for (Graph.Node sender: senders) {
                 senderNode.addEdge(sender, message);
                 Graph.Edge edge = senderNode.getEdge(sender,message);
+                edge.setParam("style","dashed");
+            }
+            for (Graph.Node recipient: recipients) {
+                graph.addEdge(message,recipient);
+                Graph.Edge edge = graph.getEdge(message,recipient);
+                edge.setParam("style","dashed");
+
+            }
+
+        }
+        component.drawGraph(graph);
+    }
+
+    public void showWholeProcessFlow(Process p) {
+        showWholeProcessFlow(p,new HashSet());
+    }
+
+    public void showWholeProcessFlow(Process p, Set toBeMarked) {
+        graph = new Graph("", Graph.DIGRAPH);
+        for (Subject subject: p.getSubjects()) {
+            Collection<State> states = subject.getStates();
+            Set<Transition> transitions = subject.getTransitions();
+
+            if (subject.getExpectedMessages().size() > 0) {
+                Graph.Node node = new Graph.Node(subject.getUUID()+"_sendProxy");
+                node.setParam("shape", "rarrow");
+                node.setParam("label", "\"not yet provided by "+subject+"\"");
+                graph.addNode(node);
+            }
+            if (subject.getProvidedMessages().size() > 0) {
+                Graph.Node node = new Graph.Node(subject.getUUID()+"_recvProxy");
+                node.setParam("label", "\"not yet used by "+subject+"\"");
+                node.setParam("shape", "larrow");
+                graph.addNode(node);
+            }
+            for (State s: states) {
+                Graph.Node node = new Graph.Node(s.getUUID().toString());
+                node.setParam("shape", "box");
+                node.setParam("label", "\"" + s.toString() +"\n(" + subject+ ")\"");
+                if (toBeMarked.contains(s)) {
+                    node.setParam("style", "filled");
+                    node.setParam("fillcolor", "lightgreen");
+                    node.setParam("color", "darkgreen");
+                    node.setParam("penwidth", "3.0");
+                }
+                graph.addNode(node);
+            }
+            for (Transition t: transitions) {
+                graph.addEdge(graph.getNode(t.getSource().toString()), graph.getNode(t.getDest().toString()));
+                Graph.Edge edge = graph.getEdge(graph.getNode(t.getSource().toString()), graph.getNode(t.getDest().toString()));
+                Condition c = t.getCondition();
+                if (toBeMarked.contains(t)) {
+                    edge.setParam("color", "darkgreen");
+                    edge.setParam("penwidth", "3.0");
+                    edge.setParam("fontcolor", "darkgreen");
+                }
+                if (c != null) {
+                    if (c instanceof MessageCondition)
+                        edge.setParam("label", "\"" + subject.getParentProcess().getMessageByUUID(((MessageCondition) c).getMessage()).toString() + "\"");
+                    else edge.setParam("label", "\"" + c.toString() + "\"");
+                }
+            }
+        }
+        for (Message m: p.getMessages()) {
+//            LogHelper.logInfo("adding information for Message "+m.toString());
+            Set<Graph.Node> senders = new HashSet<>();
+            if (p.getSenderOfMessage(m).getExpectedMessages().contains(m))
+                senders.add(graph.getNode(p.getSenderOfMessage(m).getUUID()+"_sendProxy"));
+            else {
+                for (State sendState: p.getSenderOfMessage(m).getSendStates(m)) senders.add(graph.getNode(sendState.getUUID().toString()));
+            }
+            Set<Graph.Node> recipients = new HashSet<>();
+            if (p.getRecipientOfMessage(m).getProvidedMessages().contains(m))
+                recipients.add(graph.getNode(p.getRecipientOfMessage(m).getUUID()+"_recvProxy"));
+            else {
+                for (State recvState: p.getRecipientOfMessage(m).getRecvStates(m)) recipients.add(graph.getNode(recvState.getUUID().toString()));
+            }
+
+            Graph.Node message = new Graph.Node((m.getUUID().toString()));
+            message.setParam("label", "\""+m.toString().replace(" ","\\n")+"\"");
+            message.setParam("fontsize","10");
+            message.setParam("shape", "note");
+            if (toBeMarked.contains(m)) {
+                message.setParam("style", "filled");
+                message.setParam("fillcolor", "lightgreen");
+                message.setParam("color", "darkgreen");
+                message.setParam("penwidth", "3.0");
+            }
+
+            graph.addNode(message);
+            for (Graph.Node sender: senders) {
+                graph.addEdge(sender, message);
+                Graph.Edge edge = graph.getEdge(sender,message);
                 edge.setParam("style","dashed");
             }
             for (Graph.Node recipient: recipients) {

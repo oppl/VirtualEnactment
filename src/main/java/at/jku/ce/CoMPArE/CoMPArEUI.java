@@ -191,7 +191,13 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         }
         VerticalLayout interaction = new VerticalLayout();
         interaction.setCaption("Interaction");
+        VerticalLayout overall = new VerticalLayout();
+        overall.setCaption("Overall");
+        VerticalLayout overallFlow = new VerticalLayout();
+        overallFlow.setCaption("Flow of activities");
         visualizationTabs.addTab(interaction, "Interaction");
+        visualizationTabs.addTab(overall,"Overall");
+        visualizationTabs.addTab(overallFlow,"Flow of activities");
         visualizationTabs.addSelectedTabChangeListener( e -> {
             String selected = e.getTabSheet().getSelectedTab().getCaption();
 //            LogHelper.logInfo("Now processing visualizationTab "+selected);
@@ -203,9 +209,15 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                         this.getPage().getBrowserWindowHeight()-200);
                 visualizeModel.setCaption(selected);
                 if (selected.equals("Interaction")) {
-                    visualizeModel.showWholeProcess(currentProcess, new HashSet());
+                    visualizeModel.showSubjectInteraction(currentProcess);
                 }
-                else {
+                if (selected.equals("Overall")) {
+                    visualizeModel.showWholeProcess(currentProcess);
+                }
+                if (selected.equals("Flow of activities")) {
+                    visualizeModel.showWholeProcessFlow(currentProcess);
+                }
+                if (!selected.equals("Interaction") && !selected.equals("Overall") && !selected.equals("Flow of activities")) {
                     Subject s = currentProcess.getSubjectWithName(selected);
                     visualizeModel.showSubject(s);
                     visualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
@@ -223,36 +235,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         visualizationSlider.addListener(this);
         return visualizationSlider;
-    }
-
-    private SliderPanel createHistorySlider() {
-        VisualizeModelEvolution historySliderContent = new VisualizeModelEvolution(currentProcess,processChangeHistory);
-        historySliderContent.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-150)+"px");
-        historySliderContent.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
-        final SliderPanel historySlider =
-                new SliderPanelBuilder(historySliderContent, "Show history").mode(SliderMode.LEFT)
-                        .tabPosition(SliderTabPosition.MIDDLE).style(SliderPanelStyles.COLOR_WHITE).flowInContent(true).animationDuration(500).build();
-        historySlider.addListener(new HistoryListener(historySliderContent));
-        return historySlider;
-
-    }
-
-    public class HistoryListener implements SliderPanelListener {
-
-        VisualizeModelEvolution historySliderContent;
-
-        public HistoryListener(VisualizeModelEvolution historySliderContent) {
-
-            this.historySliderContent = historySliderContent;
-        }
-
-        @Override
-        public void onToggle(boolean b) {
-
-            if (b) {
-                historySliderContent.createLayout();
-            }
-        }
     }
 
     @Override
@@ -293,6 +275,36 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             scaffoldingManager.updateScaffolds(currentInstance,null);
         }
 
+    }
+
+    private SliderPanel createHistorySlider() {
+        VisualizeModelEvolution historySliderContent = new VisualizeModelEvolution(currentProcess,processChangeHistory);
+        historySliderContent.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-150)+"px");
+        historySliderContent.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
+        final SliderPanel historySlider =
+                new SliderPanelBuilder(historySliderContent, "Show history").mode(SliderMode.LEFT)
+                        .tabPosition(SliderTabPosition.MIDDLE).style(SliderPanelStyles.COLOR_WHITE).flowInContent(true).animationDuration(500).build();
+        historySlider.addListener(new HistoryListener(historySliderContent));
+        return historySlider;
+
+    }
+
+    public class HistoryListener implements SliderPanelListener {
+
+        VisualizeModelEvolution historySliderContent;
+
+        public HistoryListener(VisualizeModelEvolution historySliderContent) {
+
+            this.historySliderContent = historySliderContent;
+        }
+
+        @Override
+        public void onToggle(boolean b) {
+
+            if (b) {
+                historySliderContent.createLayout();
+            }
+        }
     }
 
     private HorizontalLayout createToolbar() {
