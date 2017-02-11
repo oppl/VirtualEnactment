@@ -46,7 +46,7 @@ public class AskForNewRecipientSubjectStep extends ElaborationStep {
     public List<ProcessChangeCommand> getProcessChangeList() {
         state = instance.getAvailableStateForSubject(subject);
         Subject newSubject = new Subject(inputField.getValue());
-        processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject,instance));
+        processChanges.add(new AddSubjectCommand(instance.getProcess(),newSubject));
         SendState newState = new SendState("Send " + messageName);
         Message newMessage = new Message(messageName);
         processChanges.add(new AddStateCommand(subject,this.newState,newState,false));

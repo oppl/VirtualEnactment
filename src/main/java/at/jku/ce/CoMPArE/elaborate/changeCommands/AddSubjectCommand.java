@@ -11,14 +11,14 @@ public class AddSubjectCommand extends ProcessChangeCommand {
 
     Subject subject;
     Process process;
-    Instance instance;
+//    Instance instance;
     boolean intialAnonymousAdd;
 
-    public AddSubjectCommand(Process p, Subject s, Instance i) {
+    public AddSubjectCommand(Process p, Subject s) { //, Instance i) {
         super();
         subject = s;
         process = p;
-        instance = i;
+//        instance = i;
         intialAnonymousAdd = false;
     }
 

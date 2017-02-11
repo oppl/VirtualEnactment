@@ -170,7 +170,7 @@ public class VisualizeModel extends VerticalLayout {
             if (currentNode == null) {
                 for (Graph.Node node: graph.getNodes()) {
                     if (node instanceof Subgraph.GraphNode) {
-                        currentNode = ((Subgraph.GraphNode) node).getGraph().getNode(currentState.getUUID().toString());
+                        if (currentState != null) currentNode = ((Subgraph.GraphNode) node).getGraph().getNode(currentState.getUUID().toString());
                         if (currentNode != null) break;
                     }
                 }

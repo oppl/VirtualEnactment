@@ -255,6 +255,10 @@ public class Subject extends ProcessElement {
 
     }
 
+    public void removeTransition(Transition t) {
+        transitions.remove(t);
+    }
+
     public void setParentProcess(Process parentProcess) {
         this.parentProcess = parentProcess;
     }
@@ -263,6 +267,9 @@ public class Subject extends ProcessElement {
         this.parentProcess = p;
         for (State s: states) {
             s.reconstructParentRelations(this);
+        }
+        for (Transition t: transitions) {
+            t.reconstructParentRelations(this);
         }
     }
 

@@ -108,7 +108,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             String selection = infoTarget.getValue().toString();
             if (selection.equals(optionDontKnow)) {
                 Subject anonymous = new Subject(Subject.ANONYMOUS);
-                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous, instance));
+                processChanges.add(new AddSubjectCommand(instance.getProcess(), anonymous));
                 SendState newState = new SendState("Send " + inputField.getValue());
                 Message newMessage = new Message(inputField.getValue());
                 processChanges.add(new AddStateCommand(subject,this.newState,newState,false));

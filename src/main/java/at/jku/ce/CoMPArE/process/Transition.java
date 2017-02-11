@@ -2,6 +2,7 @@ package at.jku.ce.CoMPArE.process;
 
 import at.jku.ce.CoMPArE.process.Condition;
 import at.jku.ce.CoMPArE.process.State;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import java.util.UUID;
 
@@ -12,18 +13,22 @@ public class Transition extends ProcessElement {
     private UUID source;
     private UUID dest;
     private Condition condition;
+    private String name;
+
+    @XStreamOmitField
+    Subject parentSubject;
 
     public Transition(State source, State dest) {
         super();
         this.source = source.getUUID();
         this.dest = dest.getUUID();
         this.condition = null;
+        name = new String("Transition between "+source+" and "+dest);
+        this.parentSubject = source.parentSubject;
     }
 
     public Transition(State source, State dest, Condition condition) {
-        super();
-        this.source = source.getUUID();
-        this.dest = dest.getUUID();
+        this(source,dest);
         this.condition = condition;
     }
 
@@ -31,6 +36,7 @@ public class Transition extends ProcessElement {
         super(transition);
         this.source = transition.getSource();
         this.dest = transition.getDest();
+        this.name = new String(transition.toString());
         if (transition.getCondition() instanceof MessageCondition)
             this.condition = new MessageCondition(((MessageCondition) transition.getCondition()).getMessage());
         else if (transition.getCondition() == null) this.condition = null;
@@ -48,4 +54,18 @@ public class Transition extends ProcessElement {
     public Condition getCondition() {
         return condition;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public Subject getParentSubject() {
+        return parentSubject;
+    }
+
+    public void reconstructParentRelations(Subject subject) {
+        this.parentSubject = subject;
+    }
+
 }

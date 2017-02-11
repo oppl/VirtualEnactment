@@ -35,6 +35,13 @@ public class AddStateCommand extends ProcessChangeCommand {
         this.s = s;
     }
 
+    public AddStateCommand(Subject s, State newState) {
+        super();
+        this.newState = newState;
+        this.s = s;
+        this.before = true;
+        this.target = null;
+    }
 
     @Override
     public boolean perform() {
@@ -53,6 +60,11 @@ public class AddStateCommand extends ProcessChangeCommand {
             s.getParentProcess().addMessage(((SendState) newState).getSentMessage());
         }
         if (before) {
+            if (target == null) {
+                if (s.getFirstState() == null) s.setFirstState(newState);
+                else s.addState(newState);
+                return true;
+            }
             if (target == s.getFirstState() || s.getFirstState() == null) {
                 LogHelper.logInfo("Elaboration: inserting " + newState + " as new first state in subject " + s);
                 s.setFirstState(newState);
@@ -87,6 +99,7 @@ public class AddStateCommand extends ProcessChangeCommand {
     public boolean undo() {
 //        if (target == null) return false;
         newActiveState = target;
+
         if (newState instanceof RecvState) {
             for (Message m:((RecvState) newState).getRecvdMessages()) {
                 s.getParentProcess().removeMessage(m);
@@ -96,6 +109,11 @@ public class AddStateCommand extends ProcessChangeCommand {
             s.getParentProcess().removeMessage(((SendState) newState).getSentMessage());
         }
         if (before) {
+            if (target == null) {
+                if (s.getFirstState().equals(newState)) s.setFirstState(null);
+                s.removeState(newState);
+                return true;
+            }
             if (newState == s.getFirstState()) {
 //                LogHelper.logInfo("setting "+target+" to new first state instead of "+newState);
                 s.setFirstState(target);

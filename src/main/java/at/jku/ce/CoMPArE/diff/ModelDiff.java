@@ -2,6 +2,7 @@ package at.jku.ce.CoMPArE.diff;
 
 import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.ProcessChangeTransaction;
+import at.jku.ce.CoMPArE.elaborate.changeCommands.*;
 import at.jku.ce.CoMPArE.process.*;
 import at.jku.ce.CoMPArE.process.Process;
 import sun.rmi.runtime.Log;
@@ -32,9 +33,12 @@ public class ModelDiff {
     Set<MessageBuffer> addedProvidedMessages;
     Set<MessageBuffer> removedProvidedMessages;
 
+    Process source;
 
     public ModelDiff(Process source, Process dest) {
         LogHelper.logInfo("Diff process started");
+
+        this.source = source;
 
         addedStates = new HashSet<>();
         removedStates = new HashSet<>();
@@ -125,7 +129,39 @@ public class ModelDiff {
 
     public ProcessChangeTransaction getProcessChangeTransaction() {
         ProcessChangeTransaction transaction = new ProcessChangeTransaction();
-        //todo: create transactions from change lists
+
+        for (Transition transition: getRemovedTransitions()) {
+            transaction.add(new RemoveTransitionCommand(transition.getParentSubject(),transition));
+        }
+
+        for (State state: getRemovedStates()) {
+            transaction.add(new RemoveStateCommand(state.getParentSubject(),state));
+        }
+
+        for (Subject subject: getRemovedSubjects()) {
+            transaction.add(new RemoveSubjectCommand(source,subject));
+        }
+
+        for (Message message: getRemovedMessages()) {
+            transaction.add(new RemoveMessageCommand(source,message));
+        }
+
+        for (Message message: getAddedMessages()) {
+            transaction.add(new AddMessageCommand(source,message));
+        }
+
+        for (Subject subject: getAddedSubjects()) {
+            transaction.add(new AddSubjectCommand(source,subject));
+        }
+
+        for (State state: getAddedStates()) {
+            transaction.add(new AddStateCommand(state.getParentSubject(),state));
+        }
+
+        for (Transition transition: getAddedTransitions()) {
+            transaction.add(new AddTransitionCommand(transition.getParentSubject(),transition));
+        }
+
         return transaction;
     }
 
