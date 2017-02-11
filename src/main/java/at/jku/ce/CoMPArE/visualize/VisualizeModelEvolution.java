@@ -9,18 +9,17 @@ import at.jku.ce.CoMPArE.process.ProcessElement;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.*;
 import org.apache.commons.logging.impl.Log4JLogger;
+import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroup;
+import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroupItemComponent;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Created by oppl on 09/02/2017.
  */
-public class VisualizeModelEvolution extends VerticalLayout {
+public class VisualizeModelEvolution extends GridLayout {
 
-    Slider slider;
+    FlexibleOptionGroup vizSwitcher;
     TabSheet tabSheet;
 
     Vector<Process> history;
@@ -39,6 +38,7 @@ public class VisualizeModelEvolution extends VerticalLayout {
             transaction.perform();
         }
         history = new Vector<>(historyList);
+
 //        createLayout();
     }
 
@@ -67,24 +67,43 @@ public class VisualizeModelEvolution extends VerticalLayout {
     }
 
     public void createLayout() {
-        this.removeAllComponents();
         if (history == null) return;
-        tabSheet = new TabSheet();
-        int count = 1;
-        Process previous = null;
-        for (Process p: history) {
-            Panel panel = new Panel(createTabForProcess(p,previous));
-            previous = p;
-            panel.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-100)+"px");
-            tabSheet.addTab(panel,""+count);
-            count++;
+        this.setRows(2);
+        this.setRowExpandRatio(1,1);
+        this.addStyleName("");
+        vizSwitcher = new FlexibleOptionGroup();
+        vizSwitcher.addItem("per actor");
+        vizSwitcher.addItem("overall");
+        vizSwitcher.addItem("activities");
+        HorizontalLayout optionLayout = new HorizontalLayout();
+        optionLayout.setSpacing(true);
+        for (Iterator<FlexibleOptionGroupItemComponent> iter = vizSwitcher
+                .getItemComponentIterator(); iter.hasNext();) {
+            FlexibleOptionGroupItemComponent c = iter.next();
+            optionLayout.addComponent(c);
+            optionLayout.addComponent(new Label(c.getCaption()));
         }
-        this.addComponent(tabSheet);
-        this.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-200)+"px");
-        this.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-20)+"px");
-        this.setMargin(true);
-        this.setSpacing(true);
 
+        vizSwitcher.addValueChangeListener( e -> {
+            this.removeAllComponents();
+            tabSheet = new TabSheet();
+            int count = 1;
+            Process previous = null;
+            for (Process p: history) {
+                Panel panel = new Panel(createTabForProcess(p,previous));
+                previous = p;
+                panel.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-130)+"px");
+                tabSheet.addTab(panel,""+count);
+                count++;
+            }
+            this.addComponent(optionLayout);
+            this.addComponent(tabSheet);
+            this.setWidth((UI.getCurrent().getPage().getBrowserWindowWidth()-200)+"px");
+            this.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-20)+"px");
+            this.setMargin(true);
+            this.setSpacing(true);
+        });
+        vizSwitcher.setValue("per actor");
     }
 
     private GridLayout createTabForProcess(Process p, Process previous) {
@@ -92,47 +111,88 @@ public class VisualizeModelEvolution extends VerticalLayout {
 
         ModelDiff diff = null;
         if (previous != null) diff = new ModelDiff(previous,p);
+
         int availableWidth = UI.getCurrent().getPage().getBrowserWindowWidth()-200;
         int numberOfSubjects = p.getSubjects().size()+1;
-        int widthOfColumns = (availableWidth-170) / 3;
+        int widthOfColumns = (availableWidth-190) / 3;
         int numberOfRows = numberOfSubjects / 4;
 
-        gl = new GridLayout(3,numberOfRows);
+        if (vizSwitcher.getValue().equals("per actor")) {
+            gl = new GridLayout(3, numberOfRows);
 
-        Panel panel = new Panel("Interaction");
-        panel.setWidth(widthOfColumns+"px");
-        panel.setHeight("350px");
-        VisualizeModel model = new VisualizeModel("Interaction",null, widthOfColumns,300);
-        Set toBeMarked = new HashSet();
-        if (diff!=null) {
-            toBeMarked.addAll(diff.getAddedSubjects());
-            toBeMarked.addAll(diff.getAddedMessages());
-        }
-        model.showSubjectInteraction(p,toBeMarked);
-        panel.setContent(model);
-        gl.addComponent(panel);
-
-        for (Subject s: p.getSubjects()) {
-            panel = new Panel(s.toString());
-            panel.setWidth(widthOfColumns+"px");
+            Panel panel = new Panel("Interaction");
+            panel.setWidth(widthOfColumns + "px");
             panel.setHeight("350px");
-            model = new VisualizeModel(s.toString(),null, widthOfColumns, 300);
-            toBeMarked = new HashSet();
+            VisualizeModel model = new VisualizeModel("Interaction", null, widthOfColumns, 300);
+            Set toBeMarked = new HashSet();
             if (diff != null) {
-                toBeMarked.addAll(diff.getAddedStates());
-                toBeMarked.addAll(diff.getAddedTransitions());
+                toBeMarked.addAll(diff.getAddedSubjects());
+                toBeMarked.addAll(diff.getAddedMessages());
             }
+            model.showSubjectInteraction(p, toBeMarked);
+            panel.setContent(model);
+            gl.addComponent(panel);
 
-            model.showSubject(s,toBeMarked);
+            for (Subject s : p.getSubjects()) {
+                panel = new Panel(s.toString());
+                panel.setWidth(widthOfColumns + "px");
+                panel.setHeight("350px");
+                model = new VisualizeModel(s.toString(), null, widthOfColumns, 310);
+                toBeMarked = new HashSet();
+                if (diff != null) {
+                    toBeMarked.addAll(diff.getAddedStates());
+                    toBeMarked.addAll(diff.getAddedTransitions());
+                }
+
+                model.showSubject(s, toBeMarked);
 /*            if (diff != null) {
                 model.markProcessElements(diff.getAddedStates(),true);
                 model.markProcessElements(diff.getAddedTransitions(),true);
             }
-*/            panel.setContent(model);
-            gl.addComponent(panel);
+*/
+                panel.setContent(model);
+                gl.addComponent(panel);
+            }
+            gl.setMargin(true);
+            gl.setSpacing(true);
         }
-        gl.setMargin(true);
-        gl.setSpacing(true);
+        if (vizSwitcher.getValue().equals("overall")) {
+            gl = new GridLayout(1,1);
+            Panel panel = new Panel("Overall");
+            panel.setWidth((availableWidth-80) + "px");
+            panel.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
+            VisualizeModel model = new VisualizeModel("Overall", null, availableWidth-80, (UI.getCurrent().getPage().getBrowserWindowHeight()-190));
+            Set toBeMarked = new HashSet();
+            if (diff != null) {
+                toBeMarked.addAll(diff.getAddedSubjects());
+                toBeMarked.addAll(diff.getAddedMessages());
+                toBeMarked.addAll(diff.getAddedStates());
+                toBeMarked.addAll(diff.getAddedTransitions());
+            }
+            model.showWholeProcess(p, toBeMarked);
+            panel.setContent(model);
+            gl.addComponent(panel);
+
+        }
+        if (vizSwitcher.getValue().equals("activities")) {
+            gl = new GridLayout(1,1);
+            Panel panel = new Panel("Activities");
+            panel.setWidth((availableWidth-80) + "px");
+            panel.setHeight((UI.getCurrent().getPage().getBrowserWindowHeight()-150)+"px");
+            VisualizeModel model = new VisualizeModel("Activities", null, availableWidth-80, (UI.getCurrent().getPage().getBrowserWindowHeight()-190));
+            Set toBeMarked = new HashSet();
+            if (diff != null) {
+                toBeMarked.addAll(diff.getAddedSubjects());
+                toBeMarked.addAll(diff.getAddedMessages());
+                toBeMarked.addAll(diff.getAddedStates());
+                toBeMarked.addAll(diff.getAddedTransitions());
+            }
+            model.showWholeProcessFlow(p, toBeMarked);
+            panel.setContent(model);
+            gl.addComponent(panel);
+
+        }
+
         return gl;
     }
 
