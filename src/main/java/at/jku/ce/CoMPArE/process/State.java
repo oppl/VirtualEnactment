@@ -10,6 +10,7 @@ import java.util.*;
 public class State extends ProcessElement {
 
     private String name;
+    private boolean isEndState;
 //    private Map<UUID, Condition> nextStates;
 
     @XStreamOmitField
@@ -18,6 +19,7 @@ public class State extends ProcessElement {
     public State(String name) {
         super();
         this.parentSubject = null;
+        this.isEndState = false;
         this.name = name;
 //        this.nextStates = new HashMap<>();
     }
@@ -26,7 +28,13 @@ public class State extends ProcessElement {
         super(s);
         this.parentSubject = newSubject;
         this.name = s.getName();
+        this.isEndState = s.isEndState();
 //        this.nextStates = new HashMap<>();
+    }
+
+    public State(String name, boolean isEndState) {
+        this(name);
+        this.isEndState = isEndState;
     }
 
     public Map<State,Condition> getNextStates() {
@@ -106,5 +114,13 @@ public class State extends ProcessElement {
 /*        for (Condition c: nextStates.values()) {
             if (c!=null) c.reconstructParentRelations(this);
         }*/
+    }
+
+    public boolean isEndState() {
+        return isEndState;
+    }
+
+    public void setEndState(boolean endState) {
+        isEndState = endState;
     }
 }

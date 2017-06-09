@@ -49,6 +49,7 @@ public class ReplaceStateCommand extends ProcessChangeCommand {
                 predecessor.addNextState(newState, c);
             }
         }
+        if (state.isEndState()) newState.setEndState(true);
         subject.removeState(state);
         newActiveState = newState;
 

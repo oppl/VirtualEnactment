@@ -90,6 +90,10 @@ public class AddStateCommand extends ProcessChangeCommand {
             }
             target.removeAllNextStates();
             target.addNextState(newState);
+            if (target.isEndState()) {
+                target.setEndState(false);
+                newState.setEndState(true);
+            }
             return true;
         }
     }
@@ -116,7 +120,7 @@ public class AddStateCommand extends ProcessChangeCommand {
                 return true;
             }
             if (newState == s.getFirstState()) {
-//                LogHelper.logInfo("setting "+target+" to new first state instead of "+newState);
+//                // LogHelper.logDebug("setting "+target+" to new first state instead of "+newState);
                 s.setFirstState(target);
                 newActiveState = target;
                 s.removeState(newState);
@@ -142,6 +146,7 @@ public class AddStateCommand extends ProcessChangeCommand {
             }
             newActiveState = target;
             s.removeState(newState);
+            if (newState.isEndState()) target.setEndState(true);
             return true;
         }
     }

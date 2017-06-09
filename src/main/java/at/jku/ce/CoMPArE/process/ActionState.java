@@ -10,6 +10,9 @@ public class ActionState extends State {
     public ActionState(String name) {
         super(name);
     }
+    public ActionState(String name, boolean isEndState) {
+        super(name,isEndState);
+    }
 
     public ActionState(String name, String description) {
         super(name);

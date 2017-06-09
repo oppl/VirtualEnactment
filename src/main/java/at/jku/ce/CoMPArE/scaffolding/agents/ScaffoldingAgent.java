@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.scaffolding.agents;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.execute.Instance;
 import at.jku.ce.CoMPArE.process.Process;
 import at.jku.ce.CoMPArE.process.State;
@@ -71,6 +72,7 @@ public class ScaffoldingAgent {
     }
 
     public final void removeScaffold(Scaffold scaffold) {
+        LogHelper.logInfo("Scaffolding: scaffold dismissed: "+scaffold.getScaffoldingPrompt());
         Set<String> idsOfRemovedScaffolds = new HashSet<>();
         for (ScaffoldGroup sg : scaffoldGroups) {
             if (sg.contains(scaffold)) idsOfRemovedScaffolds.addAll(sg.removeScaffoldAndMoreVagueFromGroup(scaffold));
@@ -80,6 +82,7 @@ public class ScaffoldingAgent {
     }
 
     public final void removeScaffoldGroupOfScaffold(Scaffold scaffold) {
+        LogHelper.logInfo("Scaffolding: scaffold group removed because a contained interactive scaffold was used: "+scaffold.getScaffoldingPrompt());
         ScaffoldGroup toBeRemoved = null;
         for (ScaffoldGroup sg : scaffoldGroups) {
             if (sg.contains(scaffold)) {

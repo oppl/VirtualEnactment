@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.scaffolding.scaffolds;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.scaffolding.agents.ScaffoldingAgent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -21,6 +22,7 @@ public class ExpandingScaffold extends Scaffold {
         this.description = description;
         this.interactiveComponent = new Button("Show Details");
         ((Button)interactiveComponent).addClickListener( e -> {
+            LogHelper.logInfo("Scaffolding: window with detailed instructions opened: "+scaffoldingPrompt);
             generator.getManager().openScaffoldingDetails(new DescriptionUI(description));
         });
     }

@@ -56,6 +56,7 @@ public class FileStorageHandler {
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("groupid")) {
                 groupID = cookie.getValue();
+                LogHelper.setGroupID(groupID);
                 return true;
             }
         }
@@ -68,6 +69,7 @@ public class FileStorageHandler {
         groupCookie.setMaxAge(7200); // Make cookie expire in 2 hours
         groupCookie.setPath(VaadinService.getCurrentRequest().getContextPath());
         VaadinService.getCurrentResponse().addCookie(groupCookie);
+        LogHelper.setGroupID(groupID);
     }
 
     public void saveToServer() {
@@ -88,7 +90,7 @@ public class FileStorageHandler {
             Writer writer = null;
             File f;
             try {
-                LogHelper.logInfo("XMLStore: storing process " + processName + " to " + groupBaseDir.getName() + "/" + fileName);
+                // LogHelper.logDebug("XMLStore: storing process " + processName + " to " + groupBaseDir.getName() + "/" + fileName);
                 f = new File(groupBaseDir, fileName);
                 if (!f.exists()) {
                     writer = new BufferedWriter(new FileWriter(f));

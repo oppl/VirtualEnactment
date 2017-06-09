@@ -69,6 +69,8 @@ public class ScaffoldingManager {
 
         slider.addValueChangeListener( e -> {
                 double value = (Double) slider.getValue();
+                LogHelper.logInfo("Scaffolding: concreteness level changed to " + value);
+
                 if (value == 0.0) {
                     globalScaffoldingMode = ScaffoldingManager.MODE_NONE;
                 }
@@ -108,20 +110,21 @@ public class ScaffoldingManager {
     }
 
     public void updateScaffolds(Instance currentInstance, State finishedState) {
-//        LogHelper.logInfo("ScaffoldingManager: now checking for agents to be informed about finishing state "+finishedState);
+//        // LogHelper.logDebug("ScaffoldingManager: now checking for agents to be informed about finishing state "+finishedState);
         for (ScaffoldingAgent agent: scaffoldingAgents) {
             if (agent.getFreq() == ScaffoldingAgent.FREQ_EACHSTEP) {
+                // LogHelper.logDebug("ScaffoldingManager: informing "+agent.getClass().getName());
                 agent.updateScaffolds(currentInstance, finishedState);
-//                LogHelper.logInfo("ScaffoldingManager: informing "+agent.getClass().getName());
             }
         }
         updateScaffoldingPanel();
     }
 
     public void updateScaffolds(Instance finishedInstance) {
-//        LogHelper.logInfo("ScaffoldingManager: now checking for agents to be informed about a finishing instance");
+//        // LogHelper.logDebug("ScaffoldingManager: now checking for agents to be informed about a finishing instance");
         for (ScaffoldingAgent agent: scaffoldingAgents) {
             if (agent.getFreq() == ScaffoldingAgent.FREQ_EACHINSTANCE)
+                // LogHelper.logDebug("ScaffoldingManager: informing "+agent.getClass().getName());
                 agent.updateScaffolds(finishedInstance);
         }
         updateScaffoldingPanel();
@@ -132,13 +135,13 @@ public class ScaffoldingManager {
 //        table.removeAllItems();
         Set<Scaffold> scaffolds = new HashSet<>();
         for (ScaffoldingAgent agent: scaffoldingAgents) {
-//            LogHelper.logInfo("updScaf: Retrieving "+agent.getScaffolds(globalScaffoldingMode).size()+" scaffolds from "+agent.getClass().getName()+" on level "+globalScaffoldingMode);
+//            // LogHelper.logDebug("updScaf: Retrieving "+agent.getScaffolds(globalScaffoldingMode).size()+" scaffolds from "+agent.getClass().getName()+" on level "+globalScaffoldingMode);
             scaffolds.addAll(agent.getScaffolds(globalScaffoldingMode));
         }
         int itemID = 0;
 
         for (Scaffold scaffold: scaffolds) {
-//            LogHelper.logInfo("updScaf: Adding scaffold "+scaffold.getScaffoldingPrompt());
+//            // LogHelper.logDebug("updScaf: Adding scaffold "+scaffold.getScaffoldingPrompt());
 //            table.addItem(new Object[]{scaffold.getScaffoldingPrompt(),scaffold.getInteractiveComponent()}, itemID);
             VerticalLayout gl = new VerticalLayout();
             gl.addComponent(new Label(scaffold.getScaffoldingPrompt()));
@@ -148,8 +151,8 @@ public class ScaffoldingManager {
             itemID++;
             tabSheet.addTab(gl,""+itemID);
         }
-        LogHelper.logInfo("updScaf: now displaying "+itemID+" scaffolds");
-//        LogHelper.logInfo("updScaf: Now displaying table with "+table.size()+" scaffolds");
+        // LogHelper.logDebug("updScaf: now displaying "+itemID+" scaffolds");
+//        // LogHelper.logDebug("updScaf: Now displaying table with "+table.size()+" scaffolds");
 //        table.setPageLength(table.size());
 //        table.setSelectable(true);
         tabSheet.setVisible(true);
@@ -164,7 +167,9 @@ public class ScaffoldingManager {
     }
 
     public void openScaffoldingDetails(Window w) {
+
         scaffoldingPanel.getUI().addWindow(w);
+
     }
 
 }

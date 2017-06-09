@@ -1,6 +1,7 @@
 package at.jku.ce.CoMPArE.scaffolding.scaffolds;
 
 import at.jku.ce.CoMPArE.CoMPArEUI;
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.scaffolding.agents.ScaffoldingAgent;
 import com.vaadin.server.Page;
@@ -23,6 +24,7 @@ public class SimulatingScaffold extends ExpandingScaffold {
         super(scaffoldingPrompt, description, generator, prio, uniqueID);
         this.interactiveComponent = new Button("Show Details");
         ((Button)interactiveComponent).addClickListener( e -> {
+            LogHelper.logInfo("Scaffolding: window with detailed instructions opened: "+scaffoldingPrompt);
             generator.getManager().openScaffoldingDetails(new TriggerSimulationUI(description,target));
         });
     }

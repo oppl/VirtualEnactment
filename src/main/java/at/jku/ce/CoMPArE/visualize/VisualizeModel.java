@@ -65,7 +65,7 @@ public class VisualizeModel extends VerticalLayout {
             @Override
             public void nodeClicked(NodeClickEvent e) {
                 selectedNode = e.getNode();
-                LogHelper.logInfo("VizUI: selected node "+selectedNode.getId());
+                // LogHelper.logDebug("VizUI: selected node "+selectedNode.getId());
                 if (parent != null) parent.informAboutSelectedNode(name,selectedNode.getId());
             }
 
@@ -200,7 +200,7 @@ public class VisualizeModel extends VerticalLayout {
     }
 
     public void showSubjectInteraction(Process p, Set toBeMarked) {
-//        LogHelper.logInfo("creating subject interaction");
+//        // LogHelper.logDebug("creating subject interaction");
         graph = new Graph("", Graph.DIGRAPH);
         for (Message m: p.getMessages()) {
             Graph.Node sender = new Graph.Node(p.getSenderOfMessage(m).getUUID().toString());
@@ -314,7 +314,7 @@ public class VisualizeModel extends VerticalLayout {
             graph.addNode(subNode);
         }
         for (Message m: p.getMessages()) {
-//            LogHelper.logInfo("adding information for Message "+m.toString());
+//            // LogHelper.logDebug("adding information for Message "+m.toString());
             Subgraph senderNode = uuid2Cluster.get(p.getSenderOfMessage(m).getUUID()).getGraph();
             Subgraph recipientNode = uuid2Cluster.get(p.getRecipientOfMessage(m).getUUID()).getGraph();
             Set<Graph.Node> senders = new HashSet<>();
@@ -409,7 +409,7 @@ public class VisualizeModel extends VerticalLayout {
             }
         }
         for (Message m: p.getMessages()) {
-//            LogHelper.logInfo("adding information for Message "+m.toString());
+//            // LogHelper.logDebug("adding information for Message "+m.toString());
             Set<Graph.Node> senders = new HashSet<>();
             if (p.getSenderOfMessage(m).getExpectedMessages().contains(m))
                 senders.add(graph.getNode(p.getSenderOfMessage(m).getUUID()+"_sendProxy"));

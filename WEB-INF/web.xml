@@ -9,7 +9,7 @@
     </context-param>
     <context-param>
         <param-name>at.jku.ce.CoMPAreE.resultfolder</param-name>
-        <param-value>/Users/oppl/IdeaProjects/VirtualEnactment/results</param-value>
+        <param-value>${catalina.home}/temp/VirtualEnactment/results</param-value>
         <!--<param-value>D:\JKU\ce\virtenact</param-value>-->
     </context-param>
 

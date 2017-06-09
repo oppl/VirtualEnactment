@@ -19,9 +19,10 @@ public class InstanceHistoryStep {
     private Map<Subject, Set<Message>> inputBuffer;
     private Map<Subject, Set<Message>> receivedMessages;
     private Map<Subject, Message> latestProcessedMessages;
+    private Map<Subject, Boolean> subjectReachedEndState;
 
 
-    public InstanceHistoryStep(Subject affectedSubject, State state, Map<Subject,State> availableStates, Map<Subject, Set<Message>> receivedMessages, Map<Subject, Set<Message>> inputBuffer, Map<Subject, Message> latestProcessedMessages) {
+    public InstanceHistoryStep(Subject affectedSubject, State state, Map<Subject,State> availableStates, Map<Subject, Set<Message>> receivedMessages, Map<Subject, Set<Message>> inputBuffer, Map<Subject, Message> latestProcessedMessages, Map<Subject,Boolean> subjectReachedEndState) {
         this.state = state;
         this.affectedSubject = affectedSubject;
         this.id = UUID.randomUUID();
@@ -29,6 +30,7 @@ public class InstanceHistoryStep {
         this.receivedMessages = receivedMessages;
         this.inputBuffer = inputBuffer;
         this.latestProcessedMessages = latestProcessedMessages;
+        this.subjectReachedEndState = subjectReachedEndState;
     }
 
     public UUID getId() {
@@ -57,5 +59,9 @@ public class InstanceHistoryStep {
 
     public Subject getAffectedSubject() {
         return affectedSubject;
+    }
+
+    public Map<Subject, Boolean> getSubjectReachedEndState() {
+        return subjectReachedEndState;
     }
 }

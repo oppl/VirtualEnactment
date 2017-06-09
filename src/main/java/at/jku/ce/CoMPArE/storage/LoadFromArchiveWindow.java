@@ -79,7 +79,7 @@ public class LoadFromArchiveWindow extends Window {
             table.setColumnAlignment("ButtonDownload", Table.Align.CENTER);
 
             int itemID = 0;
-            //          LogHelper.logInfo("ResultView: "+resultFiles.size()+" results available.");
+            //          // LogHelper.logDebug("ResultView: "+resultFiles.size()+" results available.");
 
             for (File result : resultFiles) {
 
@@ -124,7 +124,7 @@ public class LoadFromArchiveWindow extends Window {
                         loadButton,
                         new Long(attr.lastModifiedTime().toMillis())
                 }, itemID);
-//                LogHelper.logInfo("ResultView: added "+result.getName());
+//                // LogHelper.logDebug("ResultView: added "+result.getName());
                 itemID++;
             }
             table.sort();
@@ -147,7 +147,7 @@ public class LoadFromArchiveWindow extends Window {
         File[] files = containingFolder.listFiles(f -> f.isDirectory()
                 && f.getName().startsWith(groupID));
 
-//            LogHelper.logInfo("Found "+files.length+" results");
+//            // LogHelper.logDebug("Found "+files.length+" results");
         return Arrays.asList(files);
     }
 
@@ -157,7 +157,7 @@ public class LoadFromArchiveWindow extends Window {
         File[] files = folder.listFiles(f -> f.isFile()
                 && f.getName().endsWith(".xml"));
 
-//                LogHelper.logInfo("Found "+files.length+" results");
+//                // LogHelper.logDebug("Found "+files.length+" results");
         List<File> processFiles = Arrays.asList(files);
 
         XMLStore xmlStore = new XMLStore();
@@ -236,11 +236,11 @@ public class LoadFromArchiveWindow extends Window {
             File[] files = folder.listFiles(f -> f.isFile()
                     && f.getName().endsWith(".xml"));
 
-//                LogHelper.logInfo("Found "+files.length+" results");
+//                // LogHelper.logDebug("Found "+files.length+" results");
             List<File> resultFiles = Arrays.asList(files);
 
             int itemID = 0;
-//                LogHelper.logInfo("ResultView: "+resultFiles.size()+" results available.");
+//                // LogHelper.logDebug("ResultView: "+resultFiles.size()+" results available.");
 
             for (File result: resultFiles) {
 
@@ -255,7 +255,7 @@ public class LoadFromArchiveWindow extends Window {
                         result.getName(),
                         new Long(attr.lastModifiedTime().toMillis())
                 }, itemID);
-//                    LogHelper.logInfo("ResultView: added "+result.getName());
+//                    // LogHelper.logDebug("ResultView: added "+result.getName());
                 itemID++;
             }
             table.sort();

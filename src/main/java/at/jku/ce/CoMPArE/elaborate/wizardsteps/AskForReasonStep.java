@@ -1,7 +1,9 @@
 package at.jku.ce.CoMPArE.elaborate.wizardsteps;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.elaborate.changeCommands.ProcessChangeCommand;
 import at.jku.ce.CoMPArE.execute.Instance;
+import at.jku.ce.CoMPArE.process.RecvState;
 import at.jku.ce.CoMPArE.process.State;
 import at.jku.ce.CoMPArE.process.Subject;
 import com.vaadin.ui.*;
@@ -26,11 +28,14 @@ public class AskForReasonStep extends ElaborationStep {
         final String option2 = new String("I rather need to do something else instead.");
         final String option3 = new String("It's too vague to be performed.");
         final String option4 = new String("It's incorrect.");
+        final String option5 = new String("I need to react on additional input here");
 
         answerOptions.addItem(option1);
         answerOptions.addItem(option2);
         answerOptions.addItem(option3);
         answerOptions.addItem(option4);
+        // LogHelper.logDebug("Checking if RecvState");
+        if (i.getAvailableStateForSubject(s) instanceof RecvState) answerOptions.addItem(option5);
         answerOptions.addValueChangeListener(e -> {
             setCanAdvance(true);
             String selection = (String) answerOptions.getValue();
@@ -41,6 +46,7 @@ public class AskForReasonStep extends ElaborationStep {
                 if (selection.equals(option2)) step = new SomeThingElseInsteadStep(owner, subject, instance);
                 if (selection.equals(option3)) step = new TooVagueStep(owner, subject, instance);
                 if (selection.equals(option4)) step = new RemoveIncorrectStateStep(owner, subject, instance);
+                if (selection.equals(option5)) step = new AddMessageToRecvStep(owner, subject, instance);
                 addNextStep(step);
             }
         });

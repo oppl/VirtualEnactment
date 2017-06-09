@@ -67,7 +67,7 @@ public class ProcessChangeTransaction {
         Vector<ProcessChangeCommand> rollbackBuffer = new Vector<>();
         for (ProcessChangeCommand processChangeCommand: reverseCommands) {
             successful = processChangeCommand.undo(p);
-//            LogHelper.logInfo(processChangeCommand.getClass().getSimpleName());
+//            // LogHelper.logDebug(processChangeCommand.getClass().getSimpleName());
             if (!successful) break;
             else {
                 rollbackBuffer.add(processChangeCommand);

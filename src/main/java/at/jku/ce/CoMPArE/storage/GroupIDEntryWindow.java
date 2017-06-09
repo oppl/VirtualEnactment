@@ -21,7 +21,7 @@ public class GroupIDEntryWindow extends Window {
         Label titleLabel = new Label("<b>Please enter a unique name for this session:</b>", ContentMode.HTML);
         Label descrLabel = new Label("We are storing all your intermediate results on the server and provide them for download at any time. " +
                 "The name you enter here will be used to identify your results on the server and when downloading them. By using the same name, you can " +
-                "access your results also at any later point in time. If you cancel here, your results will be stored under an anonymous name, which will" +
+                "access your results also at any later point in time. If you cancel here, your results will be stored under an anonymous name, which will " +
                 "prevent later access.", ContentMode.HTML);
         TextField name = new TextField("Name:");
         Button close = new Button("Close");
@@ -36,8 +36,8 @@ public class GroupIDEntryWindow extends Window {
             this.close();
         });
 
-        gLayout.addComponent(titleLabel,0,0,1,0);
-        gLayout.addComponent(descrLabel,0,1,1,1);
+        gLayout.addComponent(descrLabel,0,0,1,0);
+        gLayout.addComponent(titleLabel,0,1,1,1);
         gLayout.addComponent(name,0,2,1,2);
         gLayout.addComponent(close,0,3);
         gLayout.addComponent(enter,1,3);

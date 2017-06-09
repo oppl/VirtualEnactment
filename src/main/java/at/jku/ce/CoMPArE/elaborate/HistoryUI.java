@@ -89,7 +89,7 @@ public class HistoryUI extends Window {
                     new Label(transaction.toString(), ContentMode.HTML),
                     rollbackButton
             }, itemID);
-//                LogHelper.logInfo("ResultView: added "+result.getName());
+//                // LogHelper.logDebug("ResultView: added "+result.getName());
             itemID--;
         }
         table.setPageLength(table.size());

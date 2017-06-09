@@ -56,6 +56,19 @@ public class RemoveStateCommand extends ProcessChangeCommand {
             }
         }
 
+        if (state.isEndState()) {
+            if (nextStates.isEmpty()) {
+                for (State pre : predecessorStates) {
+                    pre.setEndState(true);
+                }
+            }
+            else {
+                for (State post: nextStates.keySet()) {
+                    post.setEndState(true);
+                }
+            }
+        }
+
         if (nextStates.size()==1) newActiveState = nextStates.keySet().iterator().next();
         else newActiveState = predecessorStates.iterator().next();
 
@@ -88,6 +101,20 @@ public class RemoveStateCommand extends ProcessChangeCommand {
                 pre.addNextState(state,c);
             }
         }
+
+        if (state.isEndState()) {
+            if (state.getNextStates().isEmpty()) {
+                for (State pre : predecessorStates) {
+                    pre.setEndState(false);
+                }
+            }
+            else {
+                for (State post: state.getNextStates().keySet()) {
+                    post.setEndState(false);
+                }
+            }
+        }
+
         subject.addState(state);
         newActiveState = state;
 

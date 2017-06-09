@@ -50,11 +50,14 @@ public class ElaborationUI extends Window implements WizardProgressListener {
     }
 
     public void elaborate(Subject subject, Instance instance) {
+        LogHelper.logInfo("Elaboration: " + instance.getProcess()+" - "+subject+": elaboration started at "+instance.getAvailableStateForSubject(subject));
         this.subject = subject;
         this.instance = instance;
         wizard.addStep(new AskForReasonStep(wizard, subject, instance));
     }
+
     public void initialStep(Subject subject, Instance instance) {
+        LogHelper.logInfo("Elaboration: " + instance.getProcess()+" - "+subject+": elaboration started to add an initial step to "+subject);
         this.subject = subject;
         this.instance = instance;
         this.setCaption("Add an initial step");
@@ -62,12 +65,14 @@ public class ElaborationUI extends Window implements WizardProgressListener {
     }
 
     public void initialSubject(Instance instance) {
+        LogHelper.logInfo("Elaboration: " + instance.getProcess()+" - "+subject+": elaboration started to add an initial actor");
         this.setCaption("Add an intial actor");
         this.instance = instance;
         wizard.addStep(new AddInitialSubjectStep(wizard, instance));
     }
 
     public void additionalStep(Subject subject, Instance instance) {
+        LogHelper.logInfo("Elaboration: " + instance.getProcess()+" - "+subject+": elaboration started to add another step to "+subject);
         this.subject = subject;
         this.instance = instance;
         this.setCaption("Add an additional step");
@@ -86,7 +91,7 @@ public class ElaborationUI extends Window implements WizardProgressListener {
 
     @Override
     public void wizardCompleted(WizardCompletedEvent wizardCompletedEvent) {
-        LogHelper.logInfo("Wizard completed, now performing changes");
+        // LogHelper.logDebug("Wizard completed, now performing changes");
         List<WizardStep> steps = wizard.getSteps();
         State finalActiveState = null;
         ProcessChangeTransaction transaction = new ProcessChangeTransaction();
@@ -94,11 +99,11 @@ public class ElaborationUI extends Window implements WizardProgressListener {
             transaction.add(((ElaborationStep) ws).getProcessChangeList());
         }
         transaction.perform(instance.getProcess());
-
+        LogHelper.logInfo("Elaboration: " + instance.getProcess()+" - "+subject+": elaboration finished. Performing changes: "+transaction);
         State newActiveState = transaction.getNewActiveState();
         if (subject != null && newActiveState != null) {
             instance.updateAvailableStateForSubject(subject, newActiveState);
-            LogHelper.logInfo("Wizard: Setting active state in "+subject+" to "+newActiveState);
+            // LogHelper.logDebug("Wizard: Setting active state in "+subject+" to "+newActiveState);
         }
         transaction.setAffectedInstanceHistoryState(instance.getLatestInstanceHistoryStep());
         processChangeHistory.add(transaction);

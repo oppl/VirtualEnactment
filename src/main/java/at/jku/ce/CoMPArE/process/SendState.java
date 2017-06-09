@@ -22,13 +22,18 @@ public class SendState extends State {
         this.sentMessageID = sentMessage.getUUID();
     }
 
+    public SendState(String name, Message sentMessage, boolean isEndState) {
+        this(name, sentMessage);
+        this.setEndState(isEndState);
+    }
+
     public SendState(SendState s, Subject container) {
         super(s,container);
-/*        LogHelper.logInfo(container+" "+container.getParentProcess()+" "+s.sentMessageID+" "+container.getParentProcess().getMessageByUUID(s.sentMessageID));
+/*        // LogHelper.logDebug(container+" "+container.getParentProcess()+" "+s.sentMessageID+" "+container.getParentProcess().getMessageByUUID(s.sentMessageID));
         for (Message m: container.getParentProcess().getMessages()) {
-            LogHelper.logInfo(m.getUUID()+" "+m);
+            // LogHelper.logDebug(m.getUUID()+" "+m);
         }
-        LogHelper.logInfo(""+container.getParentProcess().getMessages().size());*/
+        // LogHelper.logDebug(""+container.getParentProcess().getMessages().size());*/
         if (s.sentMessageID == null) sentMessageID = null;
         else sentMessageID = container.getParentProcess().getMessageByUUID(s.sentMessageID).getUUID();
     }

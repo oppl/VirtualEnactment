@@ -126,7 +126,7 @@ public class ResultsProvidedToOthersStep extends ElaborationStep {
             }
         } else {
             Message m = (Message) availableExpectedMessages.getValue();
-            LogHelper.logInfo("retrieving "+m);
+            // LogHelper.logDebug("retrieving "+m);
             SendState newState = new SendState("Send " + m);
             processChanges.add(new AddStateCommand(subject,this.newState,newState,false));
             processChanges.add(new RemoveExpectedMessageCommand(subject, m));

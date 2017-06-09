@@ -76,7 +76,7 @@ public class XMLStore {
         }
         if (p!=null) {
             p.reconstructParentRelations();
-//            LogHelper.logInfo("XMLStore: process "+p+" read successfully (original timestamp: "+p.getTimestamp());
+//            // LogHelper.logDebug("XMLStore: process "+p+" read successfully (original timestamp: "+p.getTimestamp());
         }
         return p;
     }

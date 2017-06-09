@@ -107,24 +107,24 @@ public abstract class ElaborationStep implements WizardStep {
     }
 
     protected final void setCanAdvance(boolean canAdvance) {
-//        LogHelper.logInfo(this+": stetting canAdvance to "+canAdvance+"(nextStep is "+nextStep+")");
+//        // LogHelper.logDebug(this+": stetting canAdvance to "+canAdvance+"(nextStep is "+nextStep+")");
         this.canAdvance = canAdvance;
         if (!canAdvance) {
             owner.getFinishButton().setEnabled(false);
             owner.getNextButton().setEnabled(false);
-//            LogHelper.logInfo("All Buttons disabled");
+//            // LogHelper.logDebug("All Buttons disabled");
 
         }
         else {
             if (nextStep == null) {
                 owner.getFinishButton().setEnabled(true);
                 owner.getNextButton().setEnabled(false);
-//                LogHelper.logInfo("Finish-Button enabled");
+//                // LogHelper.logDebug("Finish-Button enabled");
             }
             else {
                 owner.getFinishButton().setEnabled(false);
                 owner.getNextButton().setEnabled(true);
-//                LogHelper.logInfo("Next-Button enabled");
+//                // LogHelper.logDebug("Next-Button enabled");
             }
         }
     }

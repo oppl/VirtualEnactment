@@ -27,23 +27,44 @@ public class Simulator {
         this.ui = ui;
     }
 
+    public Simulator(Instance instance) {
+        this.instance = new Instance(instance.getProcess());
+        this.subjectPanels = null;
+        this.ui = null;
+    }
+
+    public String getPathToState(State targetState) {
+        //LogHelper.logDebug("Simulator: retrieving path to "+targetState+" for scaffolding.");
+        LinkedList<SimulatorStep> overallSteps = new LinkedList<>();
+        findPathToState(targetState, overallSteps,0);
+        StringBuffer path = new StringBuffer();
+        for (SimulatorStep s : overallSteps) {
+            if (s.condition != null && !(s.condition instanceof MessageCondition)) path.append(s.subject+": select \""+s.condition+"\" -><br>");
+            if (!(s.state instanceof RecvState)) path.append(s.subject+": "+s.state + " -><br>");
+        }
+        return path.toString();
+
+    }
+
     private LinkedList<SimulatorStep> findOverallPathToState(State targetState) {
         LinkedList<SimulatorStep> overallSteps = new LinkedList<>();
         findPathToState(targetState, overallSteps,0);
         StringBuffer path = new StringBuffer();
         for (SimulatorStep s : overallSteps) path.append(s.subject+":"+s.state+" ("+s.condition+") -> \n");
-        LogHelper.logInfo("Simulator: found overall path: "+path.toString());
+        //LogHelper.logDebug("Simulator: found overall path: "+path.toString());
         return overallSteps;
     }
 
     public boolean simulatePathToState(State targetState) {
+        LogHelper.logInfo("Simulator: " + instance.getProcess()+": simulation started to progress to "+targetState+" in "+instance.getProcess().getSubjectWithState(targetState));
+        if (subjectPanels == null) return false;
         if (findOverallPathToState(targetState).isEmpty()) return false;
         Thread thread = new Thread(){
             public void run() {
                 LinkedList<SimulatorStep> overallSteps = findOverallPathToState(targetState);
                 delayNextStep();
                 for (SimulatorStep ss : overallSteps) {
-                    LogHelper.logInfo("Simulator: executing simulator step: " + ss.subject + " " + ss.state + " " + ss.condition);
+                    // LogHelper.logDebug("Simulator: executing simulator step: " + ss.subject + " " + ss.state + " " + ss.condition);
                     Panel subjectPanel = subjectPanels.get(ss.subject);
                     Label stateName = null;
                     Button performStep = null;
@@ -57,12 +78,12 @@ public class Simulator {
                     }
                     if (!stateName.getValue().equals(ss.state.getName())) continue;
                     Condition toBeSet = null;
-//                    LogHelper.logInfo("Simulator: currently at step index "+overallSteps.lastIndexOf(ss)+" of "+overallSteps.size()+" simulation steps");
+//                    // LogHelper.logDebug("Simulator: currently at step index "+overallSteps.lastIndexOf(ss)+" of "+overallSteps.size()+" simulation steps");
                     if (overallSteps.lastIndexOf(ss) < overallSteps.size() - 1) {
                         SimulatorStep nextSS = overallSteps.get(overallSteps.lastIndexOf(ss) + 1);
-//                        LogHelper.logInfo("Simulator: next simulator step: " + nextSS.subject + " " + nextSS.state + " " + nextSS.condition);
+//                        // LogHelper.logDebug("Simulator: next simulator step: " + nextSS.subject + " " + nextSS.state + " " + nextSS.condition);
                         if (nextSS.condition != null && nextSS.condition.toString() != "") {
-//                            LogHelper.logInfo("Simulator: selecting option "+nextSS.condition+" in "+conditions);
+//                            // LogHelper.logDebug("Simulator: selecting option "+nextSS.condition+" in "+conditions);
                             if (!(nextSS.condition instanceof MessageCondition) && conditions == null) return;
                             if (conditions != null) {
                                 toBeSet = nextSS.condition;
@@ -108,6 +129,7 @@ public class Simulator {
     private String captionBuffer = null;
 
     private void toggleLabel(Label label) {
+        if (ui == null) return;
         ui.access(new Runnable() {
             @Override
             public void run() {
@@ -140,13 +162,13 @@ public class Simulator {
         LinkedList<SimulatorStep> steps = new LinkedList<>();
         State sourceState = instance.getAvailableStateForSubject(targetSubject);
         if (sourceState == null) sourceState = targetSubject.getFirstState();
-        pathFound = findPath(targetSubject, sourceState,targetState,steps);
+        pathFound = findPath(targetSubject, sourceState,targetState,steps, new HashSet<>());
         if (!pathFound) return false;
         else {
 
             StringBuffer path = new StringBuffer();
             for (SimulatorStep s : steps) path.append(s.state+" -> ");
-            LogHelper.logInfo("Simulator: found path in subject "+targetSubject+": "+path.toString());
+            //LogHelper.logDebug("Simulator: found path in subject "+targetSubject+": "+path.toString());
 
             overallList.addAll(entryIndex,steps);
 
@@ -163,7 +185,7 @@ public class Simulator {
                     for (Message m: messages) {
                         if (requiredMessages.contains(m)) {
                             requiredMessageIsContained = true;
-//                            LogHelper.logInfo("Simulator: required Message "+m.toString()+" is contained");
+                            //LogHelper.logDebug("Simulator: required Message "+m.toString()+" is contained");
                         }
                     }
                     for (Message m: messages) {
@@ -184,9 +206,16 @@ public class Simulator {
         return true;
     }
 
-    private boolean findPath(Subject subject, State source, State target, LinkedList<SimulatorStep> steps) {
+    private boolean findPath(Subject subject, State source, State target, LinkedList<SimulatorStep> steps, Set<State> alreadyChecked) {
+        if (alreadyChecked.contains(target)) return false;
+        alreadyChecked.add(target);
         Set<State> predecessors = subject.getPredecessorStates(target);
-//        LogHelper.logInfo("Simulator: looking at "+target);
+        //LogHelper.logDebug("Simulator: looking at "+target);
+/*        LogHelper.logDebug("checking already visited ...");
+        for (SimulatorStep step: steps) {
+            LogHelper.logDebug("already contains "+step.state);
+            if (step.state.equals(target)) return false;
+        }*/
         if (source == target) {
             steps.addFirst(new SimulatorStep(subject,source,source.getNextStates().get(target)));
             return true;
@@ -195,7 +224,7 @@ public class Simulator {
         for (State predecessor: predecessors) {
             LinkedList<SimulatorStep> triedSteps = new LinkedList<>();
             triedSteps.addFirst(new SimulatorStep(subject,target,predecessor.getNextStates().get(target)));
-            boolean success = findPath(subject, source, predecessor, triedSteps);
+            boolean success = findPath(subject, source, predecessor, triedSteps, alreadyChecked);
             if (success) {
                 steps.addAll(0,triedSteps);
                 return true;

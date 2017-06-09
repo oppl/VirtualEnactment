@@ -1,5 +1,6 @@
 package at.jku.ce.CoMPArE.scaffolding.scaffolds;
 
+import at.jku.ce.CoMPArE.LogHelper;
 import at.jku.ce.CoMPArE.scaffolding.agents.ScaffoldingAgent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;

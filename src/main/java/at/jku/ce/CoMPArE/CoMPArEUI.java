@@ -92,7 +92,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         elaborationActive = false;
         doNotNotifyScaffoldingManager = false;
         stateClickListener = null;
-        currentProcess = DemoProcess.getComplexDemoProcess();
+        currentProcess = DemoProcess.getTask1Process();
         processChangeHistory = new ProcessChangeHistory();
         tracker = new GoogleAnalyticsTracker("UA-37510687-4","auto");
         tracker.extend(this);
@@ -110,7 +110,6 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
         restart = new Button("Restart Process");
-        fileStorageHandler = null;
 
         toolBar = new HorizontalLayout();
 
@@ -124,12 +123,17 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             recalculateSubjectLayout(e.getWidth());
         });
 
+        fileStorageHandler = new FileStorageHandler();
+        if (!fileStorageHandler.isIDCookieAvailable()) {
+            GroupIDEntryWindow groupIDEntryWindow = new GroupIDEntryWindow(fileStorageHandler);
+            this.getUI().addWindow(groupIDEntryWindow);
+        }
     }
 
 
     private void createBasicLayout() {
 
-//        LogHelper.logInfo("Building basic layout");
+//        LogHelper.logDebug("Building basic layout");
         mainLayoutFrame = new HorizontalLayout();
 
 //        SliderPanel scaffoldingSlider = createScaffoldingSlider(process, instance);
@@ -201,7 +205,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         visualizationTabs.addTab(overallFlow,"Flow of activities");
         visualizationTabs.addSelectedTabChangeListener( e -> {
             String selected = e.getTabSheet().getSelectedTab().getCaption();
-//            LogHelper.logInfo("Now processing visualizationTab "+selected);
+//            // LogHelper.logDebug("Now processing visualizationTab "+selected);
             if (selected != null) {
                 VerticalLayout vl = (VerticalLayout) e.getTabSheet().getSelectedTab();
                 vl.removeAllComponents();
@@ -211,19 +215,25 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 visualizeModel.setCaption(selected);
                 if (selected.equals("Interaction")) {
                     visualizeModel.showSubjectInteraction(currentProcess);
+                    LogHelper.logInfo("Visualization: " + currentProcess+": showing visualization of interaction model");
+
                 }
                 if (selected.equals("Overall")) {
                     visualizeModel.showWholeProcess(currentProcess);
                     visualizeModel.greyOutCompletedStates(currentInstance.getWholeHistory(),currentInstance.getAvailableStates().values());
+                    LogHelper.logInfo("Visualization: " + currentProcess+": showing visualization of overall model");
                 }
                 if (selected.equals("Flow of activities")) {
                     visualizeModel.showWholeProcessFlow(currentProcess);
                     visualizeModel.greyOutCompletedStates(currentInstance.getWholeHistory(),currentInstance.getAvailableStates().values());
+                    LogHelper.logInfo("Visualization: " + currentProcess+": showing visualization of overall flow-oriented model");
                 }
                 if (!selected.equals("Interaction") && !selected.equals("Overall") && !selected.equals("Flow of activities")) {
                     Subject s = currentProcess.getSubjectWithName(selected);
                     visualizeModel.showSubject(s);
                     visualizeModel.greyOutCompletedStates(currentInstance.getHistoryForSubject(s),currentInstance.getAvailableStateForSubject(s));
+                    LogHelper.logInfo("Visualization: " + currentProcess+": showing visualization of subject "+s);
+
                 }
                 vl.addComponent(visualizeModel);
                 if (onboardingActive && !doNotNotifyScaffoldingManager) {
@@ -306,6 +316,10 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
             if (b) {
                 historySliderContent.createLayout();
+                LogHelper.logInfo("HistoryVisualization: " + currentProcess +": history slider opened");
+            }
+            else {
+                LogHelper.logInfo("HistoryVisualization: " + currentProcess +": history slider closed");
             }
         }
     }
@@ -315,6 +329,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         simulate = new Button("Auto-progress");
         simulate.addClickListener( e -> {
+            LogHelper.logInfo("Simulator: " + currentProcess+": auto-progress triggered");
             selectionMode = true;
             Iterator<Component> i = visualizationTabs.iterator();
             String targetTab = new String("Interaction");
@@ -335,22 +350,32 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         restart = new Button("Restart Process");
         restart.addClickListener( e -> {
+            LogHelper.logInfo("Execution: " + currentProcess+": process restarted");
+            // LogHelper.logDebug("starting restart");
             mainLayoutFrame.removeAllComponents();
+            // LogHelper.logDebug("creating layout");
             createBasicLayout();
+            // LogHelper.logDebug("updating scaffolds for finished instance");
             scaffoldingManager.updateScaffolds(currentInstance);
+            // LogHelper.logDebug("creating new instance");
             currentInstance = new Instance(currentProcess);
+            // LogHelper.logDebug("updating scaffolds for finished step after reset");
             scaffoldingManager.updateScaffolds(currentInstance,null);
+            // LogHelper.logDebug("resetting simulator");
             simulator = new Simulator(currentInstance, subjectPanels, this);
-
+            // LogHelper.logDebug("updating UI");
             updateUI();
         });
 
         elaborationHistory = new Button("Open Process Change History");
         elaborationHistory.addClickListener( e -> {
+            LogHelper.logInfo("Elaboration: " + currentProcess +": process change history opened");
             HistoryUI historyUI = new HistoryUI(processChangeHistory);
             this.getUI().addWindow(historyUI);
             historyUI.addCloseListener( e1 -> {
                 rollbackChangesTo(historyUI.getSelectedTransaction());
+                if (historyUI.getSelectedTransaction() != null) LogHelper.logInfo("Elaboration: " + currentProcess +": rolling back changes made through elaboration. Last undone transaction: "+historyUI.getSelectedTransaction());
+                else LogHelper.logInfo("Elaboration: " + currentProcess +": process change history closed again without any changes");
             });
         });
         if (processChangeHistory.getHistory().isEmpty()) {
@@ -501,7 +526,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         }
 
         if (!currentInstance.processFinished() && currentInstance.processIsBlocked()) {
-            LogHelper.logInfo("Process blocked, offering to restart ...");
+            // LogHelper.logDebug("Process blocked, offering to restart ...");
 //             scaffoldingPanel.setVisible(false);
             restart.setVisible(true);
             if (currentInstance.isProcessHasBeenChanged()) {
@@ -520,6 +545,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             }
             Button download = new Button("Download");
             download.addClickListener( e-> {
+                LogHelper.logInfo("Download: " + currentProcess +": Download Button clicked");
                 fileStorageHandler.openDownloadWindow(this.getUI());
             });
             toolBar.addComponent(download);
@@ -527,7 +553,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         if (currentInstance.processFinished()) {
             simulate.setVisible(false);
-            LogHelper.logInfo("Process finished, offering to restart ...");
+            // LogHelper.logDebug("Process finished, offering to restart ...");
             mainLayoutFrame.removeComponent(scaffoldingPanel);
             scaffoldingPanel.setVisible(false);
             if (currentInstance.getProcess().getSubjects().size() > 0) {
@@ -549,6 +575,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                 Button download = new Button("Download");
                 download.addClickListener( e-> {
                     fileStorageHandler.openDownloadWindow(this.getUI());
+                    LogHelper.logInfo("Download: " + currentProcess +": Download Button clicked");
                 });
                 toolBar.addComponent(download);
             }
@@ -627,7 +654,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
                             if (!(condition instanceof MessageCondition)) toBeShown = true;
                         }
                         conditions.addValueChangeListener(event -> {
-//                            LogHelper.logInfo("UI: condition for subject " + s + " changed to " + event.getProperty().getValue());
+//                            // LogHelper.logDebug("UI: condition for subject " + s + " changed to " + event.getProperty().getValue());
                         });
                         if (toBeShown) panelContent.addComponent(conditions);
                     }
@@ -642,11 +669,11 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
 
         Button perform = new Button("Perform step");
         perform.addClickListener( e -> {
-//            LogHelper.logInfo("UI: clicking on perfom button for subject "+s);
+//            // LogHelper.logDebug("UI: clicking on perfom button for subject "+s);
             lastActiveSubject = s;
             Condition c = null;
             if (conditions.size() > 0) c = (Condition) conditions.getValue();
-            currentInstance.advanceStateForSubject(s, c);
+            currentInstance.advanceStateForSubject(s, c, false);
             updateUI();
             scaffoldingManager.updateScaffolds(currentInstance,currentState);
         });
@@ -674,7 +701,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
         });
 
         if (!(s.toString().equals(Subject.ANONYMOUS))) panelContent.addComponent(perform);
-        if (elaborationAvailable && currentInstance.subjectCanProgress(s)) panelContent.addComponent(elaborate);
+        if (elaborationAvailable /*&& currentInstance.subjectCanProgress(s)*/) panelContent.addComponent(elaborate);
         if (!availableMessages.isEmpty()) panelContent.addComponent(availableMessageList);
         if (!processMessageLabel.getValue().equals("")) panelContent.addComponent(processMessageLabel);
         if (s.getExpectedMessages().size()>0) {
@@ -726,6 +753,7 @@ public class CoMPArEUI extends UI implements SliderPanelListener {
             @Override
             public void windowClose(Window.CloseEvent e) {
                 Process newProcess = processSelectorUI.getSelectedProcess();
+                LogHelper.logInfo("Execution: " + newProcess +": New process loaded (former process: "+currentProcess+")");
                 if (newProcess != null) {
                     currentProcess = newProcess;
                     initialStartup = true;

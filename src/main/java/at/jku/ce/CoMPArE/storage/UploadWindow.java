@@ -134,7 +134,7 @@ public class UploadWindow extends Window {
             ZipEntry ze = zis.getNextEntry();
 
             while (ze != null) {
-//                LogHelper.logInfo("extracting file "+ze.getName());
+//                // LogHelper.logDebug("extracting file "+ze.getName());
                 String fileName = ze.getName();
                 if (!fileName.endsWith(".xml")) {
                     ze = zis.getNextEntry();
